@@ -10,6 +10,8 @@
 
 [Get started](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html) · [Documentation](https://tomwenseleers.github.io/logconNMF/reference/index.html) · [Algorithm & theory](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html)
 
+**A structured sparse nonnegative factorisation framework for ordered multichannel data.**
+
 ## Nonnegative matrix and tensor factorisation to separate overlapping peaks
 
 Hyphenated chromatography is a demanding test case for structured NMF and
@@ -79,22 +81,24 @@ interact.
   ([Cohen & Bro, 2018](https://doi.org/10.1007/978-3-319-93764-9_9);
   [Roald et al., 2022](https://doi.org/10.1137/21M1450033)).
 
-| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Noise objective | Multiple samples |
-|:--|:--|:--|:--|:--|:--|:--|
-| [NMF for GC–MS](https://doi.org/10.1016/j.talanta.2004.09.017) | Supplied externally | No hard peak-shape constraint | Both matrix factors | No | Usually Euclidean or generalized KL | Separate or concatenated fits |
-| [MCR-ALS](https://doi.org/10.1016/j.aca.2020.10.051) | Supplied; external EFA/PCA diagnostics | Optional nonnegativity, unimodality and other constraints | Optional, commonly imposed | No integrated grouped subset selection | Weighted least squares by default; Poisson MCR-LLM exists | Augmented data sets; equality/trilinearity constraints can be added |
-| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only |
-| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | Least squares | Retention drift and restricted shape variation |
-| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No integrated grouped subset selection | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint |
+| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Optimal spectral sparsity | Noise objective | Multiple samples |
+|:--|:--|:--|:--|:--|:--|:--|:--|
+| [NMF for GC–MS](https://doi.org/10.1016/j.talanta.2004.09.017) | Supplied externally | No hard peak-shape constraint | Both matrix factors | No | No | Usually Euclidean or generalized KL | Separate or concatenated fits |
+| [MCR-ALS](https://doi.org/10.1016/j.aca.2020.10.051) | Supplied; external EFA/PCA diagnostics | Optional nonnegativity, unimodality and other constraints | Optional, commonly imposed | No integrated grouped subset selection | No | Weighted least squares by default; Poisson MCR-LLM exists | Augmented data sets; equality/trilinearity constraints can be added |
+| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only |
+| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | No | Least squares | Retention drift and restricted shape variation |
+| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No integrated grouped subset selection | No | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint |
 
 ### What logconNMF adds to constrained factorisation
 
 **logconNMF estimates the number of components from the data while fitting the
 chromatographic model.** Its main design choices are:
 
-- **Grouped discovery across detector channels.** Candidate peak positions are
-  initially selected as rows of a multichannel coefficient matrix, so evidence
-  is pooled across the mass channels rather than thresholded ion by ion.
+- **Grouped discovery and optimal spectral sparsity.** Candidate peak positions
+  are selected jointly across detector channels, so evidence is pooled across
+  mass channels rather than thresholded ion by ion. Within retained components,
+  sparsity-promoting penalised regression favours parsimonious ion support and
+  hence optimal spectral sparsity.
 - **Automatic rank tuning.** Score additions, deletions and fusions by penalised
   likelihood to obtain the most parsimonious rank.
 - **Hard log-concave profiles.** Every retained elution profile is nonnegative,

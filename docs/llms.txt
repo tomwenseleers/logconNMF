@@ -6,7 +6,7 @@ Log-concave NMF.\
 Automatic rank selection.
 =========================
 
-A structured nonnegative factorisation framework for ordered
+A structured sparse nonnegative factorisation framework for ordered
 multichannel data, combining automatic rank tuning, hard log-concave
 profiles, flexible likelihoods and coupled-sample models that do not
 require trilinearity.
@@ -107,23 +107,24 @@ variation all interact.
   2018](https://doi.org/10.1007/978-3-319-93764-9_9); [Roald et al.,
   2022](https://doi.org/10.1137/21M1450033)).
 
-| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Noise objective | Multiple samples |
-|:---|:---|:---|:---|:---|:---|:---|
-| [NMF for GC–MS](https://doi.org/10.1016/j.talanta.2004.09.017) | Supplied externally | No hard peak-shape constraint | Both matrix factors | No | Usually Euclidean or generalized KL | Separate or concatenated fits |
-| [MCR-ALS](https://doi.org/10.1016/j.aca.2020.10.051) | Supplied; external EFA/PCA diagnostics | Optional nonnegativity, unimodality and other constraints | Optional, commonly imposed | No integrated grouped subset selection | Weighted least squares by default; Poisson MCR-LLM exists | Augmented data sets; equality/trilinearity constraints can be added |
-| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only |
-| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | Least squares | Retention drift and restricted shape variation |
-| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No integrated grouped subset selection | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint |
+| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Optimal spectral sparsity | Noise objective | Multiple samples |
+|:---|:---|:---|:---|:---|:---|:---|:---|
+| [NMF for GC–MS](https://doi.org/10.1016/j.talanta.2004.09.017) | Supplied externally | No hard peak-shape constraint | Both matrix factors | No | No | Usually Euclidean or generalized KL | Separate or concatenated fits |
+| [MCR-ALS](https://doi.org/10.1016/j.aca.2020.10.051) | Supplied; external EFA/PCA diagnostics | Optional nonnegativity, unimodality and other constraints | Optional, commonly imposed | No integrated grouped subset selection | No | Weighted least squares by default; Poisson MCR-LLM exists | Augmented data sets; equality/trilinearity constraints can be added |
+| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only |
+| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | No | Least squares | Retention drift and restricted shape variation |
+| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No integrated grouped subset selection | No | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint |
 
 ### What logconNMF adds to constrained factorisation
 
-01 · DISCOVERY
+01 · DISCOVERY + SPARSITY
 
-#### Grouped selection across channels
+#### Grouped selection and optimal spectral sparsity
 
-Candidate peak positions are selected jointly over detector channels,
-rather than thresholded ion by ion. Final rank moves are checked on
-every original channel.
+Candidate peak positions are selected jointly across detector channels.
+Within retained components, sparsity-promoting penalised regression
+favours parsimonious ion support and hence optimal spectral sparsity;
+final rank moves are checked on every original channel.
 
 02 · MODEL SIZE
 

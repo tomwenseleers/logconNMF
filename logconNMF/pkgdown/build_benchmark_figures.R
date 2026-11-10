@@ -17,9 +17,8 @@ read_table <- function(file) {
 }
 
 navy <- "#14273b"
-teal <- "#087e83"
-light_teal <- "#ccebea"
-vermillion <- "#d55e00"
+steelblue <- "#4682b4"
+light_grey <- "#d9d9d9"
 muted <- "#526579"
 grid_colour <- "#dfe8eb"
 
@@ -58,21 +57,19 @@ graphics::plot(
 graphics::grid(col = grid_colour, lty = 1)
 graphics::polygon(
   c(grid, rev(grid)), c(interval[, "lwr"], rev(interval[, "upr"])),
-  col = light_teal, border = NA
+  col = light_grey, border = NA
 )
 graphics::lines(
   grid, interval[, "fit"],
-  col = grDevices::adjustcolor(teal, alpha.f = 0.72), lwd = 3
+  col = "black", lwd = 3
 )
 graphics::abline(
-  0, 1, col = grDevices::adjustcolor(navy, alpha.f = 0.58),
-  lty = 2, lwd = 2
+  0, 1, col = "black", lty = 2, lwd = 2
 )
 graphics::points(
   area$data$log_true, area$data$log_estimated,
-  pch = 21, cex = 0.95,
-  col = grDevices::adjustcolor(navy, alpha.f = 0.72),
-  bg = grDevices::adjustcolor(vermillion, alpha.f = 0.62), lwd = 0.55
+  pch = 16, cex = 0.95,
+  col = grDevices::adjustcolor(steelblue, alpha.f = 0.5)
 )
 graphics::title("Peak-area accuracy of the coupled logconNMF fit",
   col.main = navy, font.main = 2, cex.main = 1.45)
@@ -87,10 +84,10 @@ graphics::legend(
   "topleft", bty = "n", inset = 0.015, cex = 0.95,
   legend = c("Matched occurrence", "Robust log-log fit",
     "95% robust prediction band", "1:1 reference"),
-  col = c(navy, teal, light_teal, navy),
-  pt.bg = c(vermillion, NA, light_teal, NA),
-  pch = c(21, NA, 15, NA), lty = c(NA, 1, NA, 2),
-  lwd = c(0.55, 3, NA, 2), pt.cex = c(1.05, 1, 1.5, 1)
+  col = c(grDevices::adjustcolor(steelblue, alpha.f = 0.5),
+    "black", light_grey, "black"),
+  pch = c(16, NA, 15, NA), lty = c(NA, 1, NA, 2),
+  lwd = c(NA, 3, NA, 2), pt.cex = c(1.35, 1, 1.5, 1)
 )
 grDevices::dev.off()
 
@@ -128,17 +125,18 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
   }, character(1L))
 
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = model, y = position)) +
-    ggplot2::geom_violin(fill = light_teal, colour = teal, scale = "width",
+    ggplot2::geom_violin(fill = light_grey, colour = "grey45", scale = "width",
       width = 0.72, adjust = 0.75, linewidth = 0.6) +
-    ggplot2::geom_point(colour = grDevices::adjustcolor(teal, alpha.f = 0.45),
-      size = 1.15, position = ggplot2::position_jitter(width = 0.20, height = 0,
+    ggplot2::geom_point(colour = steelblue, alpha = 0.55, size = 1.15,
+      position = ggplot2::position_jitter(width = 0.20, height = 0,
         seed = 23L)) +
     ggplot2::geom_linerange(data = summary_data,
       ggplot2::aes(x = model, ymin = lower, ymax = upper),
-      inherit.aes = FALSE, colour = navy, linewidth = 1.15) +
+      inherit.aes = FALSE, colour = "black", linewidth = 1.15) +
     ggplot2::geom_point(data = summary_data,
       ggplot2::aes(x = model, y = centre), inherit.aes = FALSE,
-      shape = 21, fill = "white", colour = navy, stroke = 1.0, size = 3.2) +
+      shape = 21, fill = steelblue, colour = "black", stroke = 1.0,
+      size = 3.2) +
     ggplot2::scale_y_continuous(
       breaks = transform(ticks), labels = tick_labels,
       limits = range(transform(c(scores, ticks))) + c(-0.25, 0.25),

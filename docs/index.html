@@ -76,7 +76,7 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Log-concave NMF.<br><span>Automatic rank selection.</span>
 </h1>
 <p class="l0-lead">
-A structured nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and coupled-sample models that do not require trilinearity.
+A structured sparse nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and coupled-sample models that do not require trilinearity.
 </p>
 <div class="l0-actions">
 <a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
@@ -111,15 +111,16 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <strong>Multiple samples.</strong> PARAFAC assumes trilinearity: apart from an amplitude, each compound has the same elution profile in every sample. Shifted PARAFAC adds translations but not compound- and concentration-specific broadening or tailing. Classical PARAFAC2 is more flexible, but still requires <code>t(H_s) %*% H_s = Phi</code> for every sample <code>s</code>. Retention shifts can preserve these cross-products; changing widths, tails and pairwise overlaps generally do not. Flexible and fully constrained PARAFAC2 variants relax important parts of this restriction (<a href="https://doi.org/10.1007/978-3-319-93764-9_9" class="external-link">Cohen &amp; Bro, 2018</a>; <a href="https://doi.org/10.1137/21M1450033" class="external-link">Roald et al., 2022</a>).</li>
 </ul>
 <div class="l0-method-comparison">
-<table style="width:100%;" class="table">
+<table class="table">
 <colgroup>
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
+<col width="12%">
 </colgroup>
 <thead><tr>
 <th align="left">Method (typical cited formulation)</th>
@@ -127,6 +128,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <th align="left">Chromatographic profile</th>
 <th align="left">Nonnegativity</th>
 <th align="left">Joint component selection across channels</th>
+<th align="left">Optimal spectral sparsity</th>
 <th align="left">Noise objective</th>
 <th align="left">Multiple samples</th>
 </tr></thead>
@@ -137,6 +139,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">No hard peak-shape constraint</td>
 <td align="left">Both matrix factors</td>
 <td align="left">No</td>
+<td align="left">No</td>
 <td align="left">Usually Euclidean or generalized KL</td>
 <td align="left">Separate or concatenated fits</td>
 </tr>
@@ -146,6 +149,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">Optional nonnegativity, unimodality and other constraints</td>
 <td align="left">Optional, commonly imposed</td>
 <td align="left">No integrated grouped subset selection</td>
+<td align="left">No</td>
 <td align="left">Weighted least squares by default; Poisson MCR-LLM exists</td>
 <td align="left">Augmented data sets; equality/trilinearity constraints can be added</td>
 </tr>
@@ -155,6 +159,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">One shared profile per compound; shifted variant adds translation</td>
 <td align="left">Optional</td>
 <td align="left">No</td>
+<td align="left">No</td>
 <td align="left">Least squares in standard algorithms</td>
 <td align="left">Exact trilinearity, or sample shifts only</td>
 </tr>
@@ -163,6 +168,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">Usually supplied; multi-rank diagnostic automation has been proposed</td>
 <td align="left">Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape</td>
 <td align="left">Historically not on every mode</td>
+<td align="left">No</td>
 <td align="left">No</td>
 <td align="left">Least squares</td>
 <td align="left">Retention drift and restricted shape variation</td>
@@ -174,6 +180,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling</td>
 <td align="left">Can constrain every mode</td>
 <td align="left">No integrated grouped subset selection</td>
+<td align="left">No</td>
 <td align="left">Least squares in the cited formulation</td>
 <td align="left">More flexible drift and shape variation, with an explicit coupling penalty or constraint</td>
 </tr>
@@ -186,12 +193,12 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 </h3>
 <div class="l0-feature-grid">
 <div>
-<span class="l0-feature-number">01 · DISCOVERY</span>
+<span class="l0-feature-number">01 · DISCOVERY + SPARSITY</span>
 <h4>
-Grouped selection across channels
+Grouped selection and optimal spectral sparsity
 </h4>
 <p>
-Candidate peak positions are selected jointly over detector channels, rather than thresholded ion by ion. Final rank moves are checked on every original channel.
+Candidate peak positions are selected jointly across detector channels. Within retained components, sparsity-promoting penalised regression favours parsimonious ion support and hence optimal spectral sparsity; final rank moves are checked on every original channel.
 </p>
 </div>
 <div>
