@@ -155,6 +155,22 @@ spectra use every original channel.
 
 Each spectrum is displayed on a square-root relative-intensity scale.
 
+### Beer volatiles: compound-specific log-concave peak shapes
+
+A beer-headspace window provides a more demanding real-data example. Narrow,
+partially overlapping volatiles occur alongside a broad, strongly asymmetric
+acid peak. Instead of forcing one common PSF on every compound, the final
+factors act as compound-specific log-concave effective peak-shape functions:
+they can be narrow, broad or strongly asymmetric while remaining nonnegative
+and single-peaked. The associated spectra are estimated jointly from all 518
+mass channels.
+
+[![Beer-headspace chromatogram with fitted compound-specific log-concave profiles](reference/figures/gcms-data2-traces.png)](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html#beer-volatiles-and-a-broad-acid-peak)
+
+Observed ion traces are shown in grey; coloured curves show the fitted
+compound contributions. Component 17 captures the broad asymmetric acid signal
+without imposing its shape on the narrower neighbouring peaks.
+
 ## Coupled log-concave NMF for multiple samples
 
 For related matrices, logconNMF fits

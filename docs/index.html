@@ -273,6 +273,13 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <img src="reference/figures/gcms-data1-decomposition.png" alt="Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons"><div class="figcaption">Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons</div>
 </div>
 <p>Each spectrum is displayed on a square-root relative-intensity scale.</p>
+<div class="section level3">
+<h3 id="beer-volatiles-compound-specific-log-concave-peak-shapes">Beer volatiles: compound-specific log-concave peak shapes<a class="anchor" aria-label="anchor" href="#beer-volatiles-compound-specific-log-concave-peak-shapes"></a>
+</h3>
+<p>A beer-headspace window provides a more demanding real-data example. Narrow, partially overlapping volatiles occur alongside a broad, strongly asymmetric acid peak. Instead of forcing one common PSF on every compound, the final factors act as compound-specific log-concave effective peak-shape functions: they can be narrow, broad or strongly asymmetric while remaining nonnegative and single-peaked. The associated spectra are estimated jointly from all 518 mass channels.</p>
+<p><a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html#beer-volatiles-and-a-broad-acid-peak" class="external-link"><img src="reference/figures/gcms-data2-traces.png" alt="Beer-headspace chromatogram with fitted compound-specific log-concave profiles"></a></p>
+<p>Observed ion traces are shown in grey; coloured curves show the fitted compound contributions. Component 17 captures the broad asymmetric acid signal without imposing its shape on the narrower neighbouring peaks.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="coupled-log-concave-nmf-for-multiple-samples">Coupled log-concave NMF for multiple samples<a class="anchor" aria-label="anchor" href="#coupled-log-concave-nmf-for-multiple-samples"></a>
