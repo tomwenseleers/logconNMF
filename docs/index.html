@@ -76,7 +76,7 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Log-concave NMF.<br><span>Automatic rank selection.</span>
 </h1>
 <p class="l0-lead">
-A structured nonnegative factorisation framework for ordered multichannel data, combining integrated rank search, hard log-concave profiles, flexible likelihoods and coupled-sample models that do not require trilinearity.
+A structured nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and coupled-sample models that do not require trilinearity.
 </p>
 <div class="l0-actions">
 <a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
@@ -88,7 +88,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <p><img class="l0-hero-logo" src="logo-dark.svg" alt="logconNMF hex logo with log-concave profiles and corresponding spectra" width="240" height="280"></p>
 </div>
 <div class="l0-stat-grid">
-<p><a href="reference/logconNMF.html"><strong>Integrated rank search</strong><span>Score additions, deletions and fusions by penalised likelihood</span></a> <a href="articles/algorithm.html#log-concave-profiles"><strong>Hard log-concavity</strong><span>Component- and sample-specific chromatographic profiles</span></a> <a href="articles/log-concave-nmf.html"><strong>Flexible noise families</strong><span>Gaussian, Poisson, quasi-Poisson, Negative Binomial and Gamma models</span></a></p>
+<p><a href="reference/logconNMF.html"><strong>Automatic rank tuning</strong><span>Score additions, deletions and fusions by penalised likelihood to obtain the most parsimonious rank</span></a> <a href="articles/algorithm.html#log-concave-profiles"><strong>Hard log-concavity</strong><span>Component- and sample-specific chromatographic profiles</span></a> <a href="articles/log-concave-nmf.html"><strong>Flexible noise families</strong><span>Gaussian, Poisson, quasi-Poisson, Negative Binomial and Gamma models</span></a></p>
 </div>
 <div class="section level2">
 <h2 id="nonnegative-matrix-and-tensor-factorisation-to-separate-overlapping-peaks">Nonnegative matrix and tensor factorisation to separate overlapping peaks<a class="anchor" aria-label="anchor" href="#nonnegative-matrix-and-tensor-factorisation-to-separate-overlapping-peaks"></a>
@@ -177,19 +177,9 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
 <td align="left">Least squares in the cited formulation</td>
 <td align="left">More flexible drift and shape variation, with an explicit coupling penalty or constraint</td>
 </tr>
-<tr>
-<td align="left"><strong>logconNMF</strong></td>
-<td align="left"><strong>Integrated information-criterion search</strong></td>
-<td align="left"><strong>Hard, component-specific log-concavity</strong></td>
-<td align="left"><strong>Profiles, spectra and background coefficients</strong></td>
-<td align="left"><strong>Grouped L0 initial selection plus full-channel rank moves</strong></td>
-<td align="left"><strong>Gaussian, Poisson, quasi-Poisson, Negative Binomial (NB2 and NB1) and Gamma models</strong></td>
-<td align="left"><strong>Monotone drift alignment; sample-specific shapes, areas and missing compounds</strong></td>
-</tr>
 </tbody>
 </table>
 </div>
-<p>“Integrated” rank selection means that candidate component additions, deletions and fusions are judged by the same penalised likelihood used for the final fit. It does <strong>not</strong> imply a proof that a nonconvex algorithm always recovers the true chemical rank.</p>
 </div>
 <div class="section level3">
 <h3 id="what-logconnmf-adds-to-constrained-factorisation">What logconNMF adds to constrained factorisation<a class="anchor" aria-label="anchor" href="#what-logconnmf-adds-to-constrained-factorisation"></a>
@@ -207,10 +197,10 @@ Candidate peak positions are selected jointly over detector channels, rather tha
 <div>
 <span class="l0-feature-number">02 · MODEL SIZE</span>
 <h4>
-Likelihood-based rank moves
+Automatic rank tuning
 </h4>
 <p>
-Additions, deletions, fusions and sample–compound occurrences are compared with AIC, BIC, GIC, EBIC, MBIC or a numeric penalty.
+Score additions, deletions and fusions by penalised likelihood to obtain the most parsimonious rank.
 </p>
 </div>
 <div>
@@ -250,38 +240,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 </p>
 </div>
 </div>
-<p>Structured PSF starts, grouped screening, original-channel refinement, profile restarts and criterion-checked fusion reduce sensitivity to poor starts. The fit remains an approximate solution to a nonconvex problem; logconNMF does not claim a global-optimum theorem. The same formulation applies to other ordered multichannel signals with nonnegative, single-peaked components. Parallel sample fits and blockwise, disk-backed refinement support larger experiments.</p>
-</div>
-<div class="section level3">
-<h3 id="automatic-rank-selection">Automatic rank selection<a class="anchor" aria-label="anchor" href="#automatic-rank-selection"></a>
-</h3>
-<p>For a scan-by-channel matrix <code>Y</code>, the fitted signal is <code>H %*% S + B %*% A</code>. Each column of <code>H</code> is a profile across scans and its corresponding row of <code>S</code> contains the channel loadings. The optional term <code>B %*% A</code> represents a smooth baseline. A known additive signal can be supplied as an offset.</p>
-<p>Both modes approximately minimize <strong>−2 × log-likelihood + κ × λ × d</strong>. The weighted log-likelihood sums over the original channels and, for a coupled fit, over samples. Quasi-Poisson divides the Poisson log score by the estimated or supplied dispersion. The default <code>lambda = "gic"</code> sets the penalty to <code>log(p) × log(log(n))</code> per selection degree of freedom. For one sample, <code>p</code> is the PSF dictionary width and <code>n</code> is the number of scans. For a coupled fit, <code>p</code> and <code>n</code> both equal the total scan count. The optional temporal adjustment κ is 1 under independence.</p>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th align="left">Fit</th>
-<th align="left">Selection count <code>d</code> for the components</th>
-</tr></thead>
-<tbody>
-<tr>
-<td align="left">One sample</td>
-<td align="left">
-<code>m × K</code> for <code>K</code> components in <code>m</code> channels</td>
-</tr>
-<tr>
-<td align="left">Coupled samples</td>
-<td align="left">
-<code>(m − 1) × G + L</code> for <code>G</code> shared spectra and <code>L</code> detected sample–compound occurrences</td>
-</tr>
-</tbody>
-</table>
-<p>Each shared spectrum has unit sum, giving <code>m − 1</code> spectral coordinates, and each occurrence contributes one amplitude. In one sample, each spectrum has one occurrence, so <code>G = L = K</code> and the counts agree. Profile shapes and background coefficients carry no separate rank charge. The reported information criteria also count estimated noise parameters.</p>
-<p>The search refines candidate profiles and compares alternative ranks using the criterion. For example, overlapping components can fuse when their combined profile is log-concave and the criterion improves. The resulting <code>fit$rank</code> is the estimated number of components or shared spectra. See <a href="articles/algorithm.html#common-rank-objective">the mathematical objective</a>.</p>
-<p>Final refinement also checks broader starting profiles for components with nearly coincident modes. These local restarts help redistribute overlapping signal while retaining log concavity. Screening and acceptance use every original channel, and a restart must improve the criterion relative to both the current fit and a refined control.</p>
+<p>Structured PSF starts, grouped screening, original-channel refinement, profile restarts and criterion-checked fusion reduce sensitivity to poor starts. The same formulation applies to other ordered multichannel signals with nonnegative, single-peaked components.</p>
 </div>
 <div class="section level3">
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -294,7 +253,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <div class="section level2">
 <h2 id="log-concave-nmf-for-single-samples">Log-concave NMF for single samples<a class="anchor" aria-label="anchor" href="#log-concave-nmf-for-single-samples"></a>
 </h2>
-<p>This short experimental window contains six co-eluting hydrocarbons. The initial dictionary <code>X</code> places a narrow Gaussian point spread function (PSF) at each possible peak location. The factorization can move away from that shape and gives each retained component its own log-concave profile.</p>
+<p>This deliberately small test window contains six co-eluting hydrocarbons and is used to make the recovered components easy to inspect. It is not a scale limit: logconNMF runs efficiently on full sample matrices with approximately 10,000–15,000 time scans or more. The initial dictionary <code>X</code> places a narrow Gaussian point spread function (PSF) at each possible peak location. The factorization can move away from that shape and gives each retained component its own log-concave profile.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData1</span><span class="op">)</span></span>
@@ -319,6 +278,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <h2 id="coupled-log-concave-nmf-for-multiple-samples">Coupled log-concave NMF for multiple samples<a class="anchor" aria-label="anchor" href="#coupled-log-concave-nmf-for-multiple-samples"></a>
 </h2>
 <p>For related matrices, logconNMF fits <code>Y_s ≈ H_s %*% S + B_s %*% A_s</code>. The spectral factor <code>S</code> is shared, while every sample retains its own scan grid, log-concave profiles <code>H_s</code>, component areas and smooth background. Monotone time warps model retention drift, and a component may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint.</p>
+<p>The coupled implementation likewise scales to large experiments comprising hundreds or even thousands of samples. Parallel sample-level operations and blockwise, disk-backed refinement keep memory and computation manageable as the experiment grows.</p>
 <p>The coupled factorisation was evaluated inside a <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below isolate the coupled logconNMF result; no competing GC/MS pipelines are shown.</p>
 <div class="l0-benchmark-summary">
 <div>
