@@ -253,8 +253,16 @@ with 100 reference compounds, 1,200 scans and 258 channels per sample.
 Its 769 true sample–compound occurrences include absent compounds,
 concentration-dependent broadening, retention drift, a shark-fin-shaped
 acid, a smooth experimental background and quasi-Poisson noise. The
-plots below isolate the coupled logconNMF result; no competing GC/MS
-pipelines are shown.
+plots below summarise the coupled logconNMF result. On this benchmark,
+its recovery and reconstruction metrics are exceptionally strong: among
+the purpose-built workflows tested, it achieves the highest sensitivity,
+peak-level F1, ion-support F1, spectral cosine, profile cosine and
+peak-area agreement. Taken together, these results are nothing short of
+spectacular, including for the broad shark-fin-shaped acid and the
+smallest peak-size quartile. The [full GCMSprime
+benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
+reports the complete comparison with MS-DIAL, mzmine GC-EI, eRah, AMDIS,
+xcms + CAMERA and MSHub.
 
 **733 / 769**true occurrences recovered
 

@@ -19,6 +19,7 @@ read_table <- function(file) {
 navy <- "#14273b"
 teal <- "#087e83"
 light_teal <- "#ccebea"
+vermillion <- "#d55e00"
 muted <- "#526579"
 grid_colour <- "#dfe8eb"
 
@@ -59,12 +60,20 @@ graphics::polygon(
   c(grid, rev(grid)), c(interval[, "lwr"], rev(interval[, "upr"])),
   col = light_teal, border = NA
 )
+graphics::lines(
+  grid, interval[, "fit"],
+  col = grDevices::adjustcolor(teal, alpha.f = 0.72), lwd = 3
+)
+graphics::abline(
+  0, 1, col = grDevices::adjustcolor(navy, alpha.f = 0.58),
+  lty = 2, lwd = 2
+)
 graphics::points(
   area$data$log_true, area$data$log_estimated,
-  pch = 16, cex = 0.72, col = grDevices::adjustcolor(teal, alpha.f = 0.50)
+  pch = 21, cex = 0.95,
+  col = grDevices::adjustcolor(navy, alpha.f = 0.72),
+  bg = grDevices::adjustcolor(vermillion, alpha.f = 0.62), lwd = 0.55
 )
-graphics::lines(grid, interval[, "fit"], col = teal, lwd = 3)
-graphics::abline(0, 1, col = navy, lty = 2, lwd = 2)
 graphics::title("Peak-area accuracy of the coupled logconNMF fit",
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(
@@ -78,9 +87,10 @@ graphics::legend(
   "topleft", bty = "n", inset = 0.015, cex = 0.95,
   legend = c("Matched occurrence", "Robust log-log fit",
     "95% robust prediction band", "1:1 reference"),
-  col = c(teal, teal, light_teal, navy),
-  pch = c(16, NA, 15, NA), lty = c(NA, 1, NA, 2),
-  lwd = c(NA, 3, NA, 2), pt.cex = c(0.9, 1, 1.5, 1)
+  col = c(navy, teal, light_teal, navy),
+  pt.bg = c(vermillion, NA, light_teal, NA),
+  pch = c(21, NA, 15, NA), lty = c(NA, 1, NA, 2),
+  lwd = c(0.55, 3, NA, 2), pt.cex = c(1.05, 1, 1.5, 1)
 )
 grDevices::dev.off()
 

@@ -38,8 +38,6 @@ math[display="block"] { max-width:100%; overflow-x:auto; padding:.4rem 0; }
 .l0-method-comparison table { display:table; min-width:76rem; margin:0; font-size:.8rem; }
 .l0-method-comparison th:first-child,.l0-method-comparison td:first-child { position:sticky; left:0; z-index:1; min-width:12rem; background:#fff; box-shadow:1px 0 #d7e6e9; }
 .l0-method-comparison thead th:first-child { z-index:2; background:#edf7f7; }
-.l0-method-comparison tbody tr:last-child td { background:#e9f7f5; border-top:2px solid #14989d; }
-.l0-method-comparison tbody tr:last-child td:first-child { background:#e9f7f5; }
 @media (max-width:767.98px) { .template-home .row > aside { width:calc(100% - 1rem); } }
 img { max-width:100%; height:auto; }
 .caption,figcaption { font-size:.88rem; color:var(--l0-muted); }
