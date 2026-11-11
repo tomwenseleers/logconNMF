@@ -71,7 +71,7 @@ support is inferred from its fitted peak masses and blind support defaults
 to 41 scans. \code{kernel_est} supplies a vector or one kernel row per window.
 \code{maxiter=8L} and \code{tol=1e-3} control blind iterations; \code{maxiter=0L} returns
 the supplied kernel design directly. \code{fit} is a named list of additional
-\code{\link[=l0glmBlindDeco]{l0glmBlindDeco()}} fitting options, such as \code{IC} or \code{relaxed}.
+\code{\link[=l0glmBlindDeco]{l0glmBlindDeco()}} fitting options, such as \code{IC}.
 Standard controls include \code{n_peaks=NULL}, \code{baseline_df=NULL},
 \code{baseline_tau=0.05}, \code{peak_snr=5}, \code{peak_height=NULL},
 \code{peak_min_distance=NULL}, \code{support_fraction=0.005}, \code{psf_mass=0.999} and

@@ -218,7 +218,7 @@ This is a compound-count model-selection convention. The IC methods use
 complexity count; it is distinct from counting every free profile ordinate.
 
 \strong{Initialization and local updates.} A variance-matched grouped Poisson
-working fit supplies candidate components, using \code{\link[L0glm:l0glmFit]{l0glmFit()}} with relaxed
+working fit supplies candidate components, using \code{\link[L0glm:l0glmFit]{l0glmFit()}} with criterion-checked support
 refitting and compulsory background columns. The subsequent updates use
 the specified family's exact score and likelihood. For a spectral
 coefficient or profile ordinate, the conditional mean is

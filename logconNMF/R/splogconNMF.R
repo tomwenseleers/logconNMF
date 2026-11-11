@@ -51,7 +51,7 @@ slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores, screen_factor
   fit <- l0glmFit(design, pmax(Y, 0), family = poisson("identity"),
     weights = working_weights, offset = offset, lambda = scalar * screen_factor,
     nonnegative = TRUE, intercept = FALSE, always.include = p + seq_len(q),
-    relaxed = TRUE, grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
+    grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
     normalize = "none", ncores = ncores)
   beta <- as.matrix(coef(fit));keep <- which(rowSums(beta[seq_len(p), , drop = FALSE]) > 0)
   H <- X[, keep, drop = FALSE];S <- beta[keep, , drop = FALSE]
@@ -296,7 +296,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' complexity count; it is distinct from counting every free profile ordinate.
 #'
 #' **Initialization and local updates.** A variance-matched grouped Poisson
-#' working fit supplies candidate components, using [l0glmFit()] with relaxed
+#' working fit supplies candidate components, using [l0glmFit()] with criterion-checked support
 #' refitting and compulsory background columns. The subsequent updates use
 #' the specified family's exact score and likelihood. For a spectral
 #' coefficient or profile ordinate, the conditional mean is

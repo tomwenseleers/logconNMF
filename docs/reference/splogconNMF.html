@@ -308,7 +308,7 @@ This is a compound-count model-selection convention. The IC methods use
 \(mK\) plus the number of estimated shared noise parameters as their
 complexity count; it is distinct from counting every free profile ordinate.</p>
 <p><strong>Initialization and local updates.</strong> A variance-matched grouped Poisson
-working fit supplies candidate components, using <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> with relaxed
+working fit supplies candidate components, using <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> with criterion-checked support
 refitting and compulsory background columns. The subsequent updates use
 the specified family's exact score and likelihood. For a spectral
 coefficient or profile ordinate, the conditional mean is

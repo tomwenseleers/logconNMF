@@ -295,13 +295,13 @@ distinct from counting every free profile ordinate.
 **Initialization and local updates.** A variance-matched grouped Poisson
 working fit supplies candidate components, using
 [`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
-with relaxed refitting and compulsory background columns. The subsequent
-updates use the specified family's exact score and likelihood. For a
-spectral coefficient or profile ordinate, the conditional mean is
-\\\mu_i=r_i+x_i b\\, with the other components fixed in \\r_i\\. If
-\\g_i\\ and \\I_i\>0\\ are the negative log-likelihood score and a
-positive working curvature, a nonnegative quadratic proposal is
-\$\$b^+=\max\left\\0,b-\frac{\sum_i w_i x_i g_i} {\sum_i w_i x_i^2
+with criterion-checked support refitting and compulsory background
+columns. The subsequent updates use the specified family's exact score
+and likelihood. For a spectral coefficient or profile ordinate, the
+conditional mean is \\\mu_i=r_i+x_i b\\, with the other components fixed
+in \\r_i\\. If \\g_i\\ and \\I_i\>0\\ are the negative log-likelihood
+score and a positive working curvature, a nonnegative quadratic proposal
+is \$\$b^+=\max\left\\0,b-\frac{\sum_i w_i x_i g_i} {\sum_i w_i x_i^2
 I_i}\right\\.\$\$ Backtracking checks the actual loss, with an explicit
 zero-boundary check. Poisson and quasipoisson use a specialized
 bracketed scalar likelihood solve. Background terms use small

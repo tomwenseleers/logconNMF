@@ -473,7 +473,7 @@ spolo_sweep <- function(model, d, cycles, ncores = 8L) {
         weights=t(W),offset=t(residual),start=matrix(pmax(h,max(h)*1e-8),nrow=1L),
         prior.mean=if(prior_strength>0) matrix(h,nrow=1L) else NULL,
         lambda=prior_strength,nonnegative=TRUE,intercept=FALSE,normalize="none",
-        grouped=FALSE,relaxed=FALSE,maxit=4L,thresh=0,tol=1e-7,ncores=ncores,
+        grouped=FALSE,local.search=FALSE,maxit=4L,thresh=0,tol=1e-7,ncores=ncores,
         control.solver=list(.nuisance=FALSE))
       raw <- as.numeric(coef(fit));st$fit_calls["profile"] <- st$fit_calls["profile"]+1L
     } else raw <- slcn_profile(a$Y, a$mu, h, s, ctx$spec$kind,

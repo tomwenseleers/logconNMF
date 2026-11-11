@@ -246,7 +246,6 @@ system.time(fit.mc <- l0nnPois(
   gcmsData1,
   lambda = "gic",
   grouped = TRUE,
-  relaxed = TRUE,
   parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))

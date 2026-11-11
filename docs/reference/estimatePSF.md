@@ -114,7 +114,7 @@ estimatePSF(
   returns the supplied kernel design directly. `fit` is a named list of
   additional
   [`l0glmBlindDeco()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmBlindDeco.md)
-  fitting options, such as `IC` or `relaxed`. Standard controls include
+  fitting options, such as `IC`. Standard controls include
   `n_peaks=NULL`, `baseline_df=NULL`, `baseline_tau=0.05`, `peak_snr=5`,
   `peak_height=NULL`, `peak_min_distance=NULL`,
   `support_fraction=0.005`, `psf_mass=0.999` and

@@ -44,7 +44,7 @@
 #'   to 41 scans. `kernel_est` supplies a vector or one kernel row per window.
 #'   `maxiter=8L` and `tol=1e-3` control blind iterations; `maxiter=0L` returns
 #'   the supplied kernel design directly. `fit` is a named list of additional
-#'   [l0glmBlindDeco()] fitting options, such as `IC` or `relaxed`.
+#'   [l0glmBlindDeco()] fitting options, such as `IC`.
 #'   Standard controls include `n_peaks=NULL`, `baseline_df=NULL`,
 #'   `baseline_tau=0.05`, `peak_snr=5`, `peak_height=NULL`,
 #'   `peak_min_distance=NULL`, `support_fraction=0.005`, `psf_mass=0.999` and
