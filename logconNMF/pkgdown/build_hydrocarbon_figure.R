@@ -47,7 +47,7 @@ dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
 grDevices::png(
   output,
   width = 2100,
-  height = 1300,
+  height = 1400,
   res = 180,
   bg = "white",
   type = if (.Platform$OS.type == "windows") "windows" else "cairo"
@@ -65,7 +65,7 @@ graphics::layout(
 top_max <- max(corrected, profiles)
 raw_ticks <- pretty(c(0, top_max), n = 5L)
 raw_ticks <- raw_ticks[raw_ticks >= 0 & raw_ticks <= top_max]
-graphics::par(mar = c(4.2, 6.0, 3.4, 1.2), mgp = c(3.9, .9, 0), las = 1)
+graphics::par(mar = c(5.2, 6.0, 3.4, 1.2), mgp = c(3.6, .9, 0), las = 1)
 graphics::matplot(
   time,
   sqrt(corrected),
@@ -100,7 +100,7 @@ for (k in seq_len(fit$rank)) {
 for (k in seq_len(fit$rank)) {
   s <- spectra[k, ]
   keep <- which(s >= .1)
-  graphics::par(mar = c(3.6, 3.8, 2.5, .8), mgp = c(2.2, .72, 0), las = 1)
+  graphics::par(mar = c(3.8, 3.8, 3.1, .8), mgp = c(2.25, .72, 0), las = 1)
   graphics::plot(
     range(mass),
     c(0, 100),

@@ -1,3 +1,5 @@
+# Source-mode testthat runs always load setup files; define the shared numerical
+# fixture here so filtered and full test runs use the same environment.
 polish_example <- function(kind = 2L, distinct = FALSE, precision = 1) {
   n <- 120L;m <- 4L
   profile <- function(center, sigma, left, right) {

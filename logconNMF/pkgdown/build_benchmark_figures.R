@@ -217,7 +217,7 @@ grDevices::png(
   file.path(output_dir, "simultaneous-benchmark-elution-profiles.png"),
   width = 1900L, height = 950L, res = 160L
 )
-graphics::par(mfrow = c(1L, 2L), mar = c(4.6, 5.2, 5.2, 0.8),
+graphics::par(mfrow = c(1L, 2L), mar = c(4.6, 6.8, 5.2, 0.8),
   oma = c(2.3, 0.2, 1.5, 0.2), mgp = c(3.0, 0.8, 0), las = 1)
 for (kind in c("Regular", "Acid")) {
   data <- profiles[profiles$kind == kind, , drop = FALSE]
@@ -232,8 +232,10 @@ for (kind in c("Regular", "Acid")) {
   main <- if (kind == "Regular") "Regular EMG-like component" else
     "Shark-fin-shaped acid component"
   graphics::plot(NA, xlim = window, ylim = c(0, ymax),
-    xlab = "Retention index", ylab = "Total-ion intensity", main = main,
+    xlab = "", ylab = "", main = main,
     col.main = navy, font.main = 2, cex.main = 1.25)
+  graphics::mtext("Retention index", side = 1, line = 2.8)
+  graphics::mtext("Total-ion intensity", side = 2, line = 4.4, las = 0)
   graphics::grid(col = grid_colour, lty = 1)
   draw_curves(fitted, 1, 1.8)
   draw_curves(known, 2, 1.35)
