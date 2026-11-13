@@ -18,8 +18,8 @@
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection">
-<meta name="description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.">
-<meta property="og:description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.">
+<meta name="description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits simultaneous models that share loadings across samples on their original observation grids.">
+<meta property="og:description" content="Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits simultaneous models that share loadings across samples on their original observation grids.">
 <meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
 <meta property="og:image:alt" content="logconNMF hex logo with log-concave profiles and corresponding spectra">
 </head>
@@ -46,7 +46,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="articles/estimate-psf.html">Estimate PSFs</a></li>
     <li><a class="dropdown-item" href="articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
-    <li><a class="dropdown-item" href="articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="articles/simultaneous-nmf.html">Simultaneous multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="articles/algorithm.html">Algorithm &amp; theory</a></li>
@@ -76,13 +76,13 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Log-concave NMF.<br><span>Automatic rank selection.</span>
 </h1>
 <p class="l0-lead">
-A structured sparse nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and coupled-sample models that do not require trilinearity.
+A structured sparse nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and simultaneous multisample models that do not require trilinearity.
 </p>
 <div class="l0-actions">
 <a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
 </div>
 <p class="l0-hero-note">
-R · Grouped L0 discovery · Penalised likelihood · Flexible sample coupling
+R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharing
 </p>
 </div>
 <p><img class="l0-hero-logo" src="logo-dark.svg" alt="logconNMF hex logo with log-concave profiles and corresponding spectra" width="240" height="280"></p>
@@ -225,7 +225,7 @@ Every retained profile is nonnegative, contiguous and log-concave during fitting
 PSF starts, individual final shapes
 </h4>
 <p>
-<code><a href="reference/estimatePSF.html">estimatePSF()</a></code> estimates a constant or time-varying PSF for initialisation; each final compound occurrence receives its own width and tail.
+<code><a href="reference/estimatePSF.html">estimatePSF()</a></code> estimates a constant or time-varying PSF for initialisation. The constant blind-PSF model is a constrained lag-separable convolutive NMF; each final compound occurrence nevertheless receives its own width and tail.
 </p>
 </div>
 <div>
@@ -247,7 +247,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 </p>
 </div>
 </div>
-<p>Structured PSF starts, grouped screening, original-channel refinement, profile restarts and criterion-checked fusion reduce sensitivity to poor starts. The same formulation applies to other ordered multichannel signals with nonnegative, single-peaked components.</p>
+<p>Structured PSF starts, grouped screening, original-channel refinement, profile restarts and criterion-checked fusion reduce sensitivity to poor starts. The time-varying PSF is locally rather than globally convolutional, and the final factorisation does not constrain profiles to shifted copies of a common kernel. The same formulation applies to other ordered multichannel signals with nonnegative, single-peaked components.</p>
 </div>
 <div class="section level3">
 <h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -289,11 +289,11 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 </div>
 </div>
 <div class="section level2">
-<h2 id="coupled-log-concave-nmf-for-multiple-samples">Coupled log-concave NMF for multiple samples<a class="anchor" aria-label="anchor" href="#coupled-log-concave-nmf-for-multiple-samples"></a>
+<h2 id="simultaneous-log-concave-nmf-for-multiple-samples">Simultaneous log-concave NMF for multiple samples<a class="anchor" aria-label="anchor" href="#simultaneous-log-concave-nmf-for-multiple-samples"></a>
 </h2>
-<p>For related matrices, logconNMF fits <code>Y_s ≈ H_s %*% S + B_s %*% A_s</code>. The spectral factor <code>S</code> is shared, while every sample retains its own scan grid, log-concave profiles <code>H_s</code>, component areas and smooth background. Monotone time warps model retention drift, and a component may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint.</p>
-<p>The coupled implementation likewise scales to large experiments comprising hundreds or even thousands of samples. Parallel sample-level operations and blockwise, disk-backed refinement keep memory and computation manageable as the experiment grows.</p>
-<p>The coupled factorisation was evaluated inside a <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below summarise the coupled logconNMF result. On this benchmark, its recovery and reconstruction metrics are exceptionally strong: among the purpose-built workflows tested, it achieves the highest sensitivity, peak-level F1, ion-support F1, spectral cosine, profile cosine and peak-area agreement. Taken together, these results are nothing short of spectacular, including for the broad shark-fin-shaped acid and the smallest peak-size quartile. The <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">full GCMSprime benchmark</a> reports the complete comparison with MS-DIAL, mzmine GC-EI, eRah, AMDIS, xcms + CAMERA and MSHub.</p>
+<p>For related matrices, logconNMF performs <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al. (2009)</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea (2008)</a> and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>: <code>Y_s ≈ H_s %*% S + B_s %*% A_s</code>. The spectral factor <code>S</code> is shared exactly, while every sample retains its own scan grid, log-concave profiles <code>H_s</code>, component areas and smooth background. Monotone time warps model retention drift, and a component may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint. It is a hard shared-factor model, rather than the cross-modality mapping formulation exemplified by <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">coupled NMF</a>.</p>
+<p>The simultaneous implementation likewise scales to large experiments comprising hundreds or even thousands of samples. Parallel sample-level operations and blockwise, disk-backed refinement keep memory and computation manageable as the experiment grows.</p>
+<p>The simultaneous factorisation was evaluated inside a <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below summarise the simultaneous logconNMF result. On this benchmark, its recovery and reconstruction metrics are exceptionally strong: among the purpose-built workflows tested, it achieves the highest sensitivity, peak-level F1, ion-support F1, spectral cosine, profile cosine and peak-area agreement. Taken together, these results are nothing short of spectacular, including for the broad shark-fin-shaped acid and the smallest peak-size quartile. The <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">full GCMSprime benchmark</a> reports the complete comparison with MS-DIAL, mzmine GC-EI, eRah, AMDIS, xcms + CAMERA and MSHub.</p>
 <div class="l0-benchmark-summary">
 <div>
 <strong>733 / 769</strong><span>true occurrences recovered</span>
@@ -310,21 +310,21 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 </div>
 <p>Area and spectral summaries are conditional on correctly matched true components and should therefore be read together with occurrence recovery and false-positive counts (90 in this benchmark). Ion-support F1 applies the same 0.1% of base-peak cutoff to the reference and recovered spectra.</p>
 <div class="l0-benchmark-grid">
-<figure class="l0-wide"><a href="reference/figures/coupled-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/coupled-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the coupled logconNMF fit with robust regression and prediction band"></a>
+<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a>
 <figcaption>
 Peak-area accuracy: robust adjusted R² 0.996 and median absolute area error 2.00% over 733 matched occurrences.
-</figcaption></figure><figure><a href="reference/figures/coupled-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/coupled-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from coupled logconNMF"></a>
+</figcaption></figure><figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a>
 <figcaption>
 Spectral accuracy: median cosine similarity 0.999942 for 733 correctly matched true spectra.
-</figcaption></figure><figure><a href="reference/figures/coupled-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/coupled-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for coupled logconNMF"></a>
+</figcaption></figure><figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a>
 <figcaption>
 Spectral sparsity: mean within-spectrum ion-support F1 0.939 under the shared 0.1% cutoff.
-</figcaption></figure><figure class="l0-wide"><a href="reference/figures/coupled-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/coupled-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the coupled fit"></a>
+</figcaption></figure><figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a>
 <figcaption>
 Representative sample-specific profiles: solid inferred curves and dashed ground truth for a regular component and the acid-shaped component.
 </figcaption></figure>
 </div>
-<p>The <a href="articles/coupled-nmf.html">coupled tutorial</a> explains shared spectra, sample-specific profiles, missing compounds and the common rank-selection objective in detail.</p>
+<p>The <a href="articles/simultaneous-nmf.html">simultaneous-NMF tutorial</a> explains shared spectra, sample-specific profiles, missing compounds and the common rank-selection objective in detail.</p>
 </div>
 <div class="section level2">
 <h2 id="choose-a-workflow">Choose a workflow<a class="anchor" aria-label="anchor" href="#choose-a-workflow"></a>
@@ -352,7 +352,7 @@ Representative sample-specific profiles: solid inferred curves and dashed ground
 <tr>
 <td align="left">Share spectra across related samples</td>
 <td align="left">
-<a href="articles/coupled-nmf.html">Coupled log-concave NMF</a> with <code><a href="reference/logconNMF.html">logconNMF()</a></code>. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples.</td>
+<a href="articles/simultaneous-nmf.html">Simultaneous log-concave NMF</a> with <code><a href="reference/logconNMF.html">logconNMF()</a></code>. Each sample retains its own scan grid, peak shapes and areas. Components may be absent from individual samples.</td>
 </tr>
 </tbody>
 </table>
@@ -373,6 +373,17 @@ Representative sample-specific profiles: solid inferred curves and dashed ground
 <li>van Stokkum IHM, Mullen KM, Mihaleva VV (2009). <a href="https://doi.org/10.1016/j.chemolab.2008.10.004" class="external-link">Global analysis of multiple gas chromatography–mass spectrometry (GC/MS) data sets: A method for resolution of co-eluting components with comparison to MCR-ALS.</a>
 </li>
 <li>Lavoie FB, Braidy N, Gosselin R (2016). <a href="https://doi.org/10.1016/j.chemolab.2016.02.006" class="external-link">Including noise characteristics in MCR to improve mapping and component extraction from spectral images.</a>
+</li>
+</ul>
+<p><strong>Simultaneous, coupled and convolutive NMF</strong></p>
+<ul>
+<li>Cichocki A, Zdunek R, Phan AH, Amari S-I (2009). <a href="https://doi.org/10.1002/9780470747278" class="external-link"><em>Nonnegative Matrix and Tensor Factorizations: Applications to Exploratory Multi-way Data Analysis and Blind Source Separation</em>.</a>
+</li>
+<li>Badea L (2008). <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Extracting gene expression profiles common to colon and pancreatic adenocarcinoma using simultaneous nonnegative matrix factorization.</a>
+</li>
+<li>Lee CM, Mudaliar MAV, Haggart DR, Wolf CR, Miele G, Vass JK, Higham DJ (2012). <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Simultaneous non-negative matrix factorization for multiple large scale gene expression datasets in toxicology.</a>
+</li>
+<li>Duren Z, Chen X, Zamanighomi M, et al. (2018). <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">Integrative analysis of single-cell genomics data by coupled nonnegative matrix factorizations.</a>
 </li>
 </ul>
 <p><strong>Tensor factorisation for chromatographic data</strong></p>

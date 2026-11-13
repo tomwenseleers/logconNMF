@@ -3,8 +3,8 @@
 Separates overlapping ordered signals into nonnegative log-concave
 profiles and channel loadings, with automatic rank selection, optional
 smooth backgrounds and flexible noise models. Estimates constant or
-time-varying point spread functions and fits coupled models that share
-loadings across samples on their original observation grids.
+time-varying point spread functions and fits simultaneous models that
+share loadings across samples on their original observation grids.
 
 ## Details
 

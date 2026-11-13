@@ -2,24 +2,13 @@
 
 Estimate ordered, nonnegative log-concave profiles and channel loadings
 from one signal or several related samples. The information criterion
-selects the number of components. Coupled fits share spectra while
+selects the number of components. Simultaneous fits share spectra while
 retaining the original scan grids and estimating a separate profile and
 area for each occurrence.
 
 ## Usage
 
 ``` r
-# S3 method for class 'coupledNMF'
-plot(
-  x,
-  type = c("areas", "spectra", "profiles"),
-  sample = NULL,
-  compounds = seq_len(min(6L, nrow(x$P))),
-  ...
-)
-
-sampleNMF(object, sample = 1L)
-
 logconNMF(
   y,
   X = NULL,
@@ -46,43 +35,25 @@ coef(object, sample = NULL, normalize = c("none", "l1"), ...)
 
 # S3 method for class 'logconNMF_fit'
 fitted(object, sample = 1L, ...)
+
+# S3 method for class 'simultaneousNMF'
+plot(
+  x,
+  type = c("areas", "spectra", "profiles"),
+  sample = NULL,
+  compounds = seq_len(min(6L, nrow(x$P))),
+  ...
+)
+
+sampleNMF(object, sample = 1L)
 ```
 
 ## Arguments
 
-- x:
-
-  A fitted coupled model for plotting.
-
-- type:
-
-  Plot sample areas, common spectra or aligned compound profiles.
-
-- sample:
-
-  Sample index or ID. For a single matrix use `1L` or `"sample1"`. In
-  [`coef()`](https://rdrr.io/r/stats/coef.html), `NULL` returns the
-  common spectra for a coupled fit. In
-  [`plot()`](https://rdrr.io/r/graphics/plot.default.html), `NULL`
-  displays all samples.
-
-- compounds:
-
-  Compound indices to display in a coupled plot.
-
-- ...:
-
-  Further arguments passed to the underlying extractor.
-
-- object:
-
-  A fitted model returned by `logconNMF()`. `sampleNMF()` takes a
-  coupled model.
-
 - y:
 
   A numeric scans-by-channels matrix or vector for one sample, or a list
-  of at least two sample descriptions for a coupled fit. Each
+  of at least two sample descriptions for a simultaneous fit. Each
   description contains `y` and increasing `time`, with optional `X`,
   `background`, `fit`, `weights`, `offset`, `exposure`, `dispersion`,
   `theta`, `sample_id`, `group`, `small_width` and `edges`. Supply
@@ -95,8 +66,8 @@ fitted(object, sample = 1L, ...)
   Candidate profile matrix for a single sample, such as the sparse
   design from
   [`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md).
-  In a coupled fit, supply it in each sample description or let the
-  coupled initializer estimate it.
+  In a simultaneous fit, supply it in each sample description or let the
+  simultaneous initializer estimate it.
 
 - family:
 
@@ -117,9 +88,9 @@ fitted(object, sample = 1L, ...)
   An information criterion (`"gic"`, `"aic"`, `"bic"`, `"ebic"` or
   `"mbic"`) or a nonnegative numeric penalty per selection degree of
   freedom, before any temporal information adjustment. With `m`
-  channels, a single component incurs `m * lambda`; in a coupled fit a
-  shared spectrum incurs `(m - 1) * lambda` and an occurrence incurs
-  `lambda`.
+  channels, a single component incurs `m * lambda`; in a simultaneous
+  fit a shared spectrum incurs `(m - 1) * lambda` and an occurrence
+  incurs `lambda`.
 
 - background:
 
@@ -150,7 +121,7 @@ fitted(object, sample = 1L, ...)
   Maximum channel groups or a saved
   [`channelGroups()`](https://tomwenseleers.github.io/logconNMF/reference/channelGroups.md)
   map. `"auto"` uses the original channels for a single sample and up to
-  32 common groups for a coupled fit. `FALSE` or `NULL` disables
+  32 common groups for a simultaneous fit. `FALSE` or `NULL` disables
   aggregation. Final fits use every original channel.
 
 - weights:
@@ -167,20 +138,20 @@ fitted(object, sample = 1L, ...)
 - correlation:
 
   Lag-one working information adjustment. `NULL` uses the fitter's
-  default (`"auto"` for one sample and `"none"` for coupled fits), or
-  `control$correlation` if supplied for a coupled fit.
+  default (`"auto"` for one sample and `"none"` for simultaneous fits),
+  or `control$correlation` if supplied for a simultaneous fit.
 
 - ncores:
 
   Total core budget. `NULL` uses the detected physical core count.
-  Coupled fits divide that budget between sample workers and their
+  Simultaneous fits divide that budget between sample workers and their
   native threads, with one BLAS thread per worker.
 
 - control:
 
   Named controls. See
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
-  for one matrix. For a coupled fit, `cycles=10L` and
+  for one matrix. For a simultaneous fit, `cycles=10L` and
   `initial_cycles=5L` set refinement limits, `rounds=3L` sets the number
   of grouping rounds, and `q=64L` sets the local profile update
   resolution. The default `rt_tolerance=NULL` and
@@ -203,26 +174,55 @@ fitted(object, sample = 1L, ...)
 
 - path:
 
-  New directory for the sample store and fitted factors in a coupled
-  fit. `NULL` uses a temporary directory.
+  New directory for the sample store and fitted factors in a
+  simultaneous fit. `NULL` uses a temporary directory.
 
 - align:
 
-  Estimate monotone time warps for a coupled fit.
+  Estimate monotone time warps for a simultaneous fit.
 
 - method:
 
-  Spectral distance for matching coupled samples, either `"cosine"` or
-  `"hellinger"`.
+  Spectral distance for matching simultaneous samples, either `"cosine"`
+  or `"hellinger"`.
 
 - verbose:
 
   Print stage timings, objective changes and compound counts.
 
+- object:
+
+  A fitted model returned by `logconNMF()`. `sampleNMF()` takes a
+  simultaneous model.
+
+- sample:
+
+  Sample index or ID. For a single matrix use `1L` or `"sample1"`. In
+  [`coef()`](https://rdrr.io/r/stats/coef.html), `NULL` returns the
+  common spectra for a simultaneous fit. In
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html), `NULL`
+  displays all samples.
+
 - normalize:
 
   `"none"` returns amplitude-scaled loadings. `"l1"` returns unit-sum
   rows.
+
+- ...:
+
+  Further arguments passed to the underlying extractor.
+
+- x:
+
+  A fitted simultaneous model for plotting.
+
+- type:
+
+  Plot sample areas, common spectra or aligned compound profiles.
+
+- compounds:
+
+  Compound indices to display in a simultaneous plot.
 
 ## Value
 
@@ -232,7 +232,7 @@ components or shared components. Use
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
 in either mode. [`fitted()`](https://rdrr.io/r/stats/fitted.values.html)
-returns one sample on its original grid. A coupled fit includes
+returns one sample on its original grid. A simultaneous fit includes
 consensus spectra `P`, sample-by-compound `areas`, `compounds`,
 `alignment`, `paths`, `store`, `channel_groups` and `parallel` thread
 allocation.
@@ -251,7 +251,7 @@ dictionary width and number of scans for a single matrix. For a sample
 list the preset uses \\p=n=\sum_s n_s\\.
 
 For one matrix with \\m\\ channels and \\K\\ components, \\d=mK\\. For a
-coupled model, \\d=(m-1)G+L\\, where \\G\\ is the number of shared
+simultaneous model, \\d=(m-1)G+L\\, where \\G\\ is the number of shared
 unit-sum spectra and \\L\\ counts the detected sample–component
 occurrences. Each spectrum contributes \\m-1\\ coordinates and each
 occurrence contributes one amplitude. Setting \\G=L=K\\ gives the
@@ -259,7 +259,7 @@ single-sample count. Profiles have contiguous support and a concave
 logarithm on the positive interval. Profile shapes and smooth
 backgrounds carry no additional rank charge.
 
-The coupled `objective` and reported information criteria such as
+The simultaneous `objective` and reported information criteria such as
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
 also count estimated noise parameters. The single-sample `objective`
 drops that constant charge for a fixed noise specification. Local
@@ -268,13 +268,14 @@ provide the approximate rank search. Final single-sample refinement also
 tries broader local starts for nearly coincident profiles, with
 acceptance checked on every original channel against the current fit and
 a refined control. This is enabled by default. For one matrix,
-`control=list(profile_restarts=FALSE)` disables the pass; coupled fits
-pass this option through `control$initial`.
+`control=list(profile_restarts=FALSE)` disables the pass; simultaneous
+fits pass this option through `control$initial`.
 
-For a coupled fit, put `background`, `weights`, `offset` and any initial
-`fit` in the sample descriptions. `path = NULL` uses a new temporary
-sample store. Supply a persistent path when saving a coupled fit for
-later use, and retain the store with the fitted object.
+For a simultaneous fit, put `background`, `weights`, `offset` and any
+initial `fit` in the sample descriptions. `path = NULL` uses a new
+temporary sample store. Supply a persistent path when saving a
+simultaneous fit for later use, and retain the store with the fitted
+object.
 
 Numeric penalties in `logconNMF()` have the same scale in both modes. To
 reproduce a single-sample
@@ -282,7 +283,15 @@ reproduce a single-sample
 call using a numeric compound penalty, divide that penalty by the number
 of channels.
 
-## Coupled models
+## Simultaneous models
+
+Ignoring backgrounds, exposures and offsets, the sample means have the
+shared-factor form \\M_s = Q_s P\\, with one common spectral factor
+\\P\\ and sample-specific profile/area factors \\Q_s\\. This follows the
+simultaneous-NMF terminology of [Cichocki et al.
+(2009)](https://doi.org/10.1002/9780470747278) and [Lee et al.
+(2012)](https://doi.org/10.1371/journal.pone.0048238). It does not
+introduce a separate cross-modality coupling matrix.
 
 Samples can supply separate background bases, known exposures and noise
 parameters. With a time warp \\u=w_s(t)\\, binwise Jacobian \\J\\, and

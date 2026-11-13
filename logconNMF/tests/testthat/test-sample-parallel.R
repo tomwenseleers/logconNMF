@@ -14,12 +14,12 @@ test_that("channel maps conserve counts and support saved reference maps", {
 
 test_that("native sample slices retain original rows and channel order", {
   Y<-matrix(as.double(seq_len(300)),30,10);path<-paste0(tempfile(),"_\u00e9.bin")
-  on.exit(unlink(path));cpl_write_matrix_file(Y,path)
+  on.exit(unlink(path));sinmf_write_matrix_file(Y,path)
   for(rows in list(4:12,c(19L,3L,5L)))for(channels in list(1:10,c(9L,2L)))
-    expect_identical(cpl_read_matrix_file(path,30,10,channels,rows),Y[rows,channels,drop=FALSE])
-  expect_error(cpl_read_matrix_file(path,30,10,11L),"Invalid matrix slice")
+    expect_identical(sinmf_read_matrix_file(path,30,10,channels,rows),Y[rows,channels,drop=FALSE])
+  expect_error(sinmf_read_matrix_file(path,30,10,11L),"Invalid matrix slice")
   con<-file(path,"wb");writeBin(1,con);close(con)
-  expect_error(cpl_read_matrix_file(path,30,10),"Truncated")
+  expect_error(sinmf_read_matrix_file(path,30,10),"Truncated")
 })
 
 test_that("sample scheduling preserves fits for every supported noise family", {
@@ -44,16 +44,16 @@ test_that("sample scheduling preserves fits for every supported noise family", {
       weights=seq(.8,1.2,length.out=n),offset=rep(0,n),sample_id=paste0("s",s),small_width=9))
     paths<-c(tempfile(),tempfile());on.exit(unlink(paths,recursive=TRUE),add=TRUE)
     ctl<-list(initial_cycles=1L,cycles=1L,rounds=1L,q=12L)
-    one<-coupledNMF(desc,family=family,path=paths[1],precluster=3L,ncores=1L,control=ctl)
-    two<-coupledNMF(desc,family=family,path=paths[2],precluster=one$channel_groups,ncores=2L,control=ctl)
+    one<-simultaneousNMF(desc,family=family,path=paths[1],precluster=3L,ncores=1L,control=ctl)
+    two<-simultaneousNMF(desc,family=family,path=paths[2],precluster=one$channel_groups,ncores=2L,control=ctl)
     expect_equal(two$P,one$P,tolerance=1e-10,info=family)
     expect_equal(two$areas,one$areas,tolerance=1e-10,info=family)
     expect_equal(GIC(two),GIC(one),tolerance=1e-10,info=family)
     expect_equal(fitted(two),fitted(one),tolerance=1e-10,info=family)
     expect_null(two$runtime);expect_null(two$store$cache)
     expect_equal(two$parallel,list(ncores=2L,workers=2L,threads=1L))
-    expect_true(all(two$history$delta[two$history$stage=="coupled_cycle"]<=1e-4))
-    expect_equal(cpl_sample_data(two$store,1L,aggregate=TRUE),aggregateChannels(Y,two$channel_groups),ignore_attr=TRUE)
+    expect_true(all(two$history$delta[two$history$stage=="simultaneous_cycle"]<=1e-4))
+    expect_equal(sinmf_sample_data(two$store,1L,aggregate=TRUE),aggregateChannels(Y,two$channel_groups),ignore_attr=TRUE)
   }
 })
 
@@ -67,8 +67,8 @@ test_that("parallel initialization retains each sample's sparse PSF", {
   paths<-c(tempfile(),tempfile());on.exit(unlink(paths,recursive=TRUE))
   control<-list(cycles=0L,initial_cycles=0L,rounds=0L,
     initial=list(profile_cycles=0L,original_cleanup=FALSE))
-  one<-coupledNMF(desc,path=paths[1],precluster=FALSE,ncores=1L,control=control)
-  two<-coupledNMF(desc,path=paths[2],precluster=FALSE,ncores=2L,control=control)
+  one<-simultaneousNMF(desc,path=paths[1],precluster=FALSE,ncores=1L,control=control)
+  two<-simultaneousNMF(desc,path=paths[2],precluster=FALSE,ncores=2L,control=control)
   expect_equal(one$P,two$P,tolerance=1e-10)
   expect_equal(one$areas,two$areas,tolerance=1e-10)
   expect_equal(one$L,4L)
@@ -84,8 +84,8 @@ test_that("numeric AIC weight agrees with the named criterion during initializat
   paths<-c(tempfile(),tempfile());on.exit(unlink(paths,recursive=TRUE))
   control<-list(cycles=0L,initial_cycles=0L,rounds=0L,
     initial=list(profile_cycles=0L,original_cleanup=FALSE))
-  named<-coupledNMF(desc,lambda='aic',path=paths[1],precluster=FALSE,ncores=1L,control=control)
-  numeric<-coupledNMF(desc,lambda=2,path=paths[2],precluster=FALSE,ncores=1L,control=control)
+  named<-simultaneousNMF(desc,lambda='aic',path=paths[1],precluster=FALSE,ncores=1L,control=control)
+  numeric<-simultaneousNMF(desc,lambda=2,path=paths[2],precluster=FALSE,ncores=1L,control=control)
   expect_equal(named$P,numeric$P,tolerance=1e-12)
   expect_equal(named$areas,numeric$areas,tolerance=1e-12)
   expect_equal(named$objective,numeric$objective,tolerance=1e-12)
@@ -100,15 +100,15 @@ test_that("incremental fusion candidates equal a complete proposal rebuild", {
   occ<-data.frame(root=seq_len(K),sample=rep(1:4,each=6),
     anchor=rep(seq_len(6),4)+runif(K,-.04,.04),area=runif(K,1,5))
   for(method in c("cosine","hellinger")) {
-    z<-state;o<-occ;queue<-cpl_coupled_proposals(z,method,occ=o)
+    z<-state;o<-occ;queue<-sinmf_proposals(z,method,occ=o)
     for(step in 1:15) {
       if(!nrow(queue))break
       edge<-queue[1,];q<-queue[-1,,drop=FALSE]
       weight<-vapply(c(edge$a,edge$b),function(g)sum(o$area[o$root==g]),0)
       z$P[edge$a,]<-as.numeric(crossprod(weight,z$P[c(edge$a,edge$b),,drop=FALSE]))/sum(weight)
       z$map[z$map==edge$b]<-edge$a;o$root[o$root==edge$b]<-edge$a
-      queue<-cpl_refresh_proposals(z,method,o,z$P,q,c(edge$a,edge$b))
-      expected<-cpl_coupled_proposals(z,method,occ=o)
+      queue<-sinmf_refresh_proposals(z,method,o,z$P,q,c(edge$a,edge$b))
+      expected<-sinmf_proposals(z,method,occ=o)
       rownames(queue)<-rownames(expected)<-NULL
       if(nrow(expected))expect_equal(queue,expected,tolerance=0)else expect_equal(nrow(queue),0L)
     }

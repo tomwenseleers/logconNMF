@@ -18,13 +18,13 @@
 - [`l0glmDecoEstKernel()`](https://tomwenseleers.github.io/logconNMF/reference/l0glmDecoEstKernel.md)
   : Estimate the PSF given a spike train estimate via L0-penalised GLMs
 
-## Sparse and coupled factorization
+## Sparse and simultaneous factorization
 
-- [`plot(`*`<coupledNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
-  [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
-  [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`coef(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`fitted(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`plot(`*`<simultaneousNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   : Fit a log-concave factorization with automatic rank selection
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)

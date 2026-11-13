@@ -14,8 +14,8 @@
   Recover nonnegative profiles and loadings with flexible noise models,
   hard shape constraints and automatic rank selection.
 
-- [Coupled multisample log-concave NMF with automatic best rank
-  tuning](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md):
+- [Simultaneous multisample log-concave NMF with automatic best rank
+  tuning](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.md):
 
   Share spectra across aligned samples with log-concave profiles,
   missing compounds and flexible noise models.

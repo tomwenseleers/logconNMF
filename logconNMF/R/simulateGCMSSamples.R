@@ -1,11 +1,11 @@
-cpl_emg_density <- function(t, center, sigma, tail) {
+gcms_emg_density <- function(t, center, sigma, tail) {
   if(tail<=1e-10) return(dnorm(t,center,sigma))
   z <- (t-center)/sigma-sigma/tail
   exp(-log(tail)+(center-t)/tail+sigma^2/(2*tail^2)+pnorm(z,log.p=TRUE))
 }
 
-cpl_emg_start <- function(sigma, tail) {
-  density <- function(t) cpl_emg_density(t, 0, sigma, tail)
+gcms_emg_start <- function(sigma, tail) {
+  density <- function(t) gcms_emg_density(t, 0, sigma, tail)
   mode <- stats::optimize(density, c(-3*sigma, 3*sigma+tail), maximum=TRUE)
   stats::uniroot(function(t) density(t)-0.01*mode$objective,
     c(-12*sigma, mode$maximum))$root
@@ -117,7 +117,7 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
   }
   base_sigma<-1.8*(if(preset=="same")rep(1,k) else 1+width_time*centers/duration)
   base_tail<-.8*(if(preset=="same")rep(1,k) else 1+tail_time*centers/duration)
-  leading<-centers+vapply(seq_len(k),function(j)cpl_emg_start(base_sigma[j],base_tail[j]),0)
+  leading<-centers+vapply(seq_len(k),function(j)gcms_emg_start(base_sigma[j],base_tail[j]),0)
   backgrounds<-matrix(runif(4L*m,.5,2),4L,m)
   result<-vector("list",samples)
   for(s in seq_len(samples)) {
@@ -133,7 +133,7 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
       tau<-base_tail[j]
       if(preset%in%c("time_area","time_area_acid")){sigma<-sigma*(1+width_area*large);tau<-tau*(1+tail_area*large)}
       concentration_shift<-if(preset%in%c("time_area","time_area_acid")) rt_area*large else 0
-      center<-leading[j]-cpl_emg_start(sigma,tau)+concentration_shift
+      center<-leading[j]-gcms_emg_start(sigma,tau)+concentration_shift
       acid_start<-centers[j]-22+concentration_shift
       acid_width<-22*(1+width_area*large)
       acid_tail<-.8*(1+tail_area*large)
@@ -141,7 +141,7 @@ simulateGCMSSamples <- function(samples=3L,n=600L,k=26L,S=NULL,
       for(q in seq_len(8L)) {
         t<-utils::head(edges,-1L)+(q-.5)/8*e
         h<-if(j%in%acid) ifelse(t>=acid_start & t<=acid_start+acid_width+8*acid_tail,
-          pmin(1,pmax(0,(t-acid_start)/acid_width))*exp(-pmax(t-acid_start-acid_width,0)/acid_tail),0) else cpl_emg_density(t,center,sigma,tau)
+          pmin(1,pmax(0,(t-acid_start)/acid_width))*exp(-pmax(t-acid_start-acid_width,0)/acid_tail),0) else gcms_emg_density(t,center,sigma,tau)
         H[,j]<-H[,j]+h/8
       }
       H[,j]<-H[,j]/sum(H[,j]*e);sigmas[j]<-sigma;tails[j]<-tau

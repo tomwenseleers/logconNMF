@@ -1,4 +1,4 @@
-# Coupled multisample log-concave NMF with automatic best rank tuning
+# Simultaneous multisample log-concave NMF with automatic best rank tuning
 
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 combines related multichannel samples into a common spectral library
@@ -6,6 +6,16 @@ while fitting each sample’s own compound areas, peak shapes and smooth
 background. Samples retain their measured time grids. The model
 accommodates retention-time drift, concentration-dependent widths and
 tails, and compounds that occur in only some samples.
+
+Ignoring backgrounds and offsets, the model is Y_s\approx Q_sP, with one
+shared nonnegative spectral factor P and sample-specific profile/area
+factors Q_s. This is **simultaneous NMF** in the terminology of
+[Cichocki et al.](https://doi.org/10.1002/9780470747278),
+[Badea](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf)
+and [Lee et al.](https://doi.org/10.1371/journal.pone.0048238). It is an
+exact shared-factor model, not a cross-modality factorisation joined
+through a separate mapping matrix, as in one prominent use of [coupled
+NMF](https://doi.org/10.1073/pnas.1805681115).
 
 ``` r
 
@@ -23,10 +33,10 @@ matrix `X` or an independent
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 fit. Matrices can be supplied through RDS paths. Observations, factors,
 weights and offsets are stored per sample. Each independent worker loads
-one sample into memory. During coupling, original observations and
-factor checkpoints remain in per-sample files, and spectral updates read
-the original ions in blocks. Shared spectra and compact alignment
-summaries stay in memory.
+one sample into memory. During simultaneous refinement, original
+observations and factor checkpoints remain in per-sample files, and
+spectral updates read the original ions in blocks. Shared spectra and
+compact alignment summaries stay in memory.
 
 ## Three samples, shared spectra and different peak shapes
 
@@ -65,19 +75,20 @@ occurrences remain `NA` in the area table.
 | All compounds present | 26 | 26 | 78 | 78 | 0 | 20.80 s |
 | 50% presence probability | 23 | 23 | 37 | 37 | 0 | 17.87 s |
 
-Each timing includes independent fits, alignment, grouping and coupled
-refinement, with a budget of eight logical cores and one BLAS thread per
-worker on an Intel Core i9-11950H. Simulation is excluded. Recovery uses
-the nearest normalized true spectrum, with cosine similarity at least
-0.9 and a single match per compound within each sample.
+Each timing includes independent fits, alignment, grouping and
+simultaneous refinement, with a budget of eight logical cores and one
+BLAS thread per worker on an Intel Core i9-11950H. Simulation is
+excluded. Recovery uses the nearest normalized true spectrum, with
+cosine similarity at least 0.9 and a single match per compound within
+each sample.
 
 ![Aligned component profiles across the three
-samples](figures/coupled-profiles.png)
+samples](figures/simultaneous-profiles.png)
 
 Aligned component profiles across the three samples
 
 ![Recovered occurrence areas and absent
-compounds](figures/coupled-areas.png)
+compounds](figures/simultaneous-areas.png)
 
 Recovered occurrence areas and absent compounds
 
@@ -85,7 +96,7 @@ Shared spectra are estimated from all detected occurrences of a
 compound:
 
 ![Shared spectra recovered from all sample
-occurrences](figures/coupled-spectra.png)
+occurrences](figures/simultaneous-spectra.png)
 
 Shared spectra recovered from all sample occurrences
 
@@ -144,8 +155,8 @@ plot(fit, type="areas")
 ```
 
 An absent occurrence stays `NA`; this model does not fill undetected
-compounds. The [coupled model and
-algorithm](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#coupled-model)
+compounds. The [simultaneous model and
+algorithm](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#simultaneous-model)
 give the exact likelihood, Jacobian, normalization, pooled spectral
 updates and rank charge.
 
@@ -177,7 +188,7 @@ store. Keep that store alongside saved fitted objects.
 The native kernel pools spectral scores over sparse profile supports and
 uses OpenMP over channels. On 14,949 scans, 518 channels and 325
 profiles, one pooled score pass took 0.16 s; the [implementation
-details](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#coupled-algorithm)
+details](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#simultaneous-algorithm)
 describe the update and threading structure.
 
 For sample-group directories, acquisition ordering, alkane standards and

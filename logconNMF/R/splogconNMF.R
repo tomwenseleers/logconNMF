@@ -561,7 +561,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   clustering_seconds <- aggregate_seconds <- 0;aggregation <- NULL
   if (is.null(start) && !is.null(precluster) && !identical(precluster, FALSE) && precluster < m) {
     clustering_seconds <- system.time(cl <- if(!is.null(channel_map))
-      list(clusterids=cpl_channel_index(channel_map,if(is.null(colnames(Y)))as.character(seq_len(m))else colnames(Y))) else
+      list(clusterids=sinmf_channel_index(channel_map,if(is.null(colnames(Y)))as.character(seq_len(m))else colnames(Y))) else
       glmCluster(pmax(Y, 0), family = poisson("identity"),
       weights = W, method = "poissondist", size_fac = colSums(pmax(Y, 0)),
       rowbins = if (all(W == 1)) 5L else 1L,

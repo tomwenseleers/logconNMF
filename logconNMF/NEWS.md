@@ -31,7 +31,7 @@
   controls. Complete local supports, reconstructed original-channel means
   and separate initialization/final-criterion ledgers make each decision auditable.
 
-## Coupled multisample models
+## Simultaneous multisample models
 
 * `logconNMF()` with a sample list shares spectra across samples with sample-specific profiles,
   areas and backgrounds, allowing compounds to be absent from individual samples.
@@ -40,7 +40,7 @@
 * Disk-backed observations, batched native spectral scores, shared row inputs,
   sparse profiles and OpenMP support efficient fitting.
 
-* A total logical-core budget schedules independent fits and coupled sample
+* A total logical-core budget schedules independent fits and simultaneous sample
   updates concurrently, with deterministic spectral reductions and restored
   BLAS settings. Native block reads retain bounded original-channel buffers.
 * Common saved channel maps, a compact aggregate cache and full-channel
@@ -59,5 +59,5 @@
   intensities or smooth reference matrices on the original intensity scale.
 * Experimental multichannel signals, profile and spectral plots, factor
   extraction, likelihood and information-criterion methods.
-* Tutorials follow PSF estimation, single-sample factorization and coupled
+* Tutorials follow PSF estimation, single-sample factorization and simultaneous
   factorization; a separate mathematical article gives objectives and pseudocode.

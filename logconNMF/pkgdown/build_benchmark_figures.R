@@ -43,7 +43,7 @@ padding <- 0.04 * diff(limits)
 limits <- limits + c(-padding, padding)
 
 grDevices::png(
-  file.path(output_dir, "coupled-benchmark-area-accuracy.png"),
+  file.path(output_dir, "simultaneous-benchmark-area-accuracy.png"),
   width = 1600L, height = 1080L, res = 160L
 )
 graphics::par(mar = c(5.2, 5.5, 5.0, 1.4), mgp = c(3.25, 0.85, 0),
@@ -71,7 +71,7 @@ graphics::points(
   pch = 16, cex = 0.95,
   col = grDevices::adjustcolor(steelblue, alpha.f = 0.5)
 )
-graphics::title("Peak-area accuracy of the coupled logconNMF fit",
+graphics::title("Peak-area accuracy of the simultaneous logconNMF fit",
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(
   sprintf(
@@ -107,14 +107,14 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
     answer
   }
   data <- data.frame(
-    model = "Coupled logconNMF",
+    model = "Simultaneous logconNMF",
     score = scores,
     position = transform(scores)
   )
   quartiles <- stats::quantile(scores, c(0.25, 0.75), names = FALSE)
   centre <- statistic(scores)
   summary_data <- data.frame(
-    model = "Coupled logconNMF",
+    model = "Simultaneous logconNMF",
     lower = transform(quartiles[[1L]]),
     upper = transform(quartiles[[2L]]),
     centre = transform(centre)
@@ -171,7 +171,7 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
 distribution_plot(
   hits$spectral_cosine,
   ticks = c(0.5, 0.7, 0.9, 0.99, 0.999, 0.9999, 0.99999, 0.999999),
-  file = "coupled-benchmark-spectral-accuracy.png",
+  file = "simultaneous-benchmark-spectral-accuracy.png",
   title = "Accuracy of recovered spectra",
   axis = "Spectral cosine similarity (logit scale)",
   statistic = stats::median,
@@ -183,7 +183,7 @@ distribution_plot(
 distribution_plot(
   hits$spectral_F1,
   ticks = c(0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1),
-  file = "coupled-benchmark-spectral-sparsity.png",
+  file = "simultaneous-benchmark-spectral-sparsity.png",
   title = "Accuracy of spectral sparsity",
   axis = "Within-spectrum ion-support F1 (logit scale)",
   statistic = mean,
@@ -214,7 +214,7 @@ draw_curves <- function(data, line_type, line_width) {
 }
 
 grDevices::png(
-  file.path(output_dir, "coupled-benchmark-elution-profiles.png"),
+  file.path(output_dir, "simultaneous-benchmark-elution-profiles.png"),
   width = 1900L, height = 950L, res = 160L
 )
 graphics::par(mfrow = c(1L, 2L), mar = c(4.6, 5.2, 5.2, 0.8),
@@ -245,7 +245,7 @@ graphics::mtext(
   "Solid: inferred profiles | dashed: ground truth | blue: smallest true area | red: largest true area",
   side = 1, outer = TRUE, line = 0.65, cex = 0.98, col = muted
 )
-graphics::mtext("Representative profile recovery across the 16-sample coupled fit",
+graphics::mtext("Representative profile recovery across the 16-sample simultaneous fit",
   side = 3, outer = TRUE, line = 0.4, cex = 1.35, font = 2, col = navy)
 grDevices::dev.off()
 

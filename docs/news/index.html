@@ -20,7 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
     <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
-    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/simultaneous-nmf.html">Simultaneous multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -62,11 +62,11 @@
 <li>Contained broad-peak fragments are compared with equally refined unmerged controls. Complete local supports, reconstructed original-channel means and separate initialization/final-criterion ledgers make each decision auditable.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="coupled-multisample-models-0-1-0-9000">Coupled multisample models<a class="anchor" aria-label="anchor" href="#coupled-multisample-models-0-1-0-9000"></a></h3>
+<h3 id="simultaneous-multisample-models-0-1-0-9000">Simultaneous multisample models<a class="anchor" aria-label="anchor" href="#simultaneous-multisample-models-0-1-0-9000"></a></h3>
 <ul><li><p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> with a sample list shares spectra across samples with sample-specific profiles, areas and backgrounds, allowing compounds to be absent from individual samples.</p></li>
 <li><p>Monotone alignment, area-ordered profile compatibility and exposure-aware likelihoods retain each sample’s original irregular scan grid.</p></li>
 <li><p>Disk-backed observations, batched native spectral scores, shared row inputs, sparse profiles and OpenMP support efficient fitting.</p></li>
-<li><p>A total logical-core budget schedules independent fits and coupled sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Native block reads retain bounded original-channel buffers.</p></li>
+<li><p>A total logical-core budget schedules independent fits and simultaneous sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Native block reads retain bounded original-channel buffers.</p></li>
 <li><p>Common saved channel maps, a compact aggregate cache and full-channel acceptance checks support reusable, memory-efficient multisample analyses.</p></li>
 <li><p>Incremental fusion candidates retain the same greedy order while refreshing only edges affected by a merge.</p></li>
 </ul></div>
@@ -76,7 +76,7 @@
 <li>Optional retention-index calibration places reference spectra along the chromatogram. Concentration-dependent broadening preserves leading edges, and each sample records its generating retention-time–RI map.</li>
 <li>Simulation baselines can be supplied as common levels, channel-specific intensities or smooth reference matrices on the original intensity scale.</li>
 <li>Experimental multichannel signals, profile and spectral plots, factor extraction, likelihood and information-criterion methods.</li>
-<li>Tutorials follow PSF estimation, single-sample factorization and coupled factorization; a separate mathematical article gives objectives and pseudocode.</li>
+<li>Tutorials follow PSF estimation, single-sample factorization and simultaneous factorization; a separate mathematical article gives objectives and pseudocode.</li>
 </ul></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

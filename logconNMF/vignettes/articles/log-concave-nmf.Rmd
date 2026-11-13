@@ -188,5 +188,5 @@ adjustment. `"none"` uses independent-observation rank charges; a supplied
 nonnegative correlation fixes the adjustment. Marginal noise variance stays
 in the likelihood. The [mathematical article](algorithm.html) develops local
 solvers, hard shape constraints, aggregation and complete pseudocode.
-Continue with [coupled multisample NMF](coupled-nmf.html) for shared loadings
+Continue with [simultaneous multisample NMF](simultaneous-nmf.html) for shared loadings
 and sample-specific profiles.

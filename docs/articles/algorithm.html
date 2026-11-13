@@ -46,7 +46,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
     <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
-    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/simultaneous-nmf.html">Simultaneous multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul>
 </li>
 <li class="active nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
@@ -86,12 +86,12 @@ the compound elutes and which ions it produces.</p>
 <p>The algorithms below start with sparse deconvolution using a common
 local response shape. Blind fitting or calibration can estimate that
 response if needed. The log-concave factorization then allows each
-retained component to have its own shape, and the coupled model can
+retained component to have its own shape, and the simultaneous model can
 share loadings across samples. Each stage uses the observation
 likelihood and a criterion for model size.</p>
-<p>This article follows the three tutorials: <a href="estimate-psf.html">PSF estimation</a>, <a href="log-concave-nmf.html">single-sample factorization</a> and <a href="coupled-nmf.html">coupled multisample factorization</a>. It
-specifies the actual objectives, coordinate conventions, initialization
-and acceptance rules.</p>
+<p>This article follows the three tutorials: <a href="estimate-psf.html">PSF estimation</a>, <a href="log-concave-nmf.html">single-sample factorization</a> and <a href="simultaneous-nmf.html">simultaneous multisample factorization</a>.
+It specifies the actual objectives, coordinate conventions,
+initialization and acceptance rules.</p>
 <div class="section level2">
 <h2 id="common-rank-objective">Common rank-selection objective<a class="anchor" aria-label="anchor" href="#common-rank-objective"></a>
 </h2>
@@ -107,7 +107,7 @@ d_{\mathrm{sel}}
 &amp;= d_\nu +
 \begin{cases}
 mK, &amp; \text{one sample},\\
-(m-1)G+L, &amp; \text{coupled samples}.
+(m-1)G+L, &amp; \text{simultaneous samples}.
 \end{cases}
 \end{aligned}
 </span></p>
@@ -123,10 +123,10 @@ channels.</p>
 <p>The weighted likelihood and quasi-Poisson score are defined below.
 The optional working temporal adjustment multiplies the penalty by <span class="math inline">\kappa</span>, which equals one under independence.
 The default penalty <span class="math inline">\lambda=\log(p)\log\log(n)</span> uses the
-dictionary width and scan count for one sample. For coupled fits, both
-preset inputs equal the total scan count, <span class="math inline">p=n=\sum_s n_s</span>. A numeric <code>lambda</code>
-uses the same units in both modes. The reported criteria and coupled
-objective count estimated noise parameters through <span class="math inline">d_\nu</span>. The single-sample
+dictionary width and scan count for one sample. For simultaneous fits,
+both preset inputs equal the total scan count, <span class="math inline">p=n=\sum_s n_s</span>. A numeric <code>lambda</code>
+uses the same units in both modes. The reported criteria and
+simultaneous objective count estimated noise parameters through <span class="math inline">d_\nu</span>. The single-sample
 <code>objective</code> omits this additive constant for a fixed noise
 specification.</p>
 </div>
@@ -209,6 +209,39 @@ preset, grouped selection approximating BSGS, and Poisson or
 overdispersed Poisson observation models. With estimated quasipoisson
 dispersion, the corresponding target is quasi-GIC, using the same
 row-support penalty and a scaled quasi-likelihood.</p>
+</div>
+<div class="section level3">
+<h3 id="relation-to-convolutive-nmf">Relation to convolutive NMF<a class="anchor" aria-label="anchor" href="#relation-to-convolutive-nmf"></a>
+</h3>
+<p><a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al.</a>
+write convolutive NMF (CNMF) as</p>
+<p><span class="math display">
+Y=\sum_{\ell=0}^{L-1}A_\ell Z^{(\ell)}+E,
+</span></p>
+<p>where <span class="math inline">Z^{(\ell)}</span> shifts a
+nonnegative source matrix along its ordered coordinate and <span class="math inline">A_\ell\geq0</span> is a lag-specific basis matrix.
+The constant-PSF model above has the exact transposed representation</p>
+<p><span class="math display">
+\{X(g)C\}^{\mathsf T}
+=\sum_\ell (g_\ell I_m)(C^{\mathsf T})^{(\ell)}.
+</span></p>
+<p>It is therefore a constrained CNMF with <span class="math inline">A_\ell=g_\ell I_m</span>: all channels share one
+scalar kernel and there is no lag-dependent channel mixing. If the
+spike-amplitude matrix is further factorized as <span class="math inline">C=ZP</span>, where <span class="math inline">P</span> contains component spectra, then</p>
+<p><span class="math display">
+\{X(g)ZP\}^{\mathsf T}
+=\sum_\ell \underbrace{(g_\ell P^{\mathsf T})}_{A_\ell}
+(Z^{\mathsf T})^{(\ell)}.
+</span></p>
+<p>Thus blind constant-PSF estimation is a highly constrained,
+lag-separable convolutive-NMF problem as well as a sparse multichannel
+blind-deconvolution problem. This classification does not extend
+indiscriminately to every stage: calibration from isolated standards
+estimates a kernel without an NMF; smoothly time-varying PSFs are
+shift-variant and only locally convolutional; and the final
+factorization estimates independent component- and sample-specific
+log-concave profiles rather than shifted copies of one kernel. Here
+<strong>CNMF</strong> is reserved for <em>convolutive NMF</em>.</p>
 </div>
 <div class="section level3">
 <h3 id="calibration-with-isolated-peaks">Calibration with isolated peaks<a class="anchor" aria-label="anchor" href="#calibration-with-isolated-peaks"></a>
@@ -1046,8 +1079,17 @@ complete objective difference without rescoring unaffected
 observations.</p>
 </div>
 <div class="section level2">
-<h2 id="coupled-model">Coupled model on original scan grids<a class="anchor" aria-label="anchor" href="#coupled-model"></a>
+<h2 id="simultaneous-model">Simultaneous model on original scan grids<a class="anchor" aria-label="anchor" href="#simultaneous-model"></a>
 </h2>
+<p>After suppressing backgrounds, exposures and offsets, the multisample
+mean can be written <span class="math inline">M_s=Q_sP</span>, where
+<span class="math inline">P</span> is shared exactly and <span class="math inline">Q_s</span> is sample-specific. This is simultaneous
+NMF in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al.</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea
+(2008)</a> and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et
+al. (2012)</a>. A hard shared factor is one possible coupling
+constraint, but the present model does not introduce the cross-modality
+mapping matrix used, for example, by <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">Duren et
+al. (2018)</a>.</p>
 <p>For sample <span class="math inline">s</span>, let <span class="math inline">u=w_s(t)</span> be its monotone alignment map.
 Native bin edges <span class="math inline">t_{si-1/2},t_{si+1/2}</span>
 define</p>
@@ -1095,12 +1137,12 @@ Poisson kernel. The same <code><a href="https://rdrr.io/r/stats/logLik.html" cla
 <p><span class="math display">
 (m-1)G+L+d_\nu=mK+d_\nu.
 </span></p>
-<p>At a common preset value and information factor, the coupled score
-therefore reduces to the single-sample reported IC. Both select compound
-count without an extra penalty on profile complexity or background
-dimension.</p>
+<p>At a common preset value and information factor, the simultaneous
+score therefore reduces to the single-sample reported IC. Both select
+compound count without an extra penalty on profile complexity or
+background dimension.</p>
 <div class="section level3">
-<h3 id="penalty-scales">Penalty scale for single and coupled fits<a class="anchor" aria-label="anchor" href="#penalty-scales"></a>
+<h3 id="penalty-scales">Penalty scale for single and simultaneous fits<a class="anchor" aria-label="anchor" href="#penalty-scales"></a>
 </h3>
 <table class="table">
 <colgroup>
@@ -1138,14 +1180,14 @@ degree of freedom</td>
 </tr>
 </tbody>
 </table>
-<p>The coupled selection count is <span class="math inline">(m-1)G+L+d_\nu</span>. A compound observed in one
+<p>The simultaneous selection count is <span class="math inline">(m-1)G+L+d_\nu</span>. A compound observed in one
 sample contributes <span class="math inline">m-1</span> spectral
 coordinates and one amplitude, so its charge matches that of a
 single-sample component. The single-sample solver
 <code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> accepts a numeric total compound charge <span class="math inline">c</span>; enter <span class="math inline">c/m</span>
 in <code><a href="../reference/logconNMF.html">logconNMF()</a></code> to reproduce that charge. Estimated noise
 parameters add a constant selection count when their specification is
-fixed. Single-sample presets use their original <span class="math inline">n,p</span>; coupled presets use <span class="math inline">n_*=p_*=\sum_s n_s</span>.</p>
+fixed. Single-sample presets use their original <span class="math inline">n,p</span>; simultaneous presets use <span class="math inline">n_*=p_*=\sum_s n_s</span>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -1187,7 +1229,7 @@ identical results across thread counts in the validation examples.</p>
 derivatives once and pools them over the sparse profiles in one pass
 parallelized across channels. Cached peak geometry avoids rescanning
 every profile after each algebraic merge. Shared row-wise weights and
-offsets retain one vector throughout the coupled fit, with
+offsets retain one vector throughout the simultaneous fit, with
 channel-specific matrices used when required.</p>
 <p>All seven <a href="../reference/splogconNMF.html">signal families</a>
 are supported: Gaussian, Poisson, quasipoisson, NB2, NB1, censored Gamma
@@ -1197,9 +1239,9 @@ supports likelihood-improving shape updates when initialized with a
 negative <code>theta</code>.</p>
 </div>
 <div class="section level2">
-<h2 id="coupled-algorithm">Coupled algorithm and normalization<a class="anchor" aria-label="anchor" href="#coupled-algorithm"></a>
+<h2 id="simultaneous-algorithm">Simultaneous algorithm and normalization<a class="anchor" aria-label="anchor" href="#simultaneous-algorithm"></a>
 </h2>
-<p>For coupled models use <span class="math inline">n_*=p_*=\sum_s
+<p>For simultaneous models use <span class="math inline">n_*=p_*=\sum_s
 n_s</span> in the IC preset, and the largest sample information
 multiplier as <span class="math inline">\kappa</span>. Noise parameters
 are shared across channels within each sample. The joint rank count is
@@ -1216,7 +1258,7 @@ u_{si}h_{sg}(u_{si})=1</span>, then</p>
 chosen time unit, before its known exposure is applied.
 <code><a href="../reference/logconNMF.html">sampleNMF()</a></code> also returns unit-sum original-grid profiles
 and their compatible discrete loadings.</p>
-<p><strong>Algorithm N2 — coupled multisample log-concave
+<p><strong>Algorithm N2 — simultaneous multisample log-concave
 NMF</strong></p>
 <ol style="list-style-type: decimal">
 <li>Fit samples independently by N1, or read supplied fitted factors.
@@ -1272,7 +1314,7 @@ decides whether the combined proposal is retained.</p>
 <h3 id="streaming-and-parallel-computation">Streaming and parallel computation<a class="anchor" aria-label="anchor" href="#streaming-and-parallel-computation"></a>
 </h3>
 <p>Sparse profile supports restrict work to affected scan windows. The
-coupled spectral kernel evaluates each observation’s likelihood
+simultaneous spectral kernel evaluates each observation’s likelihood
 derivatives once and pools them across its active profiles. Channels can
 be processed independently in OpenMP; sample contributions are
 accumulated in a fixed order. The main optimization reads one sample at
@@ -1291,9 +1333,9 @@ profiles; generalized and deviance matrix factorization provide the
 likelihood framework. Bregman and size-adjusted Poisson clustering
 supply useful spectral and channel geometries.</p>
 <p>The likelihood-based hard shape solves, complete original-channel
-rank moves, windowed kernel checkpoints and coupled
+rank moves, windowed kernel checkpoints and simultaneous
 normalization/acceptance rules above describe the logconNMF algorithms.
-The coupled criterion counts shared spectra and sample-specific
+The simultaneous criterion counts shared spectra and sample-specific
 amplitudes explicitly. The general references establish the underlying
 frameworks; the objectives and pseudocode here specify their adaptation
 to these constrained signal models.</p>
@@ -1303,6 +1345,18 @@ to these constrained signal models.</p>
 </h2>
 <p>de Rooi, J. &amp; Eilers, P. (2011). <a href="https://doi.org/10.1016/j.aca.2011.05.030" class="external-link">Deconvolution of pulse
 trains with the L0 penalty.</a></p>
+<p>Cichocki, A., Zdunek, R., Phan, A. H. &amp; Amari, S.-I. (2009). <a href="https://doi.org/10.1002/9780470747278" class="external-link"><em>Nonnegative Matrix and
+Tensor Factorizations: Applications to Exploratory Multi-way Data
+Analysis and Blind Source Separation</em>.</a></p>
+<p>Badea, L. (2008). <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Extracting
+gene expression profiles common to colon and pancreatic adenocarcinoma
+using simultaneous nonnegative matrix factorization.</a></p>
+<p>Lee, C. M. et al. (2012). <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Simultaneous
+non-negative matrix factorization for multiple large scale gene
+expression datasets in toxicology.</a></p>
+<p>Duren, Z. et al. (2018). <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">Integrative analysis of
+single-cell genomics data by coupled nonnegative matrix
+factorizations.</a></p>
 <p>Fan, Y. &amp; Tang, C. Y. (2013). <a href="https://doi.org/10.1111/rssb.12001" class="external-link">Tuning parameter selection in
 high dimensional penalized likelihood.</a></p>
 <p>Ipsen, A. (2015). <a href="https://doi.org/10.1021/ac503554u" class="external-link">Derivation from first
@@ -1342,7 +1396,7 @@ developments of this package.</p>
 <h2 id="parallel-samples-and-bounded-memory-updates">Parallel samples and bounded-memory updates<a class="anchor" aria-label="anchor" href="#parallel-samples-and-bounded-memory-updates"></a>
 </h2>
 <p>With common spectra <span class="math inline">P</span> fixed,
-sample-specific factors are conditionally independent. The coupled
+sample-specific factors are conditionally independent. The simultaneous
 criterion is</p>
 <p><span class="math display">
 J=-2\sum_s\ell_s(Y_s;\mu_s)

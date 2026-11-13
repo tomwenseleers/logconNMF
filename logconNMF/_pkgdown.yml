@@ -41,8 +41,8 @@ navbar:
           href: articles/estimate-psf.html
         - text: Sparse log-concave NMF with automatic best rank tuning
           href: articles/log-concave-nmf.html
-        - text: Coupled multisample log-concave NMF with automatic best rank tuning
-          href: articles/coupled-nmf.html
+        - text: Simultaneous multisample log-concave NMF with automatic best rank tuning
+          href: articles/simultaneous-nmf.html
     algorithm:
       text: Algorithm & theory
       href: articles/algorithm.html
@@ -60,13 +60,13 @@ authors:
 
 articles:
   - title: Tutorials
-    contents: [articles/estimate-psf, articles/log-concave-nmf, articles/coupled-nmf]
+    contents: [articles/estimate-psf, articles/log-concave-nmf, articles/simultaneous-nmf]
   - title: Algorithm and theory
     contents: [articles/algorithm]
 reference:
   - title: Estimate point spread functions and deconvolve signals
     contents: [convKernel, convMatrix, estimatePSF, estimatePSFFromStd, l0glmBlindDeco, l0glmSparseDeco, l0glmDecoEstKernel]
-  - title: Sparse and coupled factorization
+  - title: Sparse and simultaneous factorization
     contents: [logconNMF, splogconNMF, channelGroups, aggregateChannels]
   - title: Noise calibration and profile constraints
     contents: [estimateSignalNoise, logConcSmooth]

@@ -34,14 +34,14 @@ channelGroups <- function(y,k=32L,channels=colnames(y),normalize=FALSE,ncores=NU
     count<-min(k-1L,sum(live))
     group[live]<-if(count==1L)1L else glmCluster(Y[,live,drop=FALSE],
       family=poisson("identity"),method="poissondist",size_fac=colSums(Y[,live,drop=FALSE]),
-      k=count,nthreads=cpl_core_count(ncores))$clusterids
+      k=count,nthreads=sinmf_core_count(ncores))$clusterids
   }
   structure(list(channels=as.character(channels),group=as.integer(group),k=k,
     unknown_group=k,normalize=normalize,method="size-adjusted Poisson Ward",version=1L),
     class="nmf_channel_groups")
 }
 
-cpl_channel_index <- function(groups,channels) {
+sinmf_channel_index <- function(groups,channels) {
   if(!inherits(groups,"nmf_channel_groups")||length(groups$group)!=length(groups$channels)||
       length(groups$k)!=1L||anyNA(groups$group)||any(groups$group<1L|groups$group>groups$k))
     stop("Use a channelGroups() map.")
@@ -55,13 +55,13 @@ cpl_channel_index <- function(groups,channels) {
 aggregateChannels <- function(y,groups,channels=colnames(y)) {
   if(is.null(channels))channels<-as.character(seq_len(ncol(y)))
   if(length(channels)!=ncol(y))stop("channels must identify every column.")
-  group<-cpl_channel_index(groups,channels)
+  group<-sinmf_channel_index(groups,channels)
   out<-as.matrix(y%*%sparseMatrix(i=seq_along(group),j=group,x=1,dims=c(length(group),groups$k)))
   colnames(out)<-paste0("group",seq_len(groups$k));out
 }
 
 # Learn from summed time-bin counts without retaining original matrices.
-cpl_common_groups <- function(samples,precluster,ncores) {
+sinmf_common_groups <- function(samples,precluster,ncores) {
   if(inherits(precluster,"nmf_channel_groups"))return(precluster)
   if(is.null(precluster)||identical(precluster,FALSE))return(NULL)
   k<-if(identical(precluster,TRUE))32L else precluster

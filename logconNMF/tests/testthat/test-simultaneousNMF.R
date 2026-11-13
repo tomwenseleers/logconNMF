@@ -1,4 +1,4 @@
-test_that("coupled fits retain absent occurrences, dimensions and disk-backed reconstruction", {
+test_that("simultaneous fits retain absent occurrences, dimensions and disk-backed reconstruction", {
   set.seed(85);n<-90L;m<-5L;X<-convMatrix(dnorm(-6:6,sd=1.5),n)
   H<-X[,c(25,65)];H<-H%*%Matrix::Diagonal(x=1/colSums(H))
   P<-matrix(runif(2*m),2,m);P<-P/rowSums(P)
@@ -8,7 +8,7 @@ test_that("coupled fits retain absent occurrences, dimensions and disk-backed re
     list(y=y,time=seq_len(n)+s*.2,X=X,background=matrix(1,n,1),small_width=9,
       sample_id=paste0("s",s))
   })
-  f<-coupledNMF(desc,ncores=1L,control=list(cycles=2L,initial_cycles=1L,rounds=1L,
+  f<-simultaneousNMF(desc,ncores=1L,control=list(cycles=2L,initial_cycles=1L,rounds=1L,
     initial=list(profile_cycles=0L,original_cleanup=FALSE)))
   on.exit(unlink(f$store$path,recursive=TRUE))
   expect_equal(nrow(f$P),2L);expect_equal(f$L,5L);expect_equal(sum(is.na(f$areas)),1L)
@@ -18,8 +18,8 @@ test_that("coupled fits retain absent occurrences, dimensions and disk-backed re
   expect_equal(rowSums(coef(f,normalize="l1")),rep(1,2L),ignore_attr=TRUE)
   expect_true(all(file.exists(f$paths)))
   expect_error(fitted(f,sample="absent"),"Select one sample")
-  expect_error(coupledNMF(desc,path=f$store$path),"new, empty")
-  expect_true(all(f$history$delta[f$history$stage=="coupled_cycle"]<=1e-4))
+  expect_error(simultaneousNMF(desc,path=f$store$path),"new, empty")
+  expect_true(all(f$history$delta[f$history$stage=="simultaneous_cycle"]<=1e-4))
 })
 
 test_that("multisample simulations support absence and every signal family", {

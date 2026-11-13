@@ -7,7 +7,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits coupled models that share loadings across samples on their original observation grids.
+Separates overlapping ordered signals into nonnegative log-concave profiles and channel loadings, with automatic rank selection, optional smooth backgrounds and flexible noise models. Estimates constant or time-varying point spread functions and fits simultaneous models that share loadings across samples on their original observation grids.
 }
 \details{
 For a scans-by-channels signal, each component is the product of an

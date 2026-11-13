@@ -20,7 +20,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-tutorials" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Tutorials</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials"><li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
     <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
-    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/simultaneous-nmf.html">Simultaneous multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
@@ -97,7 +97,7 @@
         </dt>
         <dd>Estimate the PSF given a spike train estimate via L0-penalised GLMs</dd>
       </dl></div><div class="section level2">
-      <h2 id="sparse-and-coupled-factorization">Sparse and coupled factorization<a class="anchor" aria-label="anchor" href="#sparse-and-coupled-factorization"></a></h2>
+      <h2 id="sparse-and-simultaneous-factorization">Sparse and simultaneous factorization<a class="anchor" aria-label="anchor" href="#sparse-and-simultaneous-factorization"></a></h2>
 
 
 
@@ -108,7 +108,7 @@
 
       <dl><dt>
 
-          <code><a href="logconNMF.html">plot(<i>&lt;coupledNMF&gt;</i>)</a></code> <code><a href="logconNMF.html">sampleNMF()</a></code> <code><a href="logconNMF.html">logconNMF()</a></code> <code><a href="logconNMF.html">coef(<i>&lt;logconNMF_fit&gt;</i>)</a></code> <code><a href="logconNMF.html">fitted(<i>&lt;logconNMF_fit&gt;</i>)</a></code>
+          <code><a href="logconNMF.html">logconNMF()</a></code> <code><a href="logconNMF.html">coef(<i>&lt;logconNMF_fit&gt;</i>)</a></code> <code><a href="logconNMF.html">fitted(<i>&lt;logconNMF_fit&gt;</i>)</a></code> <code><a href="logconNMF.html">plot(<i>&lt;simultaneousNMF&gt;</i>)</a></code> <code><a href="logconNMF.html">sampleNMF()</a></code>
 
         </dt>
         <dd>Fit a log-concave factorization with automatic rank selection</dd>

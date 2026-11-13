@@ -1,16 +1,16 @@
 # Internal fitter for sample lists. Public inputs are documented in logconNMF.
-coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
-                       path=tempfile("coupledNMF_"), precluster=32L,
+simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
+                       path=tempfile("simultaneousNMF_"), precluster=32L,
                        dispersion=NULL, theta=NULL, method=c("cosine","hellinger"),
                        align=TRUE, ncores=NULL, control=list(), verbose=FALSE) {
   begun<-proc.time()[["elapsed"]];method<-match.arg(method)
   if(!is.list(samples)||length(samples)<2L)stop("Supply at least two sample descriptions.")
   if(!is.logical(align)||length(align)!=1L||is.na(align))stop("align must be TRUE or FALSE.")
-  ncores<-cpl_core_count(ncores)
+  ncores<-sinmf_core_count(ncores)
   defaults<-list(cycles=10L,initial_cycles=5L,rounds=3L,q=64L,rt_tolerance=NULL,
     alignment_window=NULL,ridge=TRUE,censor=.5,correlation="none",initial=list(),workers=NULL,cache=TRUE)
   if(!is.list(control)||length(control)&&(is.null(names(control))||anyDuplicated(names(control))||
-      length(setdiff(names(control),names(defaults)))))stop("Use named coupled controls.")
+      length(setdiff(names(control),names(defaults)))))stop("Use named simultaneous controls.")
   ctl<-utils::modifyList(defaults,control)
   if(is.list(family)&&!is.null(family$scalar)&&!"censor"%in%names(control))ctl$censor<-family$scalar$censor
   for(nm in c("cycles","initial_cycles","rounds","q")) {
@@ -21,30 +21,30 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(dir.exists(path))stop("Use a new, empty store path.")
   dir.create(path,recursive=TRUE);path<-normalizePath(path,winslash="/",mustWork=TRUE)
   if(!is.logical(ctl$cache)||length(ctl$cache)!=1L||is.na(ctl$cache))stop("cache must be TRUE or FALSE.")
-  runtime<-cpl_runtime(ncores,length(samples),ctl$workers)
-  on.exit(cpl_close_runtime(runtime),add=TRUE)
-  initial<-system.time(store<-cpl_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
-  state<-cpl_initialize(store,method,align,ncores,lambda,ctl)
+  runtime<-sinmf_runtime(ncores,length(samples),ctl$workers)
+  on.exit(sinmf_close_runtime(runtime),add=TRUE)
+  initial<-system.time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
+  state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
   state$runtime<-runtime;state$parallel<-runtime$budget
-  state<-cpl_optimize_coupled(state,cycles=ctl$initial_cycles,q=ctl$q)
-  reference<-cpl_coupled_score(state);candidate<-state
+  state<-sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)
+  reference<-sinmf_score(state);candidate<-state
   for(round in seq_len(ctl$rounds)) {
     before<-length(unique(candidate$map))
-    candidate<-cpl_batch_spectral_groups(candidate,method,ctl$ridge)
+    candidate<-sinmf_batch_spectral_groups(candidate,method,ctl$ridge)
     if(round>1L&&length(unique(candidate$map))==before)break
-    candidate<-cpl_optimize_coupled(candidate,cycles=ctl$cycles,q=ctl$q)
-    if(verbose)cat("Coupling round",round,":",length(unique(candidate$map)),"compounds; objective",cpl_coupled_score(candidate),"\n")
+    candidate<-sinmf_optimize(candidate,cycles=ctl$cycles,q=ctl$q)
+    if(verbose)cat("Grouping round",round,":",length(unique(candidate$map)),"compounds; objective",sinmf_score(candidate),"\n")
   }
-  candidate$batch_delta<-cpl_coupled_score(candidate)-reference
+  candidate$batch_delta<-sinmf_score(candidate)-reference
   accepted<-is.finite(candidate$batch_delta)&&candidate$batch_delta<=0
   if(accepted)state<-candidate
   state$batch_delta<-candidate$batch_delta;state$batch_accepted<-accepted
-  state<-cpl_compact_coupled(state)
+  state<-sinmf_compact(state)
   state$rank<-nrow(state$P)
-  state$loglik<- -cpl_coupled_score(state,penalty=FALSE)/2
+  state$loglik<- -sinmf_score(state,penalty=FALSE)/2
   state$ic_df<-(ncol(state$P)-1L)*nrow(state$P)+state$L+state$nuisance_df
   state$objective<- -2*state$loglik+state$lambda*state$ic_df
-  state$seconds<-c(initial=initial,coupled=proc.time()[["elapsed"]]-begun-initial,total=proc.time()[["elapsed"]]-begun)
+  state$seconds<-c(initial=initial,simultaneous=proc.time()[["elapsed"]]-begun-initial,total=proc.time()[["elapsed"]]-begun)
   # Only immutable checkpoints of this private store are eligible for cleanup.
   for(d in store$manifest$directory) {
     obsolete<-setdiff(list.files(d,pattern="^fit_.*\\.rds$",full.names=TRUE),state$paths)
@@ -57,24 +57,24 @@ coupledNMF <- function(samples, family=poisson("identity"), lambda="gic",
   state
 }
 
-cpl_edges <- function(time) {
+sinmf_edges <- function(time) {
   d<-diff(time);c(time[1L]-d[1L]/2,(utils::head(time,-1L)+utils::tail(time,-1L))/2,utils::tail(time,1L)+utils::tail(d,1L)/2)
 }
-cpl_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime=NULL,lambda="gic") {
-  groups<-cpl_common_groups(samples,precluster,ncores)
+sinmf_prepare <- function(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime=NULL,lambda="gic") {
+  groups<-sinmf_common_groups(samples,precluster,ncores)
   first<-samples[[1L]]$y;if(is.character(first))first<-readRDS(first)
   axis<-colnames(first);if(is.null(axis))axis<-as.character(seq_len(ncol(first)))
   tasks<-lapply(seq_along(samples),function(s)list(x=samples[[s]],s=s,path=path,
     family=family,dispersion=dispersion,theta=theta,groups=groups,axis=axis,ctl=ctl,
     threads=if(is.null(runtime))ncores else runtime$budget$threads,verbose=verbose,lambda=lambda))
-  results<-cpl_apply(runtime,tasks,cpl_prepare_sample)
+  results<-sinmf_apply(runtime,tasks,sinmf_prepare_sample)
   manifest<-do.call(rbind,lapply(results,`[[`,"entry"))
   if(anyDuplicated(manifest$sample_id))stop("Use unique sample_id values.")
   saveRDS(manifest,file.path(path,"manifest.rds"),compress=FALSE)
   list(path=path,manifest=manifest,channel_groups=groups,cache=if(ctl$cache)lapply(results,`[[`,"aggregate")else NULL)
 }
 
-cpl_prepare_sample <- function(task) {
+sinmf_prepare_sample <- function(task) {
     x<-task$x;s<-task$s;path<-task$path;family<-task$family
     dispersion<-task$dispersion;theta<-task$theta;ctl<-task$ctl;precluster<-task$groups
     ncores<-task$threads;verbose<-task$verbose
@@ -84,20 +84,20 @@ cpl_prepare_sample <- function(task) {
     if(n<9L||!m||length(time)!=n||any(!is.finite(time))||any(diff(time)<=0)||any(!is.finite(Y)))stop("Invalid sample data/time.")
     mass<-colnames(Y);if(is.null(mass))mass<-as.character(seq_len(m))
     if(!identical(mass,task$axis))stop("Sample channel names and ordering must agree.")
-    edges<-if(is.null(x$edges))cpl_edges(time)else x$edges
+    edges<-if(is.null(x$edges))sinmf_edges(time)else x$edges
     if(length(edges)!=n+1L||any(!is.finite(edges))||any(diff(edges)<=0)||any(time<=utils::head(edges,-1L)|time>=utils::tail(edges,-1L)))stop("Invalid bin edges.")
     E<-if(is.null(x$exposure))rep(1,n)else rep_len(x$exposure,n)
     if(!length(x$exposure)%in%c(0L,1L,n)||any(!is.finite(E)|E<=0))stop("Exposure must be positive and scalar or scan-specific.")
     value<-function(x)if(is.character(x))readRDS(x)else x
-    W<-cpl_observation(value(x$weights),n,m,1);O<-cpl_observation(value(x$offset),n,m,0)
+    W<-sinmf_observation(value(x$weights),n,m,1);O<-sinmf_observation(value(x$offset),n,m,0)
     if(any(!is.finite(W)|W<0)||!any(W>0)||any(!is.finite(O)|O<0))stop("Invalid weights/offset.")
     B<-if(is.null(x$background))matrix(1,n,1L)else as.matrix(x$background)
     if(nrow(B)!=n||any(!is.finite(B)|B<0))stop("Invalid background basis.")
     f<-if(is.character(x$fit))readRDS(x$fit)else x$fit
     if(!is.null(f$model))f<-f$model
     if(!is.null(f)) {
-      if(is.null(x$weights))W<-cpl_observation(f$weights,n,m,1)
-      if(is.null(x$offset))O<-cpl_observation(f$offset,n,m,0)
+      if(is.null(x$weights))W<-sinmf_observation(f$weights,n,m,1)
+      if(is.null(x$offset))O<-sinmf_observation(f$offset,n,m,0)
       if(any(!is.finite(W)|W<0)||!any(W>0)||any(!is.finite(O)|O<0))stop("Invalid initial-fit weights/offset.")
     }
     if(is.null(f)) {
@@ -118,14 +118,14 @@ cpl_prepare_sample <- function(task) {
     id<-if(is.null(x$sample_id))paste0("sample",s)else as.character(x$sample_id)
     if(length(id)!=1||is.na(id)||!nzchar(id))stop("Invalid sample_id.")
     d<-file.path(path,sprintf("sample_%06d",s));dir.create(d)
-    cpl_write_matrix_file(Y,file.path(d,"observed.bin"))
+    sinmf_write_matrix_file(Y,file.path(d,"observed.bin"))
     small<-x$small_width
     if(is.null(small))small<-2*sqrt(2*log(100))*1.6*median(diff(time))
     if(length(small)!=1L||!is.finite(small)||small<=0)stop("small_width must be positive.")
     # Compact initial factors; observed means and reduced-space fits are released.
     f<-f[c("H","S","background","alpha","spec")]
     if(is.null(f$background))f$background<-B*E
-    initial<-cpl_checkpoint_sample(f,d,"initial")
+    initial<-sinmf_checkpoint_sample(f,d,"initial")
     wfile<-if(length(W)>1L)file.path(d,"weights.rds")else NULL
     ofile<-if(length(O)>1L)file.path(d,"offset.rds")else NULL
     if(!is.null(wfile))saveRDS(W,wfile,compress=FALSE)
@@ -138,7 +138,7 @@ cpl_prepare_sample <- function(task) {
     aggregate<-if(is.null(precluster))NULL else aggregateChannels(Y,precluster,mass)
     if(!is.null(aggregate)) {
       meta$aggregateChannels<-ncol(aggregate)
-      cpl_write_matrix_file(aggregate,file.path(d,"aggregate.bin"))
+      sinmf_write_matrix_file(aggregate,file.path(d,"aggregate.bin"))
       saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
     }
     entry<-data.frame(sample_id=id,directory=d,n=n,m=m,group=meta$group)
@@ -146,17 +146,17 @@ cpl_prepare_sample <- function(task) {
     list(entry=entry,aggregate=if(ctl$cache)aggregate else NULL)
 }
 
-cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
+sinmf_initialize <- function(store,method,align,ncores,lambda,ctl) {
   meta<-lapply(store$manifest$directory,function(d)readRDS(file.path(d,"metadata.rds")))
   # Retain spectra and anchor summaries globally; load profile matrices singly.
   fits<-lapply(meta,function(m) {
     f<-readRDS(m$initial)
-    list(S=if(is.null(store$channel_groups))f$S else aggregateChannels(f$S,store$channel_groups,m$mass),spec=f$spec,geometry=cpl_profile_anchors(f$H,f$S,m$time,m$small_width))
+    list(S=if(is.null(store$channel_groups))f$S else aggregateChannels(f$S,store$channel_groups,m$mass),spec=f$spec,geometry=sinmf_profile_anchors(f$H,f$S,m$time,m$small_width))
   })
   if(is.null(ctl$rt_tolerance))ctl$rt_tolerance<-max(vapply(meta,`[[`,0,"small_width"))
   if(is.null(ctl$alignment_window))ctl$alignment_window<-5*ctl$rt_tolerance
   for(key in c("rt_tolerance","alignment_window"))if(length(ctl[[key]])!=1L||!is.finite(ctl[[key]])||ctl[[key]]<=0)stop("Invalid ",key)
-  alignment<-if(align)cpl_estimate_alignment(fits,meta,method,lapply(meta,`[[`,"small_width"),ctl$alignment_window,
+  alignment<-if(align)sinmf_estimate_alignment(fits,meta,method,lapply(meta,`[[`,"small_width"),ctl$alignment_window,
     geometry=lapply(fits,`[[`,"geometry"))else
     list(maps=lapply(meta,function(x)list(evaluate=identity,method="identity")),reference=1L,method="none")
   N<-sum(store$manifest$n);m<-store$manifest$m[1L]
@@ -176,7 +176,7 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
     for(k in seq_len(K)) {
       at<-which(H[,k]>max(H[,k])*1e-10)
       h<-as.numeric(H[at,k])/E[at]
-      if(length(at)>2L)h<-cpl_project_irregular_lc(h,time[at])
+      if(length(at)>2L)h<-sinmf_project_irregular_lc(h,time[at])
       scale<-sum(quadrature[at]*h);H[,k]<-0;H[at,k]<-h/scale;area[k]<-area[k]*scale
     }
     gid<-state$L+seq_len(K);spec<-a$spec
@@ -190,71 +190,71 @@ cpl_initialize <- function(store,method,align,ncores,lambda,ctl) {
       small_width=z$small_width,time=z$time,edges=z$edges)
     if(is.character(f$offset))f$offset<-readRDS(f$offset)
     state$P[gid,]<-P
-    state$L<-state$L+K;state<-cpl_coupled_checkpoint(state,s,f,"aligned")
+    state$L<-state$L+K;state<-sinmf_checkpoint(state,s,f,"aligned")
   }
   colnames(state$P)<-state$mass
   state
 }
 
-cpl_sample_index <- function(object,sample) {
+sinmf_sample_index <- function(object,sample) {
   s<-if(is.character(sample))match(sample,object$store$manifest$sample_id)else sample
   if(length(s)!=1L||is.na(s)||s<1||s>length(object$paths)||s!=floor(s))stop("Select one sample by index or name.")
   s
 }
 #' @noRd
 #' @export
-fitted.coupledNMF <- function(object,sample=1L,...) {
-  s<-cpl_sample_index(object,sample);f<-readRDS(object$paths[s])
-  out<-cpl_coupled_mean(f,object);colnames(out)<-object$mass;out
+fitted.simultaneousNMF <- function(object,sample=1L,...) {
+  s<-sinmf_sample_index(object,sample);f<-readRDS(object$paths[s])
+  out<-sinmf_mean(f,object);colnames(out)<-object$mass;out
 }
 #' @noRd
 #' @export
-coef.coupledNMF <- function(object,sample=NULL,normalize=c("none","l1"),...) {
+coef.simultaneousNMF <- function(object,sample=NULL,normalize=c("none","l1"),...) {
   normalize<-match.arg(normalize)
   if(is.null(sample))return(if(normalize=="l1")object$P else object$consensus_counts)
-  f<-readRDS(object$paths[cpl_sample_index(object,sample)]);ids<-object$map[f$gid]
+  f<-readRDS(object$paths[sinmf_sample_index(object,sample)]);ids<-object$map[f$gid]
   out<-object$P[ids,,drop=FALSE]
   if(normalize=="none")out<-out*(f$area*object$scale[ids])
   out
 }
 #' @noRd
 #' @export
-logLik.coupledNMF <- function(object,...)structure(object$loglik,class="logLik",df=object$ic_df,nobs=object$n,quasi=object$quasi)
+logLik.simultaneousNMF <- function(object,...)structure(object$loglik,class="logLik",df=object$ic_df,nobs=object$n,quasi=object$quasi)
 #' @noRd
 #' @export
-nobs.coupledNMF <- function(object,...)object$n
+nobs.simultaneousNMF <- function(object,...)object$n
 #' @noRd
 #' @export
-AIC.coupledNMF <- function(object,...,k=2)-2*object$loglik+k*object$information_factor*object$ic_df
+AIC.simultaneousNMF <- function(object,...,k=2)-2*object$loglik+k*object$information_factor*object$ic_df
 #' @noRd
 #' @export
-BIC.coupledNMF <- function(object,...)AIC(object,k=log(object$n))
+BIC.simultaneousNMF <- function(object,...)AIC(object,k=log(object$n))
 #' @noRd
 #' @export
-GIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("gic",p=object$p,n=object$n))
+GIC.simultaneousNMF <- function(object,...)AIC(object,k=presetLambda("gic",p=object$p,n=object$n))
 #' @noRd
 #' @export
-EBIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("ebic",p=object$p,n=object$n))
+EBIC.simultaneousNMF <- function(object,...)AIC(object,k=presetLambda("ebic",p=object$p,n=object$n))
 #' @noRd
 #' @export
-MBIC.coupledNMF <- function(object,...)AIC(object,k=presetLambda("mbic",p=object$p,n=object$n))
+MBIC.simultaneousNMF <- function(object,...)AIC(object,k=presetLambda("mbic",p=object$p,n=object$n))
 #' @noRd
-#' @method print coupledNMF
+#' @method print simultaneousNMF
 #' @export
-print.coupledNMF <- function(x,...) {
-  cat("Coupled log-concave NMF:",length(x$paths),"samples;",nrow(x$P),"shared compounds;",x$L,"occurrences\n")
+print.simultaneousNMF <- function(x,...) {
+  cat("Simultaneous log-concave NMF:",length(x$paths),"samples;",nrow(x$P),"shared compounds;",x$L,"occurrences\n")
   cat("Objective:",format(x$objective,digits=9),"; time:",round(x$seconds[["total"]],2),"s\n")
   invisible(x)
 }
 #' @rdname logconNMF
 #' @export
-plot.coupledNMF <- function(x,type=c("areas","spectra","profiles"),sample=NULL,compounds=seq_len(min(6L,nrow(x$P))),...) {
+plot.simultaneousNMF <- function(x,type=c("areas","spectra","profiles"),sample=NULL,compounds=seq_len(min(6L,nrow(x$P))),...) {
   type<-match.arg(type)
   if(!length(compounds)||any(!compounds%in%seq_len(nrow(x$P))))stop("Select valid compounds.")
   if(type=="areas")return(invisible(matplot(compounds,t(x$areas[,compounds,drop=FALSE]),type="b",xlab="Compound",ylab="Integrated area",...)))
   axis<-suppressWarnings(as.numeric(x$mass));if(anyNA(axis))axis<-seq_along(x$mass)
   if(type=="spectra")return(invisible(matplot(axis,t(x$P[compounds,,drop=FALSE]),type="h",xlab="Channel",ylab="Spectral fraction",...)))
-  samples<-if(is.null(sample))seq_along(x$paths)else cpl_sample_index(x,sample)
+  samples<-if(is.null(sample))seq_along(x$paths)else sinmf_sample_index(x,sample)
   old<-par(mfrow=c(length(compounds),1L));on.exit(par(old))
   colour<-grDevices::hcl.colors(length(x$paths),"Dark 3")
   for(g in compounds) {
@@ -274,14 +274,14 @@ plot.coupledNMF <- function(x,type=c("areas","spectra","profiles"),sample=NULL,c
   invisible(x)
 }
 
-cpl_noise_pass <- function(state,samples) {
-  cpl_parallel_pass(state,samples,"noise")
+sinmf_noise_pass <- function(state,samples) {
+  sinmf_parallel_pass(state,samples,"noise")
 }
 
 #' @rdname logconNMF
 #' @export
 sampleNMF <- function(object,sample=1L) {
-  s<-cpl_sample_index(object,sample);f<-readRDS(object$paths[s]);ids<-object$map[f$gid]
+  s<-sinmf_sample_index(object,sample);f<-readRDS(object$paths[s]);ids<-object$map[f$gid]
   H<-f$H*f$exposure;sums<-as.numeric(colSums(H))
   S<-object$P[ids,,drop=FALSE]*(f$area*object$scale[ids]*sums)
   if(length(sums))H<-H%*%Diagonal(x=1/sums)
@@ -289,7 +289,7 @@ sampleNMF <- function(object,sample=1L) {
     offset=f$offset,weights=f$weights,spec=f$spec,n=length(f$time),p=length(f$time),
     ncores=f$ncores,rank=length(ids),compound_id=ids,integrated_area=f$area*object$scale[ids],
     time=f$time,control=list(censor=f$censor),seconds=object$seconds)
-  model$loglik<-cpl_coupled_ll(f,cpl_sample_data(object$store,s),cpl_coupled_mean(f,object))
+  model$loglik<-sinmf_loglik(f,sinmf_sample_data(object$store,s),sinmf_mean(f,object))
   model$nuisance_df<-as.integer(f$spec$dispersion_estimated)+as.integer(f$spec$theta_estimated)
   model$ic_df<-ncol(S)*nrow(S)+model$nuisance_df
   model$lambda<-object$lambda*ncol(S);model$objective<- -2*model$loglik+model$lambda*model$rank
@@ -303,16 +303,16 @@ sampleNMF <- function(object,sample=1L) {
 
 
 # Scalar and row-wise inputs are reused across channels without materialization.
-cpl_observation <- function(x,n,m,default=1) {
+sinmf_observation <- function(x,n,m,default=1) {
   if(is.null(x))return(default)
   if(length(x)==1L)return(as.numeric(x))
   if(length(x)==n&&(is.null(dim(x))||ncol(x)==1L))return(as.numeric(x))
   if(!identical(dim(x),c(n,m)))stop("Observation input needs length n or dimensions n x m.")
   as.matrix(x)
 }
-cpl_observation_block <- function(x,rows) {
+sinmf_observation_block <- function(x,rows) {
   if(length(x)==1L)x else if(is.null(dim(x)))x[rows]else x[rows,,drop=FALSE]
 }
-cpl_weight_matrix <- function(x,n) {
+sinmf_weight_matrix <- function(x,n) {
   if(length(x)==1L)matrix(x,n,1L)else if(is.null(dim(x)))matrix(x,n,1L)else x
 }

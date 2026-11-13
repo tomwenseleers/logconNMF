@@ -20,7 +20,7 @@ test_that("one matrix uses the single-sample penalty and extractors", {
   expect_equal(dim(coef(empty, normalize = "l1")), c(0L, ncol(Y)))
 })
 
-test_that("coupled calls retain sample names, file-backed inputs and joint scores", {
+test_that("simultaneous calls retain sample names, file-backed inputs and joint scores", {
   set.seed(87)
   X <- convMatrix(dnorm(-5:5, sd = 1.3), 60L)
   S <- matrix(c(2300, 800, 1100, 2100, 480, 1600), 2L, 3L)
@@ -37,7 +37,7 @@ test_that("coupled calls retain sample names, file-backed inputs and joint score
     initial = list(profile_cycles = 0L, original_cleanup = FALSE))
   legacy <- samples
   for (name in names(legacy)) legacy[[name]]$sample_id <- name
-  reference <- coupledNMF(legacy, path = paths[1], ncores = 1L, lambda = 2, control = ctl)
+  reference <- simultaneousNMF(legacy, path = paths[1], ncores = 1L, lambda = 2, control = ctl)
   fit <- logconNMF(samples, path = paths[2], ncores = 1L, lambda = 2, control = ctl)
   expect_s3_class(fit, "logconNMF_fit")
   expect_equal(fit$rank, nrow(reference$P))
@@ -54,7 +54,7 @@ test_that("arguments for the wrong fitting path give explicit errors", {
   y <- matrix(0, 20L, 2L)
   sample <- list(y = y, time = seq_len(nrow(y)))
   expect_error(logconNMF(y), "Supply X")
-  expect_error(logconNMF(y, X = y, path = "unused"), "apply to coupled fits")
+  expect_error(logconNMF(y, X = y, path = "unused"), "apply to simultaneous fits")
   expect_error(logconNMF(list(sample)), "at least two")
   expect_error(logconNMF(list(sample, sample), offset = 1), "in the sample descriptions")
   expect_error(logconNMF(list(sample, list(y = y))), "needs y and time")

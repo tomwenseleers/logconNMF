@@ -1,5 +1,5 @@
 ---
-title: "Coupled multisample log-concave NMF with automatic best rank tuning"
+title: "Simultaneous multisample log-concave NMF with automatic best rank tuning"
 description: "Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models."
 output: rmarkdown::html_document
 ---
@@ -9,6 +9,16 @@ library while fitting each sample's own compound areas, peak shapes and smooth
 background. Samples retain their measured time grids. The model accommodates
 retention-time drift, concentration-dependent widths and tails, and compounds
 that occur in only some samples.
+
+Ignoring backgrounds and offsets, the model is \(Y_s\approx Q_sP\), with one
+shared nonnegative spectral factor \(P\) and sample-specific profile/area
+factors \(Q_s\). This is **simultaneous NMF** in the terminology of
+[Cichocki et al.](https://doi.org/10.1002/9780470747278),
+[Badea](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf) and
+[Lee et al.](https://doi.org/10.1371/journal.pone.0048238). It is an exact
+shared-factor model, not a cross-modality factorisation joined through a
+separate mapping matrix, as in one prominent use of
+[coupled NMF](https://doi.org/10.1073/pnas.1805681115).
 
 ```r
 fit <- logconNMF(samples, family=quasipoisson("identity"), precluster=32L)
@@ -23,7 +33,7 @@ GIC(fit)
 Each sample description contains `y`, `time`, and either a candidate PSF matrix
 `X` or an independent `logconNMF()` fit. Matrices can be supplied through RDS
 paths. Observations, factors, weights and offsets are stored per sample.
-Each independent worker loads one sample into memory. During coupling,
+Each independent worker loads one sample into memory. During simultaneous refinement,
 original observations and factor checkpoints remain in per-sample files,
 and spectral updates read the original ions in blocks. Shared spectra and
 compact alignment summaries stay in memory.
@@ -63,19 +73,19 @@ occurrences**, all recovered. Missing occurrences remain `NA` in the area table.
 | All compounds present | 26 | 26 | 78 | 78 | 0 | 20.80 s |
 | 50% presence probability | 23 | 23 | 37 | 37 | 0 | 17.87 s |
 
-Each timing includes independent fits, alignment, grouping and coupled
+Each timing includes independent fits, alignment, grouping and simultaneous
 refinement, with a budget of eight logical cores and one BLAS thread per
 worker on an Intel Core i9-11950H. Simulation is excluded. Recovery uses the
 nearest normalized true spectrum, with cosine similarity at least 0.9 and a
 single match per compound within each sample.
 
-![Aligned component profiles across the three samples](figures/coupled-profiles.png)
+![Aligned component profiles across the three samples](figures/simultaneous-profiles.png)
 
-![Recovered occurrence areas and absent compounds](figures/coupled-areas.png)
+![Recovered occurrence areas and absent compounds](figures/simultaneous-areas.png)
 
 Shared spectra are estimated from all detected occurrences of a compound:
 
-![Shared spectra recovered from all sample occurrences](figures/coupled-spectra.png)
+![Shared spectra recovered from all sample occurrences](figures/simultaneous-spectra.png)
 
 ## Sixteen samples with parallel fitting
 
@@ -123,7 +133,7 @@ plot(fit, type="areas")
 ```
 
 An absent occurrence stays `NA`; this model does not fill undetected compounds.
-The [coupled model and algorithm](algorithm.html#coupled-model) give the exact
+The [simultaneous model and algorithm](algorithm.html#simultaneous-model) give the exact
 likelihood, Jacobian, normalization, pooled spectral updates and rank charge.
 
 ## Noise, exposure and disk-backed fitting
@@ -150,7 +160,7 @@ fit's persistent store. Keep that store alongside saved fitted objects.
 
 The native kernel pools spectral scores over sparse profile supports and uses
 OpenMP over channels. On 14,949 scans, 518 channels and 325 profiles, one pooled
-score pass took 0.16 s; the [implementation details](algorithm.html#coupled-algorithm)
+score pass took 0.16 s; the [implementation details](algorithm.html#simultaneous-algorithm)
 describe the update and threading structure.
 
 For sample-group directories, acquisition ordering, alkane standards and

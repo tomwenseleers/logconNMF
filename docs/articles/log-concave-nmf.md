@@ -211,6 +211,6 @@ supplied nonnegative correlation fixes the adjustment. Marginal noise
 variance stays in the likelihood. The [mathematical
 article](https://tomwenseleers.github.io/logconNMF/articles/algorithm.md)
 develops local solvers, hard shape constraints, aggregation and complete
-pseudocode. Continue with [coupled multisample
-NMF](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.md)
+pseudocode. Continue with [simultaneous multisample
+NMF](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.md)
 for shared loadings and sample-specific profiles.

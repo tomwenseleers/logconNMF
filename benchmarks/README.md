@@ -4,7 +4,7 @@ Run `Rscript benchmarks/benchmark_gcms_windows.R` with the installed package
 on the R library path to fit both bundled matrices directly. The
 [single-sample tutorial](https://tomwenseleers.github.io/logconNMF/articles/log-concave-nmf.html)
 reports elapsed fitting time, component counts and quasi-GIC. The
-[coupled tutorial](https://tomwenseleers.github.io/logconNMF/articles/coupled-nmf.html)
+[simultaneous-NMF tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
 gives the three-sample simulation and links to the complete CDF benchmark.
 
 The November 2026 runs used logconNMF

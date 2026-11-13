@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Coupled multisample log-concave NMF with automatic best rank tuning • logconNMF</title>
+<title>Simultaneous multisample log-concave NMF with automatic best rank tuning • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Coupled multisample log-concave NMF with automatic best rank tuning">
+<meta property="og:title" content="Simultaneous multisample log-concave NMF with automatic best rank tuning">
 <meta name="description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
@@ -46,7 +46,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-tutorials">
 <li><a class="dropdown-item" href="../articles/estimate-psf.html">Estimate PSFs</a></li>
     <li><a class="dropdown-item" href="../articles/log-concave-nmf.html">Sparse log-concave NMF with automatic best rank tuning</a></li>
-    <li><a class="dropdown-item" href="../articles/coupled-nmf.html">Coupled multisample log-concave NMF with automatic best rank tuning</a></li>
+    <li><a class="dropdown-item" href="../articles/simultaneous-nmf.html">Simultaneous multisample log-concave NMF with automatic best rank tuning</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../articles/algorithm.html">Algorithm &amp; theory</a></li>
@@ -70,11 +70,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Coupled multisample log-concave NMF with automatic best rank tuning</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Simultaneous multisample log-concave NMF with automatic best rank tuning</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/coupled-nmf.Rmd" class="external-link"><code>vignettes/articles/coupled-nmf.Rmd</code></a></small>
-      <div class="d-none name"><code>coupled-nmf.Rmd</code></div>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/simultaneous-nmf.Rmd" class="external-link"><code>vignettes/articles/simultaneous-nmf.Rmd</code></a></small>
+      <div class="d-none name"><code>simultaneous-nmf.Rmd</code></div>
     </div>
 
     
@@ -85,6 +85,14 @@ peak shapes and smooth background. Samples retain their measured time
 grids. The model accommodates retention-time drift,
 concentration-dependent widths and tails, and compounds that occur in
 only some samples.</p>
+<p>Ignoring backgrounds and offsets, the model is <span class="math inline">Y_s\approx Q_sP</span>, with one shared nonnegative
+spectral factor <span class="math inline">P</span> and sample-specific
+profile/area factors <span class="math inline">Q_s</span>. This is
+<strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al.</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea</a>
+and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et
+al.</a>. It is an exact shared-factor model, not a cross-modality
+factorisation joined through a separate mapping matrix, as in one
+prominent use of <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">coupled NMF</a>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                          <span class="co"># estimated number of shared compounds</span></span>
@@ -97,10 +105,11 @@ only some samples.</p>
 and either a candidate PSF matrix <code>X</code> or an independent
 <code><a href="../reference/logconNMF.html">logconNMF()</a></code> fit. Matrices can be supplied through RDS
 paths. Observations, factors, weights and offsets are stored per sample.
-Each independent worker loads one sample into memory. During coupling,
-original observations and factor checkpoints remain in per-sample files,
-and spectral updates read the original ions in blocks. Shared spectra
-and compact alignment summaries stay in memory.</p>
+Each independent worker loads one sample into memory. During
+simultaneous refinement, original observations and factor checkpoints
+remain in per-sample files, and spectral updates read the original ions
+in blocks. Shared spectra and compact alignment summaries stay in
+memory.</p>
 <div class="section level2">
 <h2 id="three-samples-shared-spectra-and-different-peak-shapes">Three samples, shared spectra and different peak shapes<a class="anchor" aria-label="anchor" href="#three-samples-shared-spectra-and-different-peak-shapes"></a>
 </h2>
@@ -172,23 +181,23 @@ occurrences remain <code>NA</code> in the area table.</p>
 </tbody>
 </table>
 <p>Each timing includes independent fits, alignment, grouping and
-coupled refinement, with a budget of eight logical cores and one BLAS
-thread per worker on an Intel Core i9-11950H. Simulation is excluded.
-Recovery uses the nearest normalized true spectrum, with cosine
-similarity at least 0.9 and a single match per compound within each
-sample.</p>
+simultaneous refinement, with a budget of eight logical cores and one
+BLAS thread per worker on an Intel Core i9-11950H. Simulation is
+excluded. Recovery uses the nearest normalized true spectrum, with
+cosine similarity at least 0.9 and a single match per compound within
+each sample.</p>
 <div class="float">
-<img src="figures/coupled-profiles.png" alt="Aligned component profiles across the three samples"><div class="figcaption">Aligned component profiles across the three
+<img src="figures/simultaneous-profiles.png" alt="Aligned component profiles across the three samples"><div class="figcaption">Aligned component profiles across the three
 samples</div>
 </div>
 <div class="float">
-<img src="figures/coupled-areas.png" alt="Recovered occurrence areas and absent compounds"><div class="figcaption">Recovered occurrence areas and absent
+<img src="figures/simultaneous-areas.png" alt="Recovered occurrence areas and absent compounds"><div class="figcaption">Recovered occurrence areas and absent
 compounds</div>
 </div>
 <p>Shared spectra are estimated from all detected occurrences of a
 compound:</p>
 <div class="float">
-<img src="figures/coupled-spectra.png" alt="Shared spectra recovered from all sample occurrences"><div class="figcaption">Shared spectra recovered from all sample
+<img src="figures/simultaneous-spectra.png" alt="Shared spectra recovered from all sample occurrences"><div class="figcaption">Shared spectra recovered from all sample
 occurrences</div>
 </div>
 </div>
@@ -242,9 +251,9 @@ retained.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">single</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"areas"</span><span class="op">)</span></span></code></pre></div>
 <p>An absent occurrence stays <code>NA</code>; this model does not fill
-undetected compounds. The <a href="algorithm.html#coupled-model">coupled
-model and algorithm</a> give the exact likelihood, Jacobian,
-normalization, pooled spectral updates and rank charge.</p>
+undetected compounds. The <a href="algorithm.html#simultaneous-model">simultaneous model and
+algorithm</a> give the exact likelihood, Jacobian, normalization, pooled
+spectral updates and rank charge.</p>
 </div>
 <div class="section level2">
 <h2 id="noise-exposure-and-disk-backed-fitting">Noise, exposure and disk-backed fitting<a class="anchor" aria-label="anchor" href="#noise-exposure-and-disk-backed-fitting"></a>
@@ -273,7 +282,7 @@ input; use a new <code>path=</code> for each fit’s persistent store.
 Keep that store alongside saved fitted objects.</p>
 <p>The native kernel pools spectral scores over sparse profile supports
 and uses OpenMP over channels. On 14,949 scans, 518 channels and 325
-profiles, one pooled score pass took 0.16 s; the <a href="algorithm.html#coupled-algorithm">implementation details</a>
+profiles, one pooled score pass took 0.16 s; the <a href="algorithm.html#simultaneous-algorithm">implementation details</a>
 describe the update and threading structure.</p>
 <p>For sample-group directories, acquisition ordering, alkane standards
 and Excel/MSP reports, use the workflow in <a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html" class="external-link">GCMSprime</a>.</p>
