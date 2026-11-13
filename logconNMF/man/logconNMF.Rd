@@ -68,9 +68,9 @@ may be negative; their fitted latent signals remain nonnegative.}
 \item{lambda}{An information criterion (\code{"gic"}, \code{"aic"}, \code{"bic"},
 \code{"ebic"} or \code{"mbic"}) or a nonnegative numeric penalty per selection
 degree of freedom, before any temporal information adjustment. With
-\code{m} channels, a single component incurs \code{m * lambda}; in a simultaneous fit
-a shared spectrum incurs \code{(m - 1) * lambda} and an occurrence incurs
-\code{lambda}.}
+\eqn{m} channels, a single component incurs \eqn{m\lambda}; in a
+simultaneous fit a shared spectrum incurs \eqn{(m-1)\lambda} and an
+occurrence incurs \eqn{\lambda}.}
 
 \item{background}{Optional nonnegative scans-by-basis matrix, for example
 \code{splines::bs(time, df=6, intercept=TRUE)}. Coefficients are nonnegative and
@@ -217,7 +217,6 @@ shared-factor form \eqn{M_s = Q_s P}, with one common spectral factor
 simultaneous-NMF terminology of
 \href{https://doi.org/10.1002/9780470747278}{Cichocki et al. (2009)} and
 \href{https://doi.org/10.1371/journal.pone.0048238}{Lee et al. (2012)}.
-It does not introduce a separate cross-modality coupling matrix.
 
 Samples can supply separate background bases, known exposures and noise
 parameters. With a time warp \eqn{u=w_s(t)}, binwise Jacobian \eqn{J},

@@ -27,7 +27,7 @@
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF" aria-label="GitHub repository"><span class="fa fab fa-github"></span></a></li>
       </ul></div>
 
 
@@ -41,7 +41,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0.9000" id="logconnmf-0109000">logconNMF 0.1.0.9000<a class="anchor" aria-label="anchor" href="#logconnmf-0109000"></a></h2>
-<div class="section level3">
+<ul><li>Corrected the historical one-unit mass-axis offset in <code>gcmsData1</code>: the all-zero leading channel was removed and the retained channels now have their nominal labels, m/z 30:699. <code>gcmsData2</code> was independently checked against its source CDF and required no correction.</li>
+</ul><div class="section level3">
 <h3 id="psf-estimation-and-deconvolution-0-1-0-9000">PSF estimation and deconvolution<a class="anchor" aria-label="anchor" href="#psf-estimation-and-deconvolution-0-1-0-9000"></a></h3>
 <ul><li>
 <code><a href="../reference/convKernel.html">convKernel()</a></code>, <code><a href="../reference/convKernel.html">shiftKernel()</a></code> and <code><a href="../reference/convMatrix.html">convMatrix()</a></code> construct PSFs and convolution designs, including asymmetric bigaussian and EMG responses.</li>

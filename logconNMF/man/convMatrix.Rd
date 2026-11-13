@@ -17,7 +17,7 @@ of rows for a *"same"* design).}
 `"full"` (\eqn{n+L-1} rows).}
 
 \item{n_cols}{Optional.  Number of columns to keep.
-*If omitted* `n_cols <- n` and the result is the usual banded
+*If omitted*, \eqn{n_{\mathrm{cols}}=n}, and the result is the usual banded
 convolution matrix.}
 
 \item{origin}{Integer (1 ... \eqn{L}) - element of `kernel` that is aligned
@@ -27,16 +27,16 @@ for `"full"`.}
 \value{
 A sparse matrix of class **`dgCMatrix`** with
 
-* `n_rows = n`            (shape "same")   or
-* `n_rows = n + L - 1`    (shape "full")
+* \eqn{n_{\mathrm{rows}}=n} for shape `"same"`; or
+* \eqn{n_{\mathrm{rows}}=n+L-1} for shape `"full"`.
 
 rows, and `n_cols` columns.
 }
 \description{
-\code{convMatrix()} builds a sparse Toeplitz (convolution) matrix
-\strong{A} such that
-\code{as.vector(A \%*\% x)} is numerically identical to
-\code{gsignal::conv(x, kernel, shape)}.
+\code{convMatrix()} builds a sparse Toeplitz convolution matrix \eqn{A}
+such that
+\deqn{A x = \operatorname{conv}(x,g;\mathrm{shape}),}
+where \eqn{g} is the supplied point-spread-function kernel.
 
 \itemize{
   \item If \code{n_cols} is \emph{omitted}, the function returns the
@@ -45,7 +45,7 @@ rows, and `n_cols` columns.
         when \code{shape = "full"}.
   \item If \code{n_cols} is supplied, only the first
         \code{n_cols} time-shifts of \code{kernel} are kept, yielding an
-        \code{n x n_cols} rectangular design.  Such matrices are useful
+        \eqn{n \times n_{\mathrm{cols}}} rectangular design. Such matrices are useful
         for point-spread-function (PSF) update steps in
         blind-deconvolution algorithms.
 }

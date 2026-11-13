@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF" aria-label="GitHub repository"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -129,7 +129,7 @@ to other ordered multichannel measurements.</p>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">8</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X<span class="op">=</span><span class="va">X</span>, background<span class="op">=</span><span class="va">B</span>,</span>
-<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">16L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">8L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
@@ -149,11 +149,13 @@ when the initial response shape is unknown or varies with position.</p>
 <span><span class="va">fitted_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">seconds</span></span></code></pre></div>
 <div class="float">
-<img src="../reference/figures/gcms-data1-profiles-spectra.png" alt="Recovered component profiles and full-channel loading patterns"><div class="figcaption">Recovered component profiles and full-channel
-loading patterns</div>
+<img src="../reference/figures/gcms-data1-decomposition.png" alt="Background-corrected ion traces, six resolved log-concave profiles and a 2 by 3 panel of recovered spectra"><div class="figcaption">Background-corrected ion traces, six resolved
+log-concave profiles and a 2 by 3 panel of recovered spectra</div>
 </div>
-<p>All 671 channels are retained, and factors are returned in increasing
-profile-apex order. The <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">GCMSprime
+<p>All 670 channels are retained, and factors are returned in increasing
+profile-apex order. The upper panel uses a square-root display to retain
+weak grey ion traces; the six spectra use base-peak relative
+intensities. The <a href="https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html" class="external-link">GCMSprime
 tutorial</a> develops the chromatographic interpretation, file input and
 reports.</p>
 </div>
@@ -191,12 +193,12 @@ PSF dictionary and background basis is outside the timing.</p>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left">Hydrocarbons</td>
+<td align="left">Hydrocarbon window</td>
 <td align="right">119</td>
-<td align="right">671</td>
+<td align="right">670</td>
 <td align="right">6</td>
-<td align="right">246,473</td>
-<td align="right">4.63</td>
+<td align="right">247,888</td>
+<td align="right">7.96</td>
 </tr>
 <tr class="even">
 <td align="left">Beer volatiles</td>
@@ -223,9 +225,9 @@ equally refined unmerged local model on all original channels.</p>
 <p>The default <code>lambda="gic"</code> compares complete fits by
 likelihood and component count. After dividing the likelihood by the
 original channel count, each retained component incurs one rank charge.
-On the unscaled likelihood the charge is <code>m * lambda_IC</code>,
-with an optional temporal information adjustment. Profile complexity and
-background coefficients have no extra rank penalty.</p>
+On the unscaled likelihood the charge is <span class="math inline">m\lambda_{\mathrm{IC}}</span>, with an optional
+temporal information adjustment. Profile complexity and background
+coefficients have no extra rank penalty.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">objective</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">history</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stage"</span>, <span class="st">"delta"</span>, <span class="st">"accepted"</span>, <span class="st">"compounds"</span><span class="op">)</span><span class="op">]</span></span>
@@ -233,12 +235,12 @@ background coefficients have no extra rank penalty.</p>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">initialization</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">contained_fusion</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>AIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, BIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, GIC<span class="op">=</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Reported criteria count <code>m * rank</code> plus estimated shared
-noise parameters. Other presets are <code>"aic"</code>,
+<p>Reported criteria count <span class="math inline">mK</span>, where
+<span class="math inline">K</span> is the fitted rank, plus estimated
+shared noise parameters. Other presets are <code>"aic"</code>,
 <code>"bic"</code>, <code>"ebic"</code> and <code>"mbic"</code>. A
 nonnegative numeric <code>lambda</code> supplies the penalty per
-selection degree of freedom. Each retained component incurs
-<code>m * lambda</code> before temporal adjustment. The <a href="algorithm.html#rank-selection">rank objective</a> gives the full
+selection degree of freedom. Each retained component incurs <span class="math inline">m\lambda</span> before temporal adjustment. The <a href="algorithm.html#rank-selection">rank objective</a> gives the full
 convention.</p>
 </div>
 <div class="section level2">
@@ -256,51 +258,55 @@ that mean.</p>
 <thead><tr class="header">
 <th align="left">Model</th>
 <th align="left">R specification</th>
-<th align="left">Variance at mean <code>mu</code>
+<th align="left">Variance at mean <span class="math inline">\mu</span>
 </th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">Gaussian</td>
 <td align="left"><code>gaussian("identity")</code></td>
-<td align="left"><code>dispersion</code></td>
+<td align="left"><span class="math inline">\phi</span></td>
 </tr>
 <tr class="even">
 <td align="left">Poisson</td>
 <td align="left"><code>poisson("identity")</code></td>
-<td align="left"><code>mu</code></td>
+<td align="left"><span class="math inline">\mu</span></td>
 </tr>
 <tr class="odd">
 <td align="left">Quasipoisson</td>
 <td align="left"><code>quasipoisson("identity")</code></td>
-<td align="left"><code>dispersion * mu</code></td>
+<td align="left"><span class="math inline">\phi\mu</span></td>
 </tr>
 <tr class="even">
 <td align="left">NB2</td>
 <td align="left"><code>mgcv::nb(link="identity")</code></td>
-<td align="left"><code>mu + mu^2/theta</code></td>
+<td align="left"><span class="math inline">\mu+\mu^2/\theta</span></td>
 </tr>
 <tr class="odd">
 <td align="left">NB1</td>
 <td align="left"><code>nb1(dispersion=2, link="identity")</code></td>
-<td align="left"><code>dispersion * mu</code></td>
+<td align="left"><span class="math inline">\phi\mu</span></td>
 </tr>
 <tr class="even">
 <td align="left">Censored Gamma</td>
 <td align="left"><code>gammaCensored(dispersion=.2, link="identity")</code></td>
 <td align="left">
-<code>dispersion * mu^2</code> before censoring</td>
+<span class="math inline">\phi\mu^2</span> before
+censoring</td>
 </tr>
 <tr class="odd">
 <td align="left">Common-scale Gamma</td>
 <td align="left"><code>gammaScale(scale=2, link="identity")</code></td>
 <td align="left">
-<code>scale * mu</code> before censoring</td>
+<span class="math inline">\sigma\mu</span> before
+censoring</td>
 </tr>
 </tbody>
 </table>
-<p>Positive <code>dispersion</code> or <code>theta</code> arguments fix
-the parameter. Omitted shared parameters are estimated from temporal
+<p>Here <span class="math inline">\phi</span> denotes the dispersion and
+<span class="math inline">\sigma</span> the common Gamma scale. Positive
+<code>dispersion</code> or <code>theta</code> arguments fix the
+parameter. Omitted shared parameters are estimated from temporal
 differences. A negative NB2 <code>theta</code> initializes at its
 absolute value and enables likelihood-improving updates. Quasipoisson
 uses a scaled Poisson kernel and corresponding quasi-criteria.</p>

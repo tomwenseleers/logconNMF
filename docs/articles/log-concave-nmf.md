@@ -50,7 +50,7 @@ Y <- gcmsData1
 X <- convMatrix(convKernel("gaussian", 65L, list(sigma=8)), nrow(Y))
 B <- matrix(1, nrow(Y), 1L)
 fit <- logconNMF(Y, X=X, background=B,
-  family=quasipoisson("identity"), precluster=16L, correlation="auto", ncores=8L)
+  family=quasipoisson("identity"), precluster=8L, correlation="auto", ncores=8L)
 fit$rank
 dim(fit$H)
 dim(coef(fit))
@@ -74,13 +74,17 @@ fitted_signal <- fitted(fit)
 fit$seconds
 ```
 
-![Recovered component profiles and full-channel loading
-patterns](../reference/figures/gcms-data1-profiles-spectra.png)
+![Background-corrected ion traces, six resolved log-concave profiles and
+a 2 by 3 panel of recovered
+spectra](../reference/figures/gcms-data1-decomposition.png)
 
-Recovered component profiles and full-channel loading patterns
+Background-corrected ion traces, six resolved log-concave profiles and a
+2 by 3 panel of recovered spectra
 
-All 671 channels are retained, and factors are returned in increasing
-profile-apex order. The [GCMSprime
+All 670 channels are retained, and factors are returned in increasing
+profile-apex order. The upper panel uses a square-root display to retain
+weak grey ion traces; the six spectra use base-peak relative
+intensities. The [GCMSprime
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 develops the chromatographic interpretation, file input and reports.
 
@@ -113,10 +117,10 @@ The table reports one direct fit of each matrix with eight OpenMP
 threads and one BLAS thread on an Intel Core i9-11950H. Constructing the
 PSF dictionary and background basis is outside the timing.
 
-| Window         | Scans | Channels | Components | Quasi-GIC | Seconds |
-|:---------------|------:|---------:|-----------:|----------:|--------:|
-| Hydrocarbons   |   119 |      671 |          6 |   246,473 |    4.63 |
-| Beer volatiles | 1,764 |      518 |         38 | 1,467,426 |   67.00 |
+| Window             | Scans | Channels | Components | Quasi-GIC | Seconds |
+|:-------------------|------:|---------:|-----------:|----------:|--------:|
+| Hydrocarbon window |   119 |      670 |          6 |   247,888 |    7.96 |
+| Beer volatiles     | 1,764 |      518 |         38 | 1,467,426 |   67.00 |
 
 The [GCMSprime
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
@@ -134,9 +138,9 @@ equally refined unmerged local model on all original channels.
 The default `lambda="gic"` compares complete fits by likelihood and
 component count. After dividing the likelihood by the original channel
 count, each retained component incurs one rank charge. On the unscaled
-likelihood the charge is `m * lambda_IC`, with an optional temporal
-information adjustment. Profile complexity and background coefficients
-have no extra rank penalty.
+likelihood the charge is m\lambda\_{\mathrm{IC}}, with an optional
+temporal information adjustment. Profile complexity and background
+coefficients have no extra rank penalty.
 
 ``` r
 
@@ -148,11 +152,11 @@ fit$contained_fusion
 c(AIC=AIC(fit), BIC=BIC(fit), GIC=GIC(fit))
 ```
 
-Reported criteria count `m * rank` plus estimated shared noise
-parameters. Other presets are `"aic"`, `"bic"`, `"ebic"` and `"mbic"`. A
-nonnegative numeric `lambda` supplies the penalty per selection degree
-of freedom. Each retained component incurs `m * lambda` before temporal
-adjustment. The [rank
+Reported criteria count mK, where K is the fitted rank, plus estimated
+shared noise parameters. Other presets are `"aic"`, `"bic"`, `"ebic"`
+and `"mbic"`. A nonnegative numeric `lambda` supplies the penalty per
+selection degree of freedom. Each retained component incurs m\lambda
+before temporal adjustment. The [rank
 objective](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#rank-selection)
 gives the full convention.
 
@@ -162,16 +166,17 @@ All seven models use identity-link nonnegative means and the original
 observation scale. Gaussian measurements can have negative errors around
 that mean.
 
-| Model | R specification | Variance at mean `mu` |
+| Model | R specification | Variance at mean \mu |
 |:---|:---|:---|
-| Gaussian | `gaussian("identity")` | `dispersion` |
-| Poisson | `poisson("identity")` | `mu` |
-| Quasipoisson | `quasipoisson("identity")` | `dispersion * mu` |
-| NB2 | `mgcv::nb(link="identity")` | `mu + mu^2/theta` |
-| NB1 | `nb1(dispersion=2, link="identity")` | `dispersion * mu` |
-| Censored Gamma | `gammaCensored(dispersion=.2, link="identity")` | `dispersion * mu^2` before censoring |
-| Common-scale Gamma | `gammaScale(scale=2, link="identity")` | `scale * mu` before censoring |
+| Gaussian | `gaussian("identity")` | \phi |
+| Poisson | `poisson("identity")` | \mu |
+| Quasipoisson | `quasipoisson("identity")` | \phi\mu |
+| NB2 | `mgcv::nb(link="identity")` | \mu+\mu^2/\theta |
+| NB1 | `nb1(dispersion=2, link="identity")` | \phi\mu |
+| Censored Gamma | `gammaCensored(dispersion=.2, link="identity")` | \phi\mu^2 before censoring |
+| Common-scale Gamma | `gammaScale(scale=2, link="identity")` | \sigma\mu before censoring |
 
+Here \phi denotes the dispersion and \sigma the common Gamma scale.
 Positive `dispersion` or `theta` arguments fix the parameter. Omitted
 shared parameters are estimated from temporal differences. A negative
 NB2 `theta` initializes at its absolute value and enables

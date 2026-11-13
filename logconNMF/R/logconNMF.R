@@ -20,9 +20,9 @@
 #' @param lambda An information criterion (`"gic"`, `"aic"`, `"bic"`,
 #'   `"ebic"` or `"mbic"`) or a nonnegative numeric penalty per selection
 #'   degree of freedom, before any temporal information adjustment. With
-#'   `m` channels, a single component incurs `m * lambda`; in a simultaneous fit
-#'   a shared spectrum incurs `(m - 1) * lambda` and an occurrence incurs
-#'   `lambda`.
+#'   \eqn{m} channels, a single component incurs \eqn{m\lambda}; in a
+#'   simultaneous fit a shared spectrum incurs \eqn{(m-1)\lambda} and an
+#'   occurrence incurs \eqn{\lambda}.
 #' @param precluster Maximum channel groups or a saved [channelGroups()] map.
 #'   `"auto"` uses the original channels for a single sample and up to 32
 #'   common groups for a simultaneous fit. `FALSE` or `NULL` disables aggregation.
@@ -109,7 +109,6 @@
 #' simultaneous-NMF terminology of
 #' [Cichocki et al. (2009)](https://doi.org/10.1002/9780470747278) and
 #' [Lee et al. (2012)](https://doi.org/10.1371/journal.pone.0048238).
-#' It does not introduce a separate cross-modality coupling matrix.
 #'
 #' Samples can supply separate background bases, known exposures and noise
 #' parameters. With a time warp \eqn{u=w_s(t)}, binwise Jacobian \eqn{J},

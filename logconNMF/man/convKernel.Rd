@@ -41,7 +41,7 @@ shifted vector of the same length as `kernel`
 \description{
 Generates a numeric vector of length \emph{L} that represents a
 point-spread function (PSF) or impulse-response kernel.
-The kernel is \eqn{L^{1}}-normalised (area = 1).
+The kernel is \eqn{\ell^{1}}-normalised (area = 1).
 Optionally it is shifted with \code{\link{shiftKernel}} so that a
 user-chosen percentile \eqn{perc} of the cumulative distribution falls on
 index \eqn{1 + perc \cdot (L - 1)}; setting \code{perc = 0} leaves the

@@ -4,7 +4,7 @@
 #' @description
 #' Generates a numeric vector of length \emph{L} that represents a
 #' point-spread function (PSF) or impulse-response kernel.
-#' The kernel is \eqn{L^{1}}-normalised (area = 1).
+#' The kernel is \eqn{\ell^{1}}-normalised (area = 1).
 #' Optionally it is shifted with \code{\link{shiftKernel}} so that a
 #' user-chosen percentile \eqn{perc} of the cumulative distribution falls on
 #' index \eqn{1 + perc \cdot (L - 1)}; setting \code{perc = 0} leaves the
@@ -42,7 +42,7 @@
 #' @param params Named list of shape parameters (see Details).
 #' @param perc Numeric in [0, 1] or "mean".
 #'   Position the chosen percentile of the kernel's CDF at index
-#'   `1 + perc*(L - 1)` or `mean` for centroid centering.
+#'   \eqn{1+\mathrm{perc}(L-1)}, or at the mean for centroid centering.
 #'   Defaults to `0` for causal families
 #'   (`exponential`, `gamma`, `gammaexp`) and to `mean`
 #'   for all other types (resulting in centroid centering).

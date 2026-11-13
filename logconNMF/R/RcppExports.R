@@ -9,14 +9,6 @@ nuisance_gaussian_cpp <- function(B, Y, Signal, Prior, Start, constrained, nthre
     .Call(`_logconNMF_nuisance_gaussian_cpp`, B, Y, Signal, Prior, Start, constrained, nthreads)
 }
 
-slcn_pooled_terms <- function(y, mean, design, family, phi, theta, weights, nthreads = 1L, censor = .5) {
-    .Call(`_logconNMF_slcn_pooled_terms`, y, mean, design, family, phi, theta, weights, nthreads, censor)
-}
-
-slcn_pooled_spectra <- function(y, mean, profiles, exposure, amplitude, family, phi, theta, weights, nthreads = 1L, censor = .5) {
-    .Call(`_logconNMF_slcn_pooled_spectra`, y, mean, profiles, exposure, amplitude, family, phi, theta, weights, nthreads, censor)
-}
-
 slcn_log_profile <- function(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first = 0L, maxit = 4L, censor = .5, q = 128L, nthreads = 1L, apex_lo = -1L, apex_hi = -1L, mode = 2L, time = NULL, exposure = NULL) {
     .Call(`_logconNMF_slcn_log_profile`, y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, q, nthreads, apex_lo, apex_hi, mode, time, exposure)
 }
@@ -31,6 +23,14 @@ logconc_profile_cpp <- function(y, mean, profile, spectrum, family, phi, theta, 
 
 slcn_read_block <- function(path, n, channels, rows) {
     .Call(`_logconNMF_slcn_read_block`, path, n, channels, rows)
+}
+
+slcn_pooled_terms <- function(y, mean, design, family, phi, theta, weights, nthreads = 1L, censor = .5) {
+    .Call(`_logconNMF_slcn_pooled_terms`, y, mean, design, family, phi, theta, weights, nthreads, censor)
+}
+
+slcn_pooled_spectra <- function(y, mean, profiles, exposure, amplitude, family, phi, theta, weights, nthreads = 1L, censor = .5) {
+    .Call(`_logconNMF_slcn_pooled_spectra`, y, mean, profiles, exposure, amplitude, family, phi, theta, weights, nthreads, censor)
 }
 
 slcn_state <- function(y, mu) {

@@ -87,10 +87,10 @@ sampleNMF(object, sample = 1L)
 
   An information criterion (`"gic"`, `"aic"`, `"bic"`, `"ebic"` or
   `"mbic"`) or a nonnegative numeric penalty per selection degree of
-  freedom, before any temporal information adjustment. With `m`
-  channels, a single component incurs `m * lambda`; in a simultaneous
-  fit a shared spectrum incurs `(m - 1) * lambda` and an occurrence
-  incurs `lambda`.
+  freedom, before any temporal information adjustment. With \\m\\
+  channels, a single component incurs \\m\lambda\\; in a simultaneous
+  fit a shared spectrum incurs \\(m-1)\lambda\\ and an occurrence incurs
+  \\\lambda\\.
 
 - background:
 
@@ -290,8 +290,7 @@ shared-factor form \\M_s = Q_s P\\, with one common spectral factor
 \\P\\ and sample-specific profile/area factors \\Q_s\\. This follows the
 simultaneous-NMF terminology of [Cichocki et al.
 (2009)](https://doi.org/10.1002/9780470747278) and [Lee et al.
-(2012)](https://doi.org/10.1371/journal.pone.0048238). It does not
-introduce a separate cross-modality coupling matrix.
+(2012)](https://doi.org/10.1371/journal.pone.0048238).
 
 Samples can supply separate background bases, known exposures and noise
 parameters. With a time warp \\u=w_s(t)\\, binwise Jacobian \\J\\, and

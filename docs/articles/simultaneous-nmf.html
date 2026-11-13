@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF" aria-label="GitHub repository"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -90,9 +90,7 @@ spectral factor <span class="math inline">P</span> and sample-specific
 profile/area factors <span class="math inline">Q_s</span>. This is
 <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al.</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea</a>
 and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et
-al.</a>. It is an exact shared-factor model, not a cross-modality
-factorisation joined through a separate mapping matrix, as in one
-prominent use of <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">coupled NMF</a>.</p>
+al.</a>. It is an exact shared-factor model.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                          <span class="co"># estimated number of shared compounds</span></span>

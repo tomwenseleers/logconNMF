@@ -1,11 +1,12 @@
 # Simulate synthetic GC-MS chromatograms with ground-truth signal + background
 
 \`simulateGCMS()\` draws \\k\\ compounds from an EI reference library
-\`S\` (rows = compounds, columns = m/z values, e.g. 41-298) and
-generates an \\n \times m\\ chromatogram \`D\` whose signal is the sum
-of k Gaussian peaks (\`W_true H_true\`) and a smooth, monotonically
-increasing B-spline background (\`W_background\*bg_scale
-H_background\`).
+\`S\` (rows are compounds and columns are m/z values, e.g. 41–298) and
+generates an \\n \times m\\ chromatogram \\D\\ whose signal is the sum
+of \\k\\ Gaussian peaks, \\W\_{\mathrm{true}}H\_{\mathrm{true}}\\, and a
+smooth, monotonically increasing B-spline background
+\\W\_{\mathrm{background}}\\b\\H\_{\mathrm{background}}\\, where \\b\\
+is the background scale.
 
 ## Usage
 
@@ -106,8 +107,9 @@ A list with matrices:
 
 - D_true:
 
-  Noiseless signal \`W_true H_true + W_background H_background\` (dense
-  matrix).
+  Noiseless signal
+  \\W\_{\mathrm{true}}H\_{\mathrm{true}}+W\_{\mathrm{background}}H\_{\mathrm{background}}\\
+  (dense matrix).
 
 - W_true, H_true:
 

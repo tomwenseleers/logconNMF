@@ -5,12 +5,12 @@
 \alias{gcmsData1}
 \title{GC/MS Chromatogram Section - Cuticular Hydrocarbon Profile of a Cataglyphis iberica Ant Queen}
 \format{
-A numeric matrix with 119 rows (time slices) and 671 columns (m/z values).
+A numeric matrix with 119 rows (time slices) and 670 columns (m/z values).
 \describe{
   \item{Rows}{Individual full-scan acquisitions (time scans).
               Row names give the scan mid-point in minutes
               (26.80 <= RT <= 27.20).}
-  \item{Columns}{Unit-mass channels, m/z 30:700.
+  \item{Columns}{Unit-mass channels, m/z 30:699.
                 Column names are the integer m/z values.}
 Additional attribute:
 \itemize{
@@ -43,9 +43,9 @@ Co-eluting compounds present with retention times and diagnostic ions:
         \tabular{lll}{
           \strong{RT (min)} \tab \strong{Compound} \tab \strong{Diagnostic ions} \cr
           26.84 \tab 15-Methylnonacosane \tab 224, 225 \cr
-          26.91 \tab 13-Methylnonacosane \tab 196, 225 \cr
-          26.94 \tab 11-Methylnonacosane \tab 168, 280 \cr
-          26.95 \tab Eicosamethylcyclodecasiloxane \tab 73, 147, 221, 281, 355, 429, 503 \cr
+          26.91 \tab 13-Methylnonacosane \tab 196, 252 \cr
+          26.95 \tab 11-Methylnonacosane \tab 168, 280 \cr
+          26.95 \tab Cyclodecasiloxane, eicosamethyl \tab 73, 147, 221, 281, 355, 429, 503 \cr
           27.01 \tab 9-Methylnonacosane \tab 140, 308 \cr
           27.11 \tab 7-Methylnonacosane \tab 112, 336
         }

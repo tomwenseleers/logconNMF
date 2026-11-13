@@ -48,6 +48,7 @@ navbar:
       href: articles/algorithm.html
     github:
       icon: fab fa-github
+      aria-label: GitHub repository
       href: https://github.com/tomwenseleers/logconNMF
 home:
   strip_header: false

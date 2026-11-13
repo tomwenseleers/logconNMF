@@ -13,9 +13,7 @@ factors Q_s. This is **simultaneous NMF** in the terminology of
 [Cichocki et al.](https://doi.org/10.1002/9780470747278),
 [Badea](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf)
 and [Lee et al.](https://doi.org/10.1371/journal.pone.0048238). It is an
-exact shared-factor model, not a cross-modality factorisation joined
-through a separate mapping matrix, as in one prominent use of [coupled
-NMF](https://doi.org/10.1073/pnas.1805681115).
+exact shared-factor model.
 
 ``` r
 

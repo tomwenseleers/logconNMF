@@ -1,5 +1,10 @@
 # logconNMF 0.1.0.9000
 
+* Corrected the historical one-unit mass-axis offset in `gcmsData1`: the
+  all-zero leading channel was removed and the retained channels now have their
+  nominal labels, m/z 30:699. `gcmsData2` was independently checked against its
+  source CDF and required no correction.
+
 ## PSF estimation and deconvolution
 
 * `convKernel()`, `shiftKernel()` and `convMatrix()` construct PSFs and

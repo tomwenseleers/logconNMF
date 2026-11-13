@@ -35,7 +35,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF" aria-label="GitHub repository"><span class="fa fab fa-github"></span></a></li>
       </ul></div>
 
 
@@ -131,9 +131,9 @@ may be negative; their fitted latent signals remain nonnegative.</p></dd>
 <dd><p>An information criterion (<code>"gic"</code>, <code>"aic"</code>, <code>"bic"</code>,
 <code>"ebic"</code> or <code>"mbic"</code>) or a nonnegative numeric penalty per selection
 degree of freedom, before any temporal information adjustment. With
-<code>m</code> channels, a single component incurs <code>m * lambda</code>; in a simultaneous fit
-a shared spectrum incurs <code>(m - 1) * lambda</code> and an occurrence incurs
-<code>lambda</code>.</p></dd>
+\(m\) channels, a single component incurs \(m\lambda\); in a
+simultaneous fit a shared spectrum incurs \((m-1)\lambda\) and an
+occurrence incurs \(\lambda\).</p></dd>
 
 
 <dt id="arg-background">background<a class="anchor" aria-label="anchor" href="#arg-background"></a></dt>
@@ -315,8 +315,7 @@ shared-factor form \(M_s = Q_s P\), with one common spectral factor
 \(P\) and sample-specific profile/area factors \(Q_s\). This follows the
 simultaneous-NMF terminology of
 <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al. (2009)</a> and
-<a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>.
-It does not introduce a separate cross-modality coupling matrix.</p>
+<a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>.</p>
 <p>Samples can supply separate background bases, known exposures and noise
 parameters. With a time warp \(u=w_s(t)\), binwise Jacobian \(J\),
 and exposure \(e\), the fitted mean on the original grid is

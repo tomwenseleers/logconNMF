@@ -2,7 +2,7 @@
 
 Generates a numeric vector of length *L* that represents a point-spread
 function (PSF) or impulse-response kernel. The kernel is
-\\L^{1}\\-normalised (area = 1). Optionally it is shifted with
+\\\ell^{1}\\-normalised (area = 1). Optionally it is shifted with
 `shiftKernel` so that a user-chosen percentile \\perc\\ of the
 cumulative distribution falls on index \\1 + perc \cdot (L - 1)\\;
 setting `perc = 0` leaves the kernel unshifted. Alternatively, using

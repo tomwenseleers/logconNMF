@@ -1,17 +1,17 @@
 # Make banded or rectangular convolution design matrices
 
-`convMatrix()` builds a sparse Toeplitz (convolution) matrix **A** such
-that `as.vector(A %*% x)` is numerically identical to
-`gsignal::conv(x, kernel, shape)`.
+`convMatrix()` builds a sparse Toeplitz convolution matrix \\A\\ such
+that \$\$A x = \operatorname{conv}(x,g;\mathrm{shape}),\$\$ where \\g\\
+is the supplied point-spread-function kernel.
 
 - If `n_cols` is *omitted*, the function returns the classical *banded*
   design matrix: square when `shape = "same"` and tall when
   `shape = "full"`.
 
 - If `n_cols` is supplied, only the first `n_cols` time-shifts of
-  `kernel` are kept, yielding an `n x n_cols` rectangular design. Such
-  matrices are useful for point-spread-function (PSF) update steps in
-  blind-deconvolution algorithms.
+  `kernel` are kept, yielding an \\n \times n\_{\mathrm{cols}}\\
+  rectangular design. Such matrices are useful for point-spread-function
+  (PSF) update steps in blind-deconvolution algorithms.
 
 The matrix is produced in a single pass, so no intermediate (larger)
 object is ever allocated, keeping memory usage to a minimum.
@@ -40,8 +40,9 @@ convMatrix(kernel, n, shape = c("same", "full"), n_cols = NULL, origin = NULL)
 
 - n_cols:
 
-  Optional. Number of columns to keep. \*If omitted\* \`n_cols \<- n\`
-  and the result is the usual banded convolution matrix.
+  Optional. Number of columns to keep. \*If omitted\*,
+  \\n\_{\mathrm{cols}}=n\\, and the result is the usual banded
+  convolution matrix.
 
 - origin:
 
@@ -52,8 +53,8 @@ convMatrix(kernel, n, shape = c("same", "full"), n_cols = NULL, origin = NULL)
 
 A sparse matrix of class \*\*\`dgCMatrix\`\*\* with
 
-\* \`n_rows = n\` (shape "same") or \* \`n_rows = n + L - 1\` (shape
-"full")
+\* \\n\_{\mathrm{rows}}=n\\ for shape \`"same"\`; or \*
+\\n\_{\mathrm{rows}}=n+L-1\\ for shape \`"full"\`.
 
 rows, and \`n_cols\` columns.
 

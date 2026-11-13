@@ -520,7 +520,7 @@ GIC(fitq)
 # gammaScale(scale=5, link="identity", censor=0.5).
 
 if (FALSE) { # \dontrun{
-# Six co-eluting compounds, retaining all 671 mass channels.
+# Six co-eluting compounds, retaining all 670 mass channels.
 data(gcmsData1)
 Y <- gcmsData1
 X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 8)), nrow(Y))

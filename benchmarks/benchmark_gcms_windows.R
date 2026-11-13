@@ -11,7 +11,7 @@ for (name in c("gcmsData1","gcmsData2")) {
   B <- if(name=="gcmsData1") matrix(1,nrow(Y),1) else
     splines::bs(time,df=4L,intercept=TRUE)
   seconds <- system.time(fit <- splogconNMF(X,Y,background=B,
-    family=quasipoisson("identity"),precluster=if(name=="gcmsData1")16L else 32L,
+    family=quasipoisson("identity"),precluster=if(name=="gcmsData1")8L else 32L,
     correlation="auto", ncores=8L))[["elapsed"]]
   results[[name]] <- data.frame(dataset=name,n=nrow(Y),channels=ncol(Y),
     compounds=fit$rank,GIC=GIC(fit),seconds=seconds)

@@ -16,7 +16,7 @@ data(gcmsData1)
 
 ## Format
 
-A numeric matrix with 119 rows (time slices) and 671 columns (m/z
+A numeric matrix with 119 rows (time slices) and 670 columns (m/z
 values).
 
 Rows
@@ -26,7 +26,7 @@ Rows
 
 Columns
 
-: Unit-mass channels, m/z 30:700. Column names are the integer m/z
+: Unit-mass channels, m/z 30:699. Column names are the integer m/z
   values.
 
 ## Source
@@ -44,9 +44,9 @@ Co-eluting compounds present with retention times and diagnostic ions:
 |----|----|----|
 | **RT (min)** | **Compound** | **Diagnostic ions** |
 | 26.84 | 15-Methylnonacosane | 224, 225 |
-| 26.91 | 13-Methylnonacosane | 196, 225 |
-| 26.94 | 11-Methylnonacosane | 168, 280 |
-| 26.95 | Eicosamethylcyclodecasiloxane | 73, 147, 221, 281, 355, 429, 503 |
+| 26.91 | 13-Methylnonacosane | 196, 252 |
+| 26.95 | 11-Methylnonacosane | 168, 280 |
+| 26.95 | Cyclodecasiloxane, eicosamethyl | 73, 147, 221, 281, 355, 429, 503 |
 | 27.01 | 9-Methylnonacosane | 140, 308 |
 | 27.11 | 7-Methylnonacosane | 112, 336 |
 

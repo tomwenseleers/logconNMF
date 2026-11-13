@@ -914,10 +914,7 @@ be written \(M_s=Q_sP\), where \(P\) is shared exactly and \(Q_s\) is
 sample-specific. This is simultaneous NMF in the terminology of
 [Cichocki et al.](https://doi.org/10.1002/9780470747278),
 [Badea (2008)](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf)
-and [Lee et al. (2012)](https://doi.org/10.1371/journal.pone.0048238). A hard
-shared factor is one possible coupling constraint, but the present model does
-not introduce the cross-modality mapping matrix used, for example, by
-[Duren et al. (2018)](https://doi.org/10.1073/pnas.1805681115).
+and [Lee et al. (2012)](https://doi.org/10.1371/journal.pone.0048238).
 
 For sample \(s\), let \(u=w_s(t)\) be its monotone alignment map. Native bin
 edges \(t_{si-1/2},t_{si+1/2}\) define
@@ -1136,9 +1133,6 @@ Badea, L. (2008).
 
 Lee, C. M. et al. (2012).
 [Simultaneous non-negative matrix factorization for multiple large scale gene expression datasets in toxicology.](https://doi.org/10.1371/journal.pone.0048238)
-
-Duren, Z. et al. (2018).
-[Integrative analysis of single-cell genomics data by coupled nonnegative matrix factorizations.](https://doi.org/10.1073/pnas.1805681115)
 
 Fan, Y. & Tang, C. Y. (2013).
 [Tuning parameter selection in high dimensional penalized likelihood.](https://doi.org/10.1111/rssb.12001)

@@ -4,5 +4,6 @@
 ^pkgdown$
 ^vignettes/articles$
 ^examples$
+^data-raw$
 ^src/.*[.](o|so|dll|rds)$
 ^\.Rprofile$

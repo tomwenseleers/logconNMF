@@ -57,7 +57,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF"><span class="fa fab fa-github"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/tomwenseleers/logconNMF" aria-label="GitHub repository"><span class="fa fab fa-github"></span></a></li>
       </ul>
 </div>
 
@@ -76,7 +76,7 @@ SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 Log-concave NMF.<br><span>Automatic rank selection.</span>
 </h1>
 <p class="l0-lead">
-A structured sparse nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods and simultaneous multisample models that do not require trilinearity.
+A structured sparse nonnegative factorisation framework for ordered multichannel data, combining automatic rank tuning, hard log-concave profiles, flexible likelihoods supporting different noise models and simultaneous multisample models that do not require trilinearity.
 </p>
 <div class="l0-actions">
 <a class="btn btn-primary" href="articles/log-concave-nmf.html">Get started <span aria-hidden="true">↗</span></a><a class="btn btn-outline-light" href="reference/index.html">Explore the methods</a>
@@ -94,33 +94,42 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharin
 <h2 id="nonnegative-matrix-and-tensor-factorisation-to-separate-overlapping-peaks">Nonnegative matrix and tensor factorisation to separate overlapping peaks<a class="anchor" aria-label="anchor" href="#nonnegative-matrix-and-tensor-factorisation-to-separate-overlapping-peaks"></a>
 </h2>
 <p>Hyphenated chromatography is a demanding test case for structured NMF and tensor decomposition. In GC–MS, chromatographic separation is rarely complete: when compounds co-elute, the spectrum observed at one scan is an additive mixture of their spectra. In matrix notation,</p>
-<p><code>Y[i, ] ≈ sum_r H[i, r] * S[r, ] + background[i, ]</code>,</p>
-<p>where <code>H[, r]</code> is the elution-mode factor and <code>S[r, ]</code> is the spectral-mode factor for component <code>r</code>. Recovering the latent components is therefore a constrained nonnegative factorisation problem: model order must be identified while chemically meaningful structure is imposed on both modes.</p>
-<p>Nonnegative matrix and tensor factorisation have a substantial history in hyphenated chromatography. Important examples include <a href="https://doi.org/10.1039/C4AY00571F" class="external-link">MCR-ALS</a>, <a href="https://doi.org/10.1016/j.talanta.2004.09.017" class="external-link">NMF applied directly to GC–MS</a>, <a href="https://doi.org/10.1016/j.chemolab.2008.10.004" class="external-link">global parametric analysis of multiple GC/MS data sets</a>, <a href="https://doi.org/10.1002/%28SICI%291099-128X%28199905/08%2913%3A3/4%3C295%3A%3AAID-CEM547%3E3.0.CO%3B2-Y" class="external-link">PARAFAC2 for retention-time shifts</a>, and the PARAFAC2-based <a href="https://doi.org/10.1016/j.chroma.2017.04.052" class="external-link">PARADISe workflow</a>. These methods established that multichannel structure can resolve co-elution and recover spectra with less interference than apex extraction alone. For the factorisation community, these data expose where unconstrained bilinear models and rigid multilinear coupling become fragile: rank, profile geometry, observation noise, background and between-sample variation all interact.</p>
+<p><span class="math display">
+\mathbf{Y}_{i\boldsymbol{\cdot}}
+\approx \sum_{r=1}^{R} H_{ir}\mathbf{S}_{r\boldsymbol{\cdot}}
++ \mathbf{B}_{i\boldsymbol{\cdot}},
+</span></p>
+<p>where <span class="math inline">\mathbf{H}_{\boldsymbol{\cdot}r}</span> is the elution-mode factor and <span class="math inline">\mathbf{S}_{r\boldsymbol{\cdot}}</span> is the spectral-mode factor for component <span class="math inline">r</span>. Recovering the latent components is therefore a constrained nonnegative factorisation problem: model order must be identified while chemically meaningful structure is imposed on both modes.</p>
+<p>Nonnegative matrix and tensor factorisation have a substantial history in hyphenated chromatography. Important examples include <a href="https://doi.org/10.1039/C4AY00571F" class="external-link">MCR-ALS</a>, <a href="https://doi.org/10.1016/j.talanta.2004.09.017" class="external-link">NMF applied directly to GC–MS</a>, <a href="https://doi.org/10.1109/ICASSP39728.2021.9414631" class="external-link">nonnegative unimodal matrix factorisation</a>, <a href="https://doi.org/10.1016/j.chemolab.2008.10.004" class="external-link">global parametric analysis of multiple GC/MS data sets</a>, <a href="https://doi.org/10.1002/%28SICI%291099-128X%28199905/08%2913%3A3/4%3C295%3A%3AAID-CEM547%3E3.0.CO%3B2-Y" class="external-link">PARAFAC2 for retention-time shifts</a>, and the PARAFAC2-based <a href="https://doi.org/10.1016/j.chroma.2017.04.052" class="external-link">PARADISe workflow</a>, including its recent <a href="https://doi.org/10.1002/cem.3501" class="external-link">shift-invariant trilinearity formulation</a>. These methods established that multichannel structure can resolve co-elution and recover spectra with less interference than apex extraction alone. For the factorisation community, these data expose where unconstrained bilinear models and rigid multilinear coupling become fragile: rank, profile geometry, observation noise, background and between-sample variation all interact.</p>
 <div class="section level3">
 <h3 id="what-standard-formulations-leave-unresolved">What standard formulations leave unresolved<a class="anchor" aria-label="anchor" href="#what-standard-formulations-leave-unresolved"></a>
 </h3>
 <ul>
+<li><p><strong>Optimisation and chemical rank.</strong> Bilinear and multilinear factorisations are nonconvex. Different starts can give different stationary solutions, while ALS algorithms may enter long <em>swamps</em> or stop at a poor local fit (<a href="https://doi.org/10.1016/j.patcog.2007.09.010" class="external-link">Boutsidis &amp; Gallopoulos, 2008</a>; <a href="https://doi.org/10.1016/j.csda.2004.11.013" class="external-link">Tomasi &amp; Bro, 2006</a>). The number of components is usually supplied or selected outside the main fit. Useful diagnostics and automated classifiers exist for PARAFAC/PARAFAC2 (<a href="https://doi.org/10.1002/cem.801" class="external-link">Bro &amp; Kiers, 2003</a>; <a href="https://doi.org/10.1002/cem.2575" class="external-link">Johnsen et al., 2014</a>), but require fitting and comparing a sequence of prespecified ranks.</p></li>
 <li>
-<strong>Optimisation and chemical rank.</strong> Bilinear and multilinear factorisations are nonconvex. Different starts can give different stationary solutions, while ALS algorithms may enter long <em>swamps</em> or stop at a poor local fit (<a href="https://doi.org/10.1016/j.patcog.2007.09.010" class="external-link">Boutsidis &amp; Gallopoulos, 2008</a>; <a href="https://doi.org/10.1016/j.csda.2004.11.013" class="external-link">Tomasi &amp; Bro, 2006</a>). The number of components is usually supplied or selected outside the main fit. Useful diagnostics and automated classifiers exist for PARAFAC/PARAFAC2 (<a href="https://doi.org/10.1002/cem.801" class="external-link">Bro &amp; Kiers, 2003</a>; <a href="https://doi.org/10.1002/cem.2575" class="external-link">Johnsen et al., 2014</a>), but require fitting and comparing a sequence of prespecified ranks.</li>
-<li>
-<strong>Peak geometry.</strong> Nonnegativity alone permits multimodal or jagged elution profiles. MCR-ALS can impose unimodality (<a href="https://doi.org/10.1002/%28SICI%291099-128X%28199807/08%2912%3A4%3C223%3A%3AAID-CEM511%3E3.0.CO%3B2-2" class="external-link">Bro &amp; Sidiropoulos, 1998</a>), but unimodality by itself permits shoulders, plateaus and irregular tails. Log-concavity is stronger: on the positive support, <code>diff(log(h), differences = 2) &lt;= 0</code>, which implies unimodality while still allowing asymmetric and long-tailed peaks.</li>
-<li>
-<strong>Instrument response, background and noise.</strong> Standard factorisations do not jointly estimate a constant or smoothly time-varying point-spread function (PSF) and a smooth nonnegative background. Least squares also imposes a constant-variance Gaussian working model. Ion production and arrival motivate count models, while detector gain, aggregation and chemical variability can produce overdispersion or approximately Gaussian intensities (<a href="https://doi.org/10.1021/ac503554u" class="external-link">Ipsen, 2015</a>). Poisson MCR is possible (<a href="https://doi.org/10.1016/j.chemolab.2016.02.006" class="external-link">Lavoie et al., 2016</a>), but it is a specialised extension rather than the usual MCR-ALS objective.</li>
-<li>
-<strong>Multiple samples.</strong> PARAFAC assumes trilinearity: apart from an amplitude, each compound has the same elution profile in every sample. Shifted PARAFAC adds translations but not compound- and concentration-specific broadening or tailing. Classical PARAFAC2 is more flexible, but still requires <code>t(H_s) %*% H_s = Phi</code> for every sample <code>s</code>. Retention shifts can preserve these cross-products; changing widths, tails and pairwise overlaps generally do not. Flexible and fully constrained PARAFAC2 variants relax important parts of this restriction (<a href="https://doi.org/10.1007/978-3-319-93764-9_9" class="external-link">Cohen &amp; Bro, 2018</a>; <a href="https://doi.org/10.1137/21M1450033" class="external-link">Roald et al., 2022</a>).</li>
+<p><strong>Peak geometry.</strong> Nonnegativity alone permits multimodal or jagged elution profiles. MCR-ALS can impose unimodality (<a href="https://doi.org/10.1002/%28SICI%291099-128X%28199807/08%2912%3A4%3C223%3A%3AAID-CEM511%3E3.0.CO%3B2-2" class="external-link">Bro &amp; Sidiropoulos, 1998</a>), but unimodality by itself permits shoulders, plateaus and irregular tails. Log-concavity is stronger: on the positive support,</p>
+<p><span class="math display">
+\Delta^2\log h_i
+= \log h_{i+1}-2\log h_i+\log h_{i-1}\leq 0,
+</span></p>
+<p>which implies unimodality while still allowing asymmetric and long-tailed peaks.</p>
+</li>
+<li><p><strong>Instrument response, background and noise.</strong> Standard factorisations do not jointly estimate a constant or smoothly time-varying point-spread function (PSF) and a smooth nonnegative background. Least squares also imposes a constant-variance Gaussian working model. Ion production and arrival motivate count models, while detector gain, aggregation and chemical variability can produce overdispersion or approximately Gaussian intensities (<a href="https://doi.org/10.1021/ac503554u" class="external-link">Ipsen, 2015</a>). Poisson MCR is possible (<a href="https://doi.org/10.1016/j.chemolab.2016.02.006" class="external-link">Lavoie et al., 2016</a>), but it is a specialised extension rather than the usual MCR-ALS objective.</p></li>
+<li><p><strong>Multiple samples.</strong> PARAFAC assumes trilinearity: apart from an amplitude, each compound has the same elution profile in every sample. Shifted PARAFAC adds translations but not compound- and concentration-specific broadening or tailing. Classical PARAFAC2 is more flexible, but still requires <span class="math inline">\mathbf{H}_s^{\mathsf T}\mathbf{H}_s=\boldsymbol{\Phi}</span> for every sample <span class="math inline">s</span>. Retention shifts can preserve these cross-products; changing widths, tails and pairwise overlaps generally do not. Flexible and fully constrained PARAFAC2 variants relax important parts of this restriction (<a href="https://doi.org/10.1007/978-3-319-93764-9_9" class="external-link">Cohen &amp; Bro, 2018</a>; <a href="https://doi.org/10.1137/21M1450033" class="external-link">Roald et al., 2022</a>).</p></li>
 </ul>
 <div class="l0-method-comparison">
-<table class="table">
+<p>When both factors are constrained nonnegative and each alternating least-squares step uses nonnegative least squares under a squared-error loss, MCR-ALS and standard least-squares NMF solve the same constrained bilinear factorisation (<a href="https://doi.org/10.6028/jres.124.018" class="external-link">Camp, 2019</a>). <strong>MCR-ALS</strong> remains the established name in chemometrics and is the broader framework because its regressors and constraints need not be nonnegative least squares; “MCR-ANNLS” is not standard nomenclature. The two are therefore presented together below.</p>
+<table style="width:100%;" class="table">
 <colgroup>
-<col width="12%">
-<col width="12%">
-<col width="12%">
-<col width="12%">
-<col width="12%">
-<col width="12%">
-<col width="12%">
-<col width="12%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
+<col width="11%">
 </colgroup>
 <thead><tr>
 <th align="left">Method (typical cited formulation)</th>
@@ -131,27 +140,20 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharin
 <th align="left">Optimal spectral sparsity</th>
 <th align="left">Noise objective</th>
 <th align="left">Multiple samples</th>
+<th align="left">Typical practical rank and scope</th>
 </tr></thead>
 <tbody>
 <tr>
-<td align="left"><a href="https://doi.org/10.1016/j.talanta.2004.09.017" class="external-link">NMF for GC–MS</a></td>
-<td align="left">Supplied externally</td>
-<td align="left">No hard peak-shape constraint</td>
-<td align="left">Both matrix factors</td>
-<td align="left">No</td>
-<td align="left">No</td>
-<td align="left">Usually Euclidean or generalized KL</td>
-<td align="left">Separate or concatenated fits</td>
-</tr>
-<tr>
-<td align="left"><a href="https://doi.org/10.1016/j.aca.2020.10.051" class="external-link">MCR-ALS</a></td>
+<td align="left">
+<a href="https://doi.org/10.6028/jres.124.018" class="external-link">MCR-ALS / NMF</a> (<a href="https://doi.org/10.1016/j.talanta.2004.09.017" class="external-link">GC–MS NMF</a>; <a href="https://doi.org/10.1109/ICASSP39728.2021.9414631" class="external-link">unimodal NMF</a>)</td>
 <td align="left">Supplied; external EFA/PCA diagnostics</td>
-<td align="left">Optional nonnegativity, unimodality and other constraints</td>
-<td align="left">Optional, commonly imposed</td>
+<td align="left">Optional unimodality and other constraints, but no hard log-concavity</td>
+<td align="left">Both factors in standard NMF and NNLS-constrained MCR; optional in broader MCR</td>
 <td align="left">No integrated grouped subset selection</td>
 <td align="left">No</td>
-<td align="left">Weighted least squares by default; Poisson MCR-LLM exists</td>
-<td align="left">Augmented data sets; equality/trilinearity constraints can be added</td>
+<td align="left">Least squares is usual; generalized KL and specialised Poisson extensions exist</td>
+<td align="left">Separate, augmented or shared-factor multiset fits</td>
+<td align="left">Commonly about 5–10 factors per chromatographic fit; estimates are often highly unstable by about 15, although software imposes no hard cap</td>
 </tr>
 <tr>
 <td align="left">PARAFAC / shifted PARAFAC</td>
@@ -162,6 +164,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharin
 <td align="left">No</td>
 <td align="left">Least squares in standard algorithms</td>
 <td align="left">Exact trilinearity, or sample shifts only</td>
+<td align="left">Commonly about 3–6 factors per chromatographic fit</td>
 </tr>
 <tr>
 <td align="left"><a href="https://doi.org/10.1016/j.chroma.2017.04.052" class="external-link">Classical PARAFAC2 / PARADISe</a></td>
@@ -172,6 +175,7 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharin
 <td align="left">No</td>
 <td align="left">Least squares</td>
 <td align="left">Retention drift and restricted shape variation</td>
+<td align="left">Commonly about 6–8 factors; PARADISe fits candidate ranks 1–8 in separate windows containing preferably fewer than six peaks</td>
 </tr>
 <tr>
 <td align="left">Flexible / <a href="https://doi.org/10.1137/21M1450033" class="external-link">fully constrained PARAFAC2</a>
@@ -183,10 +187,23 @@ R · Grouped L0 discovery · Penalised likelihood · Flexible multisample sharin
 <td align="left">No</td>
 <td align="left">Least squares in the cited formulation</td>
 <td align="left">More flexible drift and shape variation, with an explicit coupling penalty or constraint</td>
+<td align="left">Usually low-rank, windowed fits; greater flexibility increases computational cost</td>
+</tr>
+<tr>
+<td align="left"><a href="https://doi.org/10.1002/cem.3501" class="external-link">Shift-invariant trilinearity</a></td>
+<td align="left">Supplied externally</td>
+<td align="left">A shared peak shape up to translation; cannot model sample-specific shape changes</td>
+<td align="left">Can constrain all modes</td>
+<td align="left">No</td>
+<td align="left">No</td>
+<td align="left">Least squares</td>
+<td align="left">Retention shifts under shift-invariant trilinearity</td>
+<td align="left">Evaluated on low-rank windows; whole chromatograms still require many separate models</td>
 </tr>
 </tbody>
 </table>
 </div>
+<p>These ranges describe practical operation in openly available chromatographic workflows, not algebraic or hard-coded rank ceilings. The <a href="https://cran.r-project.org/package=ALS" class="external-link">R <code>ALS</code> package</a> and <a href="https://mcrals.wordpress.com/download/mcr-als-2-0-toolbox/" class="external-link">MATLAB MCR-ALS toolbox</a> accept a user-selected component count. In practice, however, dense alternating factorisations become increasingly sensitive to initialisation, ill-conditioning and rotational ambiguity as the rank rises: 5–10 components is a usual operating range for chromatographic MCR-ALS/NMF, and estimates are often highly unstable by about 15 components. A major reason is that the standard alternating regressions treat the elution-mode factor as an unstructured matrix; unless a separate weak shape constraint is added, they do not use scan order or local chromatographic geometry in the updates. PARADISe makes the corresponding low-rank, windowed workflow explicit by fitting candidate ranks 1–8 separately in intervals with preferably fewer than six peaks. The shift-invariant trilinearity study likewise notes that hundreds or thousands of low-rank PARAFAC2 models are needed to extract a high-rank untargeted chromatogram. logconNMF instead fits full chromatograms and large batches directly, with stable model ranks in the hundreds or thousands rather than requiring hundreds or thousands of small windows.</p>
 </div>
 <div class="section level3">
 <h3 id="what-logconnmf-adds-to-constrained-factorisation">What logconNMF adds to constrained factorisation<a class="anchor" aria-label="anchor" href="#what-logconnmf-adds-to-constrained-factorisation"></a>
@@ -246,6 +263,15 @@ Shared spectra without trilinearity
 Samples retain their original grids, shapes, locations and areas. Monotone time warps model drift, and compounds may be absent.
 </p>
 </div>
+<div>
+<span class="l0-feature-number">07 · WHOLE-DATA SCALE</span>
+<h4>
+High-rank full chromatograms
+</h4>
+<p>
+Sparse screening and local likelihood updates support full chromatograms and large batches directly, with hundreds or thousands of components or sample–component occurrences.
+</p>
+</div>
 </div>
 <p>Structured PSF starts, grouped screening, original-channel refinement, profile restarts and criterion-checked fusion reduce sensitivity to poor starts. The time-varying PSF is locally rather than globally convolutional, and the final factorisation does not constrain profiles to shifted copies of a common kernel. The same formulation applies to other ordered multichannel signals with nonnegative, single-peaked components.</p>
 </div>
@@ -260,7 +286,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <div class="section level2">
 <h2 id="log-concave-nmf-for-single-samples">Log-concave NMF for single samples<a class="anchor" aria-label="anchor" href="#log-concave-nmf-for-single-samples"></a>
 </h2>
-<p>This deliberately small test window contains six co-eluting hydrocarbons and is used to make the recovered components easy to inspect. It is not a scale limit: logconNMF runs efficiently on full sample matrices with approximately 10,000–15,000 time scans or more. The initial dictionary <code>X</code> places a narrow Gaussian point spread function (PSF) at each possible peak location. The factorization can move away from that shape and gives each retained component its own log-concave profile.</p>
+<p>This deliberately small cuticular-hydrocarbon window contains six co-eluting components and is used to make the recovered factors easy to inspect. It is not a scale limit: logconNMF runs efficiently on full sample matrices with approximately 10,000–15,000 time scans or more. The initial dictionary <code>X</code> places a narrow Gaussian point spread function (PSF) at each possible peak location. An efficient <a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a> fit then selects the best subset that can explain the multichannel signal, thereby penalising most coefficients to zero.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData1</span><span class="op">)</span></span>
@@ -268,7 +294,7 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="va">g</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X <span class="op">=</span> <span class="va">X</span>, background <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">16L</span><span class="op">)</span></span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                         <span class="co"># estimated number of components</span></span>
 <span><span class="va">profiles</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">H</span>                 <span class="co"># scans x components</span></span>
@@ -277,9 +303,9 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p>The columns of <code>profiles</code> sum to one, so each row sum in <code>loadings</code> gives the component’s total fitted signal across scans and channels. Grouping similar channels can speed up the initial search. The reported spectra use every original channel.</p>
 <div class="float">
-<img src="reference/figures/gcms-data1-decomposition.png" alt="Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons"><div class="figcaption">Observed signal, fitted log-concave profiles and recovered spectra for six hydrocarbons</div>
+<img src="reference/figures/gcms-data1-decomposition.png" alt="Background-corrected ion traces in grey, six fitted log-concave profiles and a 2 by 3 panel of recovered spectra for six co-eluting components"><div class="figcaption">Background-corrected ion traces in grey, six fitted log-concave profiles and a 2 by 3 panel of recovered spectra for six co-eluting components</div>
 </div>
-<p>Each spectrum is displayed on a square-root relative-intensity scale.</p>
+<p>The upper square-root display makes weak ion traces visible; the six spectra below are shown as base-peak relative intensities.</p>
 <div class="section level3">
 <h3 id="beer-volatiles-compound-specific-log-concave-peak-shapes">Beer volatiles: compound-specific log-concave peak shapes<a class="anchor" aria-label="anchor" href="#beer-volatiles-compound-specific-log-concave-peak-shapes"></a>
 </h3>
@@ -291,9 +317,13 @@ Samples retain their original grids, shapes, locations and areas. Monotone time 
 <div class="section level2">
 <h2 id="simultaneous-log-concave-nmf-for-multiple-samples">Simultaneous log-concave NMF for multiple samples<a class="anchor" aria-label="anchor" href="#simultaneous-log-concave-nmf-for-multiple-samples"></a>
 </h2>
-<p>For related matrices, logconNMF performs <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al. (2009)</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea (2008)</a> and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>: <code>Y_s ≈ H_s %*% S + B_s %*% A_s</code>. The spectral factor <code>S</code> is shared exactly, while every sample retains its own scan grid, log-concave profiles <code>H_s</code>, component areas and smooth background. Monotone time warps model retention drift, and a component may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint. It is a hard shared-factor model, rather than the cross-modality mapping formulation exemplified by <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">coupled NMF</a>.</p>
+<p>For related matrices, logconNMF performs <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al. (2009)</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea (2008)</a> and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>:</p>
+<p><span class="math display">
+\mathbf{Y}_s \approx \mathbf{H}_s\mathbf{S}+\mathbf{B}_s\mathbf{A}_s.
+</span></p>
+<p>The spectral factor <span class="math inline">\mathbf{S}</span> is shared exactly, while every sample retains its own scan grid, log-concave profiles <span class="math inline">\mathbf{H}_s</span>, component areas and smooth background. Monotone time warps model retention drift, and a component may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint.</p>
 <p>The simultaneous implementation likewise scales to large experiments comprising hundreds or even thousands of samples. Parallel sample-level operations and blockwise, disk-backed refinement keep memory and computation manageable as the experiment grows.</p>
-<p>The simultaneous factorisation was evaluated inside a <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below summarise the simultaneous logconNMF result. On this benchmark, its recovery and reconstruction metrics are exceptionally strong: among the purpose-built workflows tested, it achieves the highest sensitivity, peak-level F1, ion-support F1, spectral cosine, profile cosine and peak-area agreement. Taken together, these results are nothing short of spectacular, including for the broad shark-fin-shaped acid and the smallest peak-size quartile. The <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">full GCMSprime benchmark</a> reports the complete comparison with MS-DIAL, mzmine GC-EI, eRah, AMDIS, xcms + CAMERA and MSHub.</p>
+<p>As an example, we provide a simulated <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below summarise the simultaneous logconNMF result. On this benchmark, its recovery and reconstruction metrics are exceptionally strong: among the purpose-built workflows tested, it achieves the highest sensitivity, peak-level F1, ion-support F1, spectral cosine, profile cosine and peak-area agreement. Taken together, these results are nothing short of spectacular in comparison with the performance obtained by the competing software MS-DIAL, mzmine GC-EI, eRah, AMDIS, xcms + CAMERA or MSHub, see the <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">full GCMSprime benchmark</a> report.</p>
 <div class="l0-benchmark-summary">
 <div>
 <strong>733 / 769</strong><span>true occurrences recovered</span>
@@ -368,22 +398,24 @@ Representative sample-specific profiles: solid inferred curves and dashed ground
 </li>
 <li>de Juan A, Tauler R (2021). <a href="https://doi.org/10.1016/j.aca.2020.10.051" class="external-link">Multivariate Curve Resolution: 50 years addressing the mixture analysis problem—A review.</a>
 </li>
+<li>Camp CH Jr (2019). <a href="https://doi.org/10.6028/jres.124.018" class="external-link">pyMCR: A Python Library for Multivariate Curve Resolution Analysis with Alternating Regression (MCR-AR).</a>
+</li>
 <li>Gao H-T, Li T-H, Chen K, Li W-G, Bi X (2005). <a href="https://doi.org/10.1016/j.talanta.2004.09.017" class="external-link">Overlapping spectra resolution using non-negative matrix factorization.</a>
+</li>
+<li>Ang AMS, Gillis N, Vandaele A, De Sterck H (2021). <a href="https://doi.org/10.1109/ICASSP39728.2021.9414631" class="external-link">Nonnegative Unimodal Matrix Factorization.</a>
 </li>
 <li>van Stokkum IHM, Mullen KM, Mihaleva VV (2009). <a href="https://doi.org/10.1016/j.chemolab.2008.10.004" class="external-link">Global analysis of multiple gas chromatography–mass spectrometry (GC/MS) data sets: A method for resolution of co-eluting components with comparison to MCR-ALS.</a>
 </li>
 <li>Lavoie FB, Braidy N, Gosselin R (2016). <a href="https://doi.org/10.1016/j.chemolab.2016.02.006" class="external-link">Including noise characteristics in MCR to improve mapping and component extraction from spectral images.</a>
 </li>
 </ul>
-<p><strong>Simultaneous, coupled and convolutive NMF</strong></p>
+<p><strong>Simultaneous and convolutive NMF</strong></p>
 <ul>
 <li>Cichocki A, Zdunek R, Phan AH, Amari S-I (2009). <a href="https://doi.org/10.1002/9780470747278" class="external-link"><em>Nonnegative Matrix and Tensor Factorizations: Applications to Exploratory Multi-way Data Analysis and Blind Source Separation</em>.</a>
 </li>
 <li>Badea L (2008). <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Extracting gene expression profiles common to colon and pancreatic adenocarcinoma using simultaneous nonnegative matrix factorization.</a>
 </li>
 <li>Lee CM, Mudaliar MAV, Haggart DR, Wolf CR, Miele G, Vass JK, Higham DJ (2012). <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Simultaneous non-negative matrix factorization for multiple large scale gene expression datasets in toxicology.</a>
-</li>
-<li>Duren Z, Chen X, Zamanighomi M, et al. (2018). <a href="https://doi.org/10.1073/pnas.1805681115" class="external-link">Integrative analysis of single-cell genomics data by coupled nonnegative matrix factorizations.</a>
 </li>
 </ul>
 <p><strong>Tensor factorisation for chromatographic data</strong></p>
@@ -395,6 +427,8 @@ Representative sample-specific profiles: solid inferred curves and dashed ground
 <li>Johnsen LG, Amigo JM, Skov T, Bro R (2014). <a href="https://doi.org/10.1002/cem.2575" class="external-link">Automated resolution of overlapping peaks in chromatographic data.</a>
 </li>
 <li>Johnsen LG, Skou PB, Khakimov B, Bro R (2017). <a href="https://doi.org/10.1016/j.chroma.2017.04.052" class="external-link">Gas chromatography–mass spectrometry data processing made easy.</a>
+</li>
+<li>Schneide P-A, Bro R, Gallagher NB (2023). <a href="https://doi.org/10.1002/cem.3501" class="external-link">Shift-invariant tri-linearity—A new model for resolving untargeted gas chromatography coupled mass spectrometry data.</a>
 </li>
 <li>Cohen JE, Bro R (2018). <a href="https://doi.org/10.1007/978-3-319-93764-9_9" class="external-link">Nonnegative PARAFAC2: a flexible coupling approach.</a>
 </li>

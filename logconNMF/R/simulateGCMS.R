@@ -1,11 +1,12 @@
 #' Simulate synthetic GC-MS chromatograms with ground-truth signal + background
 #'
 #' `simulateGCMS()` draws \eqn{k} compounds from an EI reference library `S`
-#' (rows = compounds, columns = m/z values, e.g. 41-298) and generates an \eqn{n \times m}{n
-#' x m} chromatogram `D` whose signal is the sum of
-#' k Gaussian peaks (`W_true H_true`) and
+#' (rows are compounds and columns are m/z values, e.g. 41--298) and generates
+#' an \eqn{n \times m}{n x m} chromatogram \eqn{D} whose signal is the sum of
+#' \eqn{k} Gaussian peaks, \eqn{W_{\mathrm{true}}H_{\mathrm{true}}}, and
 #' a smooth, monotonically increasing B-spline background
-#' (`W_background*bg_scale H_background`).
+#' \eqn{W_{\mathrm{background}}\,b\,H_{\mathrm{background}}}, where \eqn{b}
+#' is the background scale.
 #' 
 #' @details
 #' \itemize{
@@ -57,7 +58,9 @@
 #' @return A list with matrices:
 #' \describe{
 #'   \item{D}{Observed chromatogram (signal + background + noise) (dense matrix).}
-#'   \item{D_true}{Noiseless signal `W_true H_true + W_background H_background` (dense matrix).}
+#'   \item{D_true}{Noiseless signal
+#'     \eqn{W_{\mathrm{true}}H_{\mathrm{true}}+W_{\mathrm{background}}H_{\mathrm{background}}}
+#'     (dense matrix).}
 #'   \item{W_true, H_true}{Elution profiles and EI spectra of the *k* peaks (sparse matrices).}
 #'   \item{W_background, H_background}{Smooth B-spline background bases and spectra (sparse matrices).}
 #'   \item{k_background}{Number of B-spline basis columns (`max(2, n/1000)`).}
