@@ -309,15 +309,15 @@ detection, and PSF support.</p></dd>
 <span>        type <span class="op">=</span> <span class="st">"l"</span>, col <span class="op">=</span> <span class="st">"blue"</span>, lty <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>        xlab <span class="op">=</span> <span class="st">"Time index"</span>, ylab <span class="op">=</span> <span class="st">"Intensity"</span>,</span>
 <span>        main <span class="op">=</span> <span class="st">"Estimated time-varying PSF\nfor chromatogram subsection"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">fit.mc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/l0nnPois.html" class="external-link">l0nnPois</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="va">fit.mc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit</a></span><span class="op">(</span></span>
 <span>  <span class="va">X</span>,</span>
 <span>  <span class="va">gcmsData1</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="va">identity</span><span class="op">)</span>,</span>
+<span>  nonnegative <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  lambda <span class="op">=</span> <span class="st">"gic"</span>,</span>
 <span>  grouped <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  parallelize <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  ncores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span>logical <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># TODO: replace with l0glmFit with quasipoisson or also allow l0nnPois to estimate the dispersion</span></span>
 <span></span>
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="va">gcmsData1</span>, </span>
 <span>        xlab <span class="op">=</span> <span class="st">"Elution time (min)"</span>,</span>

@@ -174,9 +174,11 @@ fitted with this model offset; counts are not background-subtracted.</p></dd>
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
 <dd><p>Execution controls passed to the spike/background
-<code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> calls, such as <code>parallelize</code>, <code>ncores</code>,
-<code>nthreads</code> and <code>openmp</code>. For small non-Poisson multichannel
-fits, <code>parallelize = FALSE</code> avoids worker-startup overhead.</p></dd>
+<code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> calls, such as <code>ncores</code> and <code>nthreads</code>.
+Built-in scalar families use native fitting automatically, with
+<code>ncores</code> limiting OpenMP outcome-channel threads. Set
+<code>ncores=1L</code> for serial fitting. Custom callbacks remain serial and
+use this budget for BLAS unless <code>nthreads</code> overrides it.</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -119,7 +119,7 @@ test_that("time-varying Gaussian fits retain their individual channels", {
   mu <- as.matrix(convMatrix(g, 240) %*% A) + 200
   Y <- mu + matrix(rnorm(length(mu), sd = 5), 240, 2)
   fit <- l0glmBlindDeco(Y, family = gaussian(identity), kernel_est = g,
-    baseline = "intercept", nwindows = 2L, maxiter = 2L, parallelize = FALSE)
+    baseline = "intercept", nwindows = 2L, maxiter = 2L, ncores = 1L)
   expect_equal(dim(fit$a_hat), c(240L, 2L))
   expect_true(all(is.finite(fit$g_hat)))
   expect_true(is.finite(fit$deviance))

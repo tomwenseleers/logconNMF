@@ -186,15 +186,15 @@ matplot(X,
         type = "l", col = "blue", lty = 1,
         xlab = "Time index", ylab = "Intensity",
         main = "Estimated time-varying PSF\nfor chromatogram subsection")
-system.time(fit.mc <- l0nnPois(
+system.time(fit.mc <- l0glmFit(
   X,
   gcmsData1,
+  family = poisson(identity),
+  nonnegative = TRUE,
   lambda = "gic",
   grouped = TRUE,
-  parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
-# TODO: replace with l0glmFit with quasipoisson or also allow l0nnPois to estimate the dispersion
 
 plotMat(gcmsData1, 
         xlab = "Elution time (min)",

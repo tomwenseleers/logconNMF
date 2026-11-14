@@ -76,9 +76,11 @@ vector, or \eqn{n\times m} matrix. Original observations are
 fitted with this model offset; counts are not background-subtracted.}
 
 \item{...}{Execution controls passed to the spike/background
-\code{l0glmFit()} calls, such as \code{parallelize}, \code{ncores},
-\code{nthreads} and \code{openmp}. For small non-Poisson multichannel
-fits, \code{parallelize = FALSE} avoids worker-startup overhead.}
+\code{l0glmFit()} calls, such as \code{ncores} and \code{nthreads}.
+Built-in scalar families use native fitting automatically, with
+\code{ncores} limiting OpenMP outcome-channel threads. Set
+\code{ncores=1L} for serial fitting. Custom callbacks remain serial and
+use this budget for BLAS unless \code{nthreads} overrides it.}
 }
 \value{
 A list with

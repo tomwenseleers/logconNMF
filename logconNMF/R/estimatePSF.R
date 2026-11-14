@@ -222,8 +222,7 @@ estimatePSF <- function(y, family=quasipoisson("identity"), time=NULL,
         maxiter=control$maxiter,tol=control$tol,nwindows=1L,plot=FALSE,ncores=ncores,
         weights=if(length(W)==1L) rep(W,length(rows)) else W[rows,channels,drop=FALSE],
         offset=if(length(O)==1L) O else O[rows,channels,drop=FALSE],
-        dispersion=if(channel_spec$name%in%c("gaussian","quasipoisson")) channel_spec$dispersion else NULL,
-        parallelize=FALSE),control$fit)
+        dispersion=if(channel_spec$name%in%c("gaussian","quasipoisson")) channel_spec$dispersion else NULL),control$fit)
       if(identical(args$family$family,"quasipoisson")&&
         all(abs(args$y-round(args$y))<1e-7)&&length(args$dispersion)==1L&&args$dispersion>0) {
         args$weights<-args$weights/args$dispersion
