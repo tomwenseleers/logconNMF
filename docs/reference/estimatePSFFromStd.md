@@ -205,6 +205,7 @@ plot(x=as.numeric(names(attr(gcmsData1, "alkanes_TIC"))),
            col = "blue",
            type="l")
 
+
 # Estimate the time-varying PSF with automatic support and scan-grid length.
 fit <- estimatePSFFromStd(
   y = tic,
@@ -222,11 +223,13 @@ matplot(fit$psf_offsets, t(fit$psf_kernels[1:32, ]),
         ylab = "PSF density",
         main = "Fitted peak shapes")
 
+
 # estimated time-varying PSF:
 matplot(fit$X[seq(1, nrow(fit$X), by = 1), seq(1, ncol(fit$X), by = 300)], 
         type = "l", col = "blue", lty = 1,
         xlab = "Time index", ylab = "Intensity",
         main = "Estimated time-varying PSF")
+
 
 # deconvolute GC/MS chromatogram using estimated time-varying PSF:
 X <- estimatePSFFromStd(
@@ -241,35 +244,68 @@ matplot(X,
         type = "l", col = "blue", lty = 1,
         xlab = "Time index", ylab = "Intensity",
         main = "Estimated time-varying PSF\nfor chromatogram subsection")
-system.time(fit.mc <- l0nnPois(
+
+system.time(fit.mc <- l0glmFit(
   X,
   gcmsData1,
+  family = poisson(identity),
+  nonnegative = TRUE,
   lambda = "gic",
   grouped = TRUE,
-  parallelize = TRUE,
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
-# TODO: replace with l0glmFit with quasipoisson or also allow l0nnPois to estimate the dispersion
+#>    user  system elapsed
+#>   19.75    0.28    2.61
 
 plotMat(gcmsData1, 
         xlab = "Elution time (min)",
         ylab = "Mass (m/z)",
         main = "Section of Cataglyphis iberica\nant queen cuticular GC/MS profile")
 sum(Matrix::rowSums(fit.mc$coefficients)!=0)
+#> [1] 25
 rows = Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coefficients)!=0)]
 nrows = rows/max(rows)
 abline(v = which(Matrix::rowSums(fit.mc$coefficients)!=0),
        col = sapply(nrows, function (alpha) adjustcolor("cyan", alpha = alpha)))
 
 
+
 hist(Matrix::rowSums(fit.mc$coefficients)[which(Matrix::rowSums(fit.mc$coefficients)!=0)])
+
 
 for (i in 1:length(which(Matrix::rowSums(fit.mc$coefficients)!=0)) ) {
   plot(x = as.numeric(colnames(gcmsData1)),
        y = fit.mc$coefficients[which(Matrix::rowSums(fit.mc$coefficients)!=0)[i],],
        main = paste0("Spectrum deconvoluted compound ", as.character(i),
-                     "\nRT ", rownames(gcmsData1)[which(Matrix::rowSums(fit.mc$coefficients)!=0)[1]], " min"),
+                     "\nRT ",
+                     rownames(gcmsData1)[which(Matrix::rowSums(fit.mc$coefficients)!=0)[1]],
+                     " min"),
        ylab = "Intensity", xlab = "Mass",
        col = "blue", type = "h")
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```

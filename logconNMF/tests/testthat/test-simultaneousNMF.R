@@ -13,6 +13,7 @@ test_that("simultaneous fits retain absent occurrences, dimensions and disk-back
   on.exit(unlink(f$store$path,recursive=TRUE))
   expect_equal(nrow(f$P),2L);expect_equal(f$L,5L);expect_equal(sum(is.na(f$areas)),1L)
   expect_equal(dim(fitted(f,sample="s2")),c(n,m))
+  expect_false(f$control$initial$initial_relaxed)
   expect_equal(f$objective,GIC(f))
   expect_equal(fitted(f),fitted(readRDS(file.path(f$store$path,"model.rds"))))
   expect_equal(rowSums(coef(f,normalize="l1")),rep(1,2L),ignore_attr=TRUE)

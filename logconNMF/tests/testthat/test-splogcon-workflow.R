@@ -14,6 +14,7 @@ test_that("aggregation keeps the original-channel rank penalty and avoids repeat
   expect_lt(abs(f$ledger_error),1e-4)
   expect_error(splogconNMF(X,Y,control=list(profile_cycles=-1)),"profile_cycles")
   expect_error(splogconNMF(X,Y,control=list(fusion_passes=.5)),"fusion_passes")
+  expect_error(splogconNMF(X,Y,control=list(initial_relaxed=NA)),"initial_relaxed")
 })
 
 test_that("native profile updates respect hard concavity and the original likelihood", {

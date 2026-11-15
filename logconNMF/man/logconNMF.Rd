@@ -114,8 +114,10 @@ local profile update resolution. The default \code{rt_tolerance=NULL} and
 \code{alignment_window=NULL} derive matching windows from the narrow-peak
 widths. \code{ridge=TRUE} checks the profile ridge across samples. The
 remaining defaults are \code{censor=0.5}, \code{correlation="none"},
-\code{workers=NULL} and \code{cache=TRUE}. \code{initial=list()} passes controls to
-the independent initial fits. \code{workers} limits concurrent samples
+\code{workers=NULL} and \code{cache=TRUE}. \code{initial} passes controls to
+the independent initial fits and defaults to
+\code{list(initial_relaxed=FALSE)}; single-sample fits default to a relaxed
+grouped-support initialization. \code{workers} limits concurrent samples
 within \code{ncores}. The cache stores aggregated observations in memory.}
 
 \item{start}{Optional list \code{H}, \code{S} and \code{alpha}, with original dimensions.

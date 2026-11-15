@@ -107,7 +107,8 @@
 #'                  to use when \code{baseline = "bspline"}. With \code{nknots < 4}
 #'                  and \code{baseline="bspline"} \code{baseline} is changed
 #'                  to \code{intercept}. 
-#' @param IC Information criterion for the penalty preset; see \link{information_criteria}.
+#' @param IC Information criterion for the penalty preset; see
+#'   \link[L0glm]{information_criteria}.
 #' @param ... Execution controls passed to the spike/background
 #'   \code{l0glmFit()} calls, such as \code{ncores} and \code{nthreads}.
 #'   Built-in scalar families use native fitting automatically, with

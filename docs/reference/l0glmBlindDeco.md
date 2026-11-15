@@ -141,9 +141,11 @@ l0glmBlindDeco(
 
   Execution controls passed to the spike/background
   [`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
-  calls, such as `parallelize`, `ncores`, `nthreads` and `openmp`. For
-  small non-Poisson multichannel fits, `parallelize = FALSE` avoids
-  worker-startup overhead.
+  calls, such as `ncores` and `nthreads`. Built-in scalar families use
+  native fitting automatically, with `ncores` limiting OpenMP
+  outcome-channel threads. Set `ncores=1L` for serial fitting. Custom
+  callbacks remain serial and use this budget for BLAS unless `nthreads`
+  overrides it.
 
 ## Value
 
@@ -390,6 +392,7 @@ plot(y, type = "l", ylim = c(0,max(y)),
      main = "Simulated blurred spike train with baseline in red")
 lines(y_baseline, col="red")
 
+
 ## ------------------------------------------------------------------------
 ## 2  Blind deconvolution starting from intial Gaussian PSF guess
 ## ------------------------------------------------------------------------
@@ -409,9 +412,18 @@ fit <- l0glmBlindDeco(y,
                         plot = TRUE,
                         tol = 1e-3)
 
+
+
+
+
+
+
+
+
 plot(fit$deviance_trace, type="l", log="y",
      xlab="Iteration", ylab="Deviance",
      main="Poisson L0 glm blind deconvolution\nconvergence behaviour")
+
 a_est = as.vector(fit$a_hat)   # estimated spikes
 g_est = fit$g_hat              # estimated PSF
 
@@ -439,13 +451,20 @@ plot(a_est, a_true,
      ylab = "true value",
      main = main_expr)
 
+
 # Multichannel fits use an individual background offset for each channel.
-Y <- cbind(y, rpois(n, 0.7 * y_true), rpois(n, 1.3 * y_true))
+n_multi <- 500L
+keep_multi <- seq_len(n_multi)
+Y <- cbind(y[keep_multi],
+           rpois(n_multi, 0.7 * y_true[keep_multi]),
+           rpois(n_multi, 1.3 * y_true[keep_multi]))
 multi <- l0glmBlindDeco(Y, family = poisson(identity), kernel_est = g0,
                          baseline = "bspline", nknots = 6L,
                          maxiter = 3L, plot = FALSE)
 dim(multi$a_hat)
+#> [1] 500   3
 multi$deviance
+#> [1] 187483.5
 
 # Estimate smoothly varying PSFs in ten overlapping windows.
 # The returned X can also be supplied to splogconNMF().
@@ -453,6 +472,8 @@ varying <- l0glmBlindDeco(y, family = poisson(identity), kernel_est = g0,
                            baseline = "bspline", nknots = 8L,
                            nwindows = 10L, maxiter = 6L)
 dim(varying$g_hat)  # 10 local PSFs
+#> [1] 10 51
 dim(varying$X)      # sparse scan-by-scan design
+#> [1] 10000 10000
 # }
 ```

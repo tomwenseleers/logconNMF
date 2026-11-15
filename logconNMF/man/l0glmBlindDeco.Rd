@@ -66,7 +66,8 @@ updated. Either '"mean"' (shift the centroid, default) or a
 numeric percentile in [0, 1] to shift a given percentile in
 the CDF of the estimated kernel.}
 
-\item{IC}{Information criterion for the penalty preset; see \link{information_criteria}.}
+\item{IC}{Information criterion for the penalty preset; see
+\link[L0glm]{information_criteria}.}
 
 \item{grouped}{Logical, passed unchanged to \code{l0glmFit}, specifying
 whether to perform grouped L0 feature selection, i.e. best subset
@@ -337,7 +338,11 @@ plot(a_est, a_true,
      main = main_expr)
 
 # Multichannel fits use an individual background offset for each channel.
-Y <- cbind(y, rpois(n, 0.7 * y_true), rpois(n, 1.3 * y_true))
+n_multi <- 500L
+keep_multi <- seq_len(n_multi)
+Y <- cbind(y[keep_multi],
+           rpois(n_multi, 0.7 * y_true[keep_multi]),
+           rpois(n_multi, 1.3 * y_true[keep_multi]))
 multi <- l0glmBlindDeco(Y, family = poisson(identity), kernel_est = g0,
                          baseline = "bspline", nknots = 6L,
                          maxiter = 3L, plot = FALSE)

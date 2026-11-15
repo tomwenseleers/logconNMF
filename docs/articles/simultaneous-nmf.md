@@ -110,9 +110,9 @@ the fitted median is 829.55.
 
 The [GCMSprime CDF
 workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
-built on logconNMF, recovers **733 true occurrences with 90 false
-positives** (peak F1 **0.921**), including the acid in all seven samples
-where it occurs. It takes **157.69 s** with 16 single-threaded workers
+built on logconNMF, recovers **752 true occurrences with 140 false
+positives** (peak F1 **0.905**), including the acid in all seven samples
+where it occurs. It takes **253.47 s** with 16 single-threaded workers
 on an HP ZBook Fury G8 with an Intel Core i9-11950H, eight physical
 cores and 16 logical threads. The common 32-group map accelerates
 initialization; final spectra retain all 258 original channels.

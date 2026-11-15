@@ -118,6 +118,17 @@ if (requireNamespace("gsignal", quietly = TRUE)) {
   lines((1:n) - 1, a, type = "h", col = 4)                   # spike locations
   all.equal(y_same, y_ref_same, tol = 1e-12)                 # matches conv
 }
+#> Warning: package 'Matrix' was built under R version 4.5.3
+#> Warning: package 'gsignal' was built under R version 4.5.1
+#>
+#> Attaching package: 'gsignal'
+#> The following objects are masked from 'package:stats':
+#>
+#>     filter, gaussian, poly
+
+
+
+#> [1] TRUE
 
 ## 2. rectangular design for PSF-update step in blinv deconv algo -------
 set.seed(1)
@@ -134,4 +145,5 @@ all.equal(            # identical to the first Lpsf columns of the banded design
   G,
   convMatrix(spikes, n, shape = "same",
              origin = (Lpsf + 1L) %/% 2L)[, 1:Lpsf, drop = FALSE], tol = 0)
+#> [1] TRUE
 ```

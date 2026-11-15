@@ -240,6 +240,7 @@ calibration <- estimatePSF(Y, time = time, family = poisson("identity"),
   standard = standard, method = "standard", nwindows = 1L, ncores = 2L,
   control = list(L = L, baseline_df = 4L, n_peaks = 3L))
 dim(calibration$X)
+#> [1] 500 500
 
 # Blind estimation starts from a symmetric Gaussian, using summed channels.
 initial <- convKernel("gaussian", L, list(sigma = 4))
@@ -247,6 +248,7 @@ blind <- estimatePSF(Y, time = time, family = poisson("identity"),
   standard = NULL, method = "blind", precluster = 1L, offset = 10,
   ncores = 2L, control = list(kernel_est = initial, maxiter = 6L))
 blind$width_scans
+#> [1] 7
 
 lag <- (seq_len(L) - (L + 1L) / 2) / 60
 matplot(lag, cbind(kernel, initial, calibration$g_hat, blind$g_hat),
@@ -256,6 +258,7 @@ matplot(lag, cbind(kernel, initial, calibration$g_hat, blind$g_hat),
 legend("topright", c("True bigaussian", "Initial Gaussian", "Calibrated", "Blind"),
   lty = c(1, 2, 1, 1), lwd = 2,
   col = c("black", "grey60", "#008b9a", "#cc3344"), bty = "n")
+
 
 if (FALSE) { # \dontrun{
 data(gcmsData2)

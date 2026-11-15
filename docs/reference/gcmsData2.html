@@ -104,23 +104,27 @@ ORCID: <a href="https://orcid.org/0000-0002-1434-861X" class="external-link">000
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="va">gcmsData2</span>,</span>
-<span>      xlab <span class="op">=</span> <span class="st">"Elution time (min)"</span>,</span>
-<span>      ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>,</span>
-<span>      main <span class="op">=</span> <span class="st">"Section of beer headspace GC/MS profile"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>        y <span class="op">=</span> <span class="va">gcmsData2</span><span class="op">^</span><span class="fl">0.2</span>, type <span class="op">=</span> <span class="st">"l"</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
-<span>        xlab <span class="op">=</span> <span class="st">"Elution time (min)"</span>,</span>
-<span>        ylab <span class="op">=</span> <span class="st">"Intensity ^ 0.2"</span>,</span>
-<span>        main <span class="op">=</span> <span class="st">"Section of beer headspace GC/MS profile"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">gcmsData2</span>, <span class="st">"alkanes_TIC"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>     y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">gcmsData2</span>, <span class="st">"alkanes_TIC"</span><span class="op">)</span>,</span>
-<span>     xlab<span class="op">=</span><span class="st">"Retention time (min)"</span>, </span>
-<span>     ylab<span class="op">=</span><span class="st">"Total ion intensity"</span>, </span>
-<span>     main<span class="op">=</span><span class="st">"C7 to C22 alkane ladder standard"</span>, </span>
-<span>     type<span class="op">=</span><span class="st">"l"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="va">gcmsData2</span>,</span></span>
+<span class="r-in"><span>      xlab <span class="op">=</span> <span class="st">"Elution time (min)"</span>,</span></span>
+<span class="r-in"><span>      ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>,</span></span>
+<span class="r-in"><span>      main <span class="op">=</span> <span class="st">"Section of beer headspace GC/MS profile"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="gcmsData2-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>        y <span class="op">=</span> <span class="va">gcmsData2</span><span class="op">^</span><span class="fl">0.2</span>, type <span class="op">=</span> <span class="st">"l"</span>, lty <span class="op">=</span> <span class="fl">1</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/grDevices/rgb.html" class="external-link">rgb</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>        xlab <span class="op">=</span> <span class="st">"Elution time (min)"</span>,</span></span>
+<span class="r-in"><span>        ylab <span class="op">=</span> <span class="st">"Intensity ^ 0.2"</span>,</span></span>
+<span class="r-in"><span>        main <span class="op">=</span> <span class="st">"Section of beer headspace GC/MS profile"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="gcmsData2-2.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span>x<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">gcmsData2</span>, <span class="st">"alkanes_TIC"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>     y<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">gcmsData2</span>, <span class="st">"alkanes_TIC"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>     xlab<span class="op">=</span><span class="st">"Retention time (min)"</span>, </span></span>
+<span class="r-in"><span>     ylab<span class="op">=</span><span class="st">"Total ion intensity"</span>, </span></span>
+<span class="r-in"><span>     main<span class="op">=</span><span class="st">"C7 to C22 alkane ladder standard"</span>, </span></span>
+<span class="r-in"><span>     type<span class="op">=</span><span class="st">"l"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="gcmsData2-3.png" alt="" width="700" height="433"></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -58,7 +58,8 @@ to use when \code{baseline = "bspline"}. With \code{nknots < 4}
 and \code{baseline="bspline"} \code{baseline} is changed
 to \code{intercept}.}
 
-\item{IC}{Information criterion for the penalty preset; see \link{information_criteria}.}
+\item{IC}{Information criterion for the penalty preset; see
+\link[L0glm]{information_criteria}.}
 
 \item{grouped}{Logical, passed unchanged to \code{l0glmFit}, specifying
 whether to perform grouped L0 feature selection, i.e. best subset

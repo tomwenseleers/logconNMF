@@ -44,7 +44,8 @@ or `Gamma(identity)`).}
 \item{perc}{Passed to \code{\link{shiftKernel}} - use `"mean"` to recenter
 the centroid, or a value in \eqn{[0,1]} for a percentile.}
 
-\item{IC}{Information criterion for the penalty preset; see \link{information_criteria}.}
+\item{IC}{Information criterion for the penalty preset; see
+\link[L0glm]{information_criteria}.}
 
 \item{weights}{Optional nonnegative scalar, scan vector or matrix matching
 \code{y}. Applied to the kernel likelihood as well as the spike fit.}

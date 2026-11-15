@@ -8,7 +8,8 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(!is.logical(align)||length(align)!=1L||is.na(align))stop("align must be TRUE or FALSE.")
   ncores<-sinmf_core_count(ncores)
   defaults<-list(cycles=10L,initial_cycles=5L,rounds=3L,q=64L,rt_tolerance=NULL,
-    alignment_window=NULL,ridge=TRUE,censor=.5,correlation="none",initial=list(),workers=NULL,cache=TRUE)
+    alignment_window=NULL,ridge=TRUE,censor=.5,correlation="none",
+    initial=list(initial_relaxed=FALSE),workers=NULL,cache=TRUE)
   if(!is.list(control)||length(control)&&(is.null(names(control))||anyDuplicated(names(control))||
       length(setdiff(names(control),names(defaults)))))stop("Use named simultaneous controls.")
   ctl<-utils::modifyList(defaults,control)

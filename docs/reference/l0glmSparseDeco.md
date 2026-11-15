@@ -108,9 +108,11 @@ l0glmSparseDeco(
 
   Execution controls passed to the spike/background
   [`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
-  calls, such as `parallelize`, `ncores`, `nthreads` and `openmp`. For
-  small non-Poisson multichannel fits, `parallelize = FALSE` avoids
-  worker-startup overhead.
+  calls, such as `ncores` and `nthreads`. Built-in scalar families use
+  native fitting automatically, with `ncores` limiting OpenMP
+  outcome-channel threads. Set `ncores=1L` for serial fitting. Custom
+  callbacks remain serial and use this budget for BLAS unless `nthreads`
+  overrides it.
 
 ## Value
 
@@ -339,6 +341,7 @@ y      <- rpois(n, y_true)                # with Poisson noise
 plot(y, type = "l", ylim = c(0,max(y)), main = "Simulated blurred spike train with baseline in red")
 lines(y_baseline, col="red")
 
+
 ## ------------------------------------------------------------------------
 ## 2  Deconvolution with the known PSF
 ## ------------------------------------------------------------------------
@@ -350,6 +353,7 @@ fit <- l0glmSparseDeco(y, kernel = g_true,
 a_est_baseline <- as.vector(fit$coef_baseline) 
 a_est <- as.vector(fit$coef_spikes)
 sum(a_est!=0) 
+#> [1] 52
 
 ## ---------- summary statistics ------------------------------------
 n_true <- sum(a_true != 0)
@@ -361,6 +365,7 @@ F1        <- 2 * precision * recall / (precision + recall)
 R2p <- 100 *
   summary(lm(a_true ~ 0 + a_est))$r.squared
 R2p
+#> [1] 98.23545
 
 ## ---------- scatter-plot with true vs. estimated peak areas -------
 main_expr <- bquote(
@@ -378,10 +383,13 @@ plot(a_est, a_true,
      ylab = "true value",
      main = main_expr)
 
+
 # Fit several outcome channels jointly, with their own baseline coefficients.
 Y <- cbind(y, rpois(n, 0.7 * y_true), rpois(n, 1.3 * y_true))
 multi <- l0glmSparseDeco(Y, kernel = g_true, family = poisson(identity),
                           baseline = "bspline", nknots = 6L)
 dim(multi$coef_spikes)
+#> [1] 500   3
 dim(multi$coef_baseline)
+#> [1] 6 3
 ```

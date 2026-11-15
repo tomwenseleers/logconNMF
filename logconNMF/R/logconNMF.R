@@ -37,8 +37,10 @@
 #'   `alignment_window=NULL` derive matching windows from the narrow-peak
 #'   widths. `ridge=TRUE` checks the profile ridge across samples. The
 #'   remaining defaults are `censor=0.5`, `correlation="none"`,
-#'   `workers=NULL` and `cache=TRUE`. `initial=list()` passes controls to
-#'   the independent initial fits. `workers` limits concurrent samples
+#'   `workers=NULL` and `cache=TRUE`. `initial` passes controls to
+#'   the independent initial fits and defaults to
+#'   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
+#'   grouped-support initialization. `workers` limits concurrent samples
 #'   within `ncores`. The cache stores aggregated observations in memory.
 #' @param ncores Total core budget. `NULL` uses the detected physical core count.
 #'   Simultaneous fits divide that budget between sample workers and their native

@@ -38,7 +38,8 @@ slcn_temporal_order <- function(model) {
   model
 }
 
-slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores, screen_factor = 1) {
+slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores,
+                         screen_factor = 1, relaxed = TRUE) {
   p <- ncol(X);q <- ncol(B);pilot <- slcn_pilot(Y)
   variance <- switch(spec$name, gaussian = matrix(rep(rep_len(spec$dispersion, ncol(Y)), each = nrow(Y)), nrow(Y), ncol(Y)),
     poisson = pilot, quasipoisson = sweep(pilot, 2, rep_len(spec$dispersion, ncol(Y)), "*"),
@@ -48,11 +49,16 @@ slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores, screen_factor
     Gamma = sweep(pilot^2, 2, rep_len(spec$dispersion, ncol(Y)), "*"))
   working_weights <- matrix(pmin(1e12, pmax(1e-12, pilot / pmax(variance, 1e-20))), nrow(Y), ncol(Y)) * W
   design <- if (q) cbind(X, Matrix(B, sparse = TRUE)) else X
-  fit <- l0glmFit(design, pmax(Y, 0), family = poisson("identity"),
+  arguments <- list(X = design, y = pmax(Y, 0), family = poisson("identity"),
     weights = working_weights, offset = offset, lambda = scalar * screen_factor,
     nonnegative = TRUE, intercept = FALSE, always.include = p + seq_len(q),
     grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
     normalize = "none", ncores = ncores)
+  if (relaxed) {
+    arguments$relaxed <- TRUE
+    arguments$local.search <- FALSE
+  }
+  fit <- do.call(l0glmFit, arguments)
   beta <- as.matrix(coef(fit));keep <- which(rowSums(beta[seq_len(p), , drop = FALSE]) > 0)
   H <- X[, keep, drop = FALSE];S <- beta[keep, , drop = FALSE]
   alpha <- beta[p + seq_len(q), , drop = FALSE]
@@ -74,7 +80,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
     value
   }
   current <- if (is.null(start)) timer("initial", slcn_initial(X, Y, B, spec, W, offset,
-    scalar, ncores, control$screen_factor)) else start
+    scalar, ncores, control$screen_factor, control$initial_relaxed)) else start
   score <- function(model) slcn_loglik(Y, model$mu, ctx$spec$kind,
     ctx$spec$dispersion, ctx$spec$theta, ctx$W, ncores, censor)
   initial_rank <- ncol(current$H);initial_ll <- score(current)
@@ -227,6 +233,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `final_polishes=1L`, `native_sweeps=6L`, `block_sweeps=6L`,
 #'   `psf_width=NULL`, `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
 #'   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
+#'   `initial_relaxed=TRUE`,
 #'   `profile_fusion=TRUE`, `profile_restarts=TRUE`. `joint_trials` uses direct Poisson fusion for Poisson data
 #'   and joint local refinement for the other families. `psf_width` supplies
 #'   the typical FWHM in scans. When omitted, local updates use the middle design
@@ -501,7 +508,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   defaults <- list(broad_repeats = 1L, full_sweeps = 1L, final_polishes = 1L,
     native_sweeps = 6L, block_sweeps = 6L, psf_width = NULL, screen_factor = 1,
     censor = .5, linkage = "ward", joint_trials = NULL, profile_fusion = TRUE,
-    profile_cycles = 4L, fusion_passes = 0L, original_cleanup = TRUE, profile_restarts = TRUE)
+    profile_cycles = 4L, fusion_passes = 0L, initial_relaxed = TRUE,
+    original_cleanup = TRUE, profile_restarts = TRUE)
   if (!is.list(control) || length(control) && (is.null(names(control)) ||
       any(!nzchar(names(control))) || anyDuplicated(names(control)))) stop("Use a named control list.")
   if (is.list(family) && !is.null(family$scalar) && !"censor" %in% names(control))
@@ -524,6 +532,8 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
       !is.finite(control$censor) || control$censor < 0) stop("Use a positive screen_factor and nonnegative censor.")
   if (!is.logical(control$joint_trials) || length(control$joint_trials)!=1L || is.na(control$joint_trials))
     stop("joint_trials must be TRUE or FALSE.")
+  if (!is.logical(control$initial_relaxed) || length(control$initial_relaxed)!=1L || is.na(control$initial_relaxed))
+    stop("initial_relaxed must be TRUE or FALSE.")
   if (!is.logical(control$profile_fusion) || length(control$profile_fusion)!=1L || is.na(control$profile_fusion))
     stop("profile_fusion must be TRUE or FALSE.")
   if (!is.logical(control$original_cleanup) || length(control$original_cleanup) != 1L || is.na(control$original_cleanup))

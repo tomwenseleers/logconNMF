@@ -158,8 +158,10 @@ sampleNMF(object, sample = 1L)
   `alignment_window=NULL` derive matching windows from the narrow-peak
   widths. `ridge=TRUE` checks the profile ridge across samples. The
   remaining defaults are `censor=0.5`, `correlation="none"`,
-  `workers=NULL` and `cache=TRUE`. `initial=list()` passes controls to
-  the independent initial fits. `workers` limits concurrent samples
+  `workers=NULL` and `cache=TRUE`. `initial` passes controls to the
+  independent initial fits and defaults to
+  `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
+  grouped-support initialization. `workers` limits concurrent samples
   within `ncores`. The cache stores aggregated observations in memory.
 
 - start:
@@ -337,16 +339,34 @@ set.seed(12)
 Y <- matrix(rpois(length(signal), signal), nrow(signal))
 fit <- logconNMF(Y, X = X, ncores = 1L)
 fit$rank
+#> [1] 2
 coef(fit, normalize = "l1")
+#>                [,1]      [,2]
+#> compound1 0.8090323 0.1909677
+#> compound2 0.4328358 0.5671642
 
 second <- matrix(rpois(length(signal), 1.4 * signal), nrow(signal))
 samples <- list(first = list(y = Y, time = seq_len(nrow(Y)), X = X),
   second = list(y = second, time = seq_len(nrow(Y)), X = X))
 joint <- logconNMF(samples, ncores = 1L)
+#> detected function goto_set_num_threads
+#> detected function goto_set_num_threads
 joint$rank
+#> [1] 2
 joint$areas
+#>        compound1 compound2
+#> first        775       871
+#> second      1163      1202
 fitted(joint, sample = "second")[1:3, ]
+#>      1 2
+#> [1,] 0 0
+#> [2,] 0 0
+#> [3,] 0 0
 second_fit <- sampleNMF(joint, sample = "second")
 second_fit$compound_id
+#> [1] 1 2
 coef(second_fit)
+#>                  1        2
+#> compound1 948.1631 214.8369
+#> compound2 515.4742 686.5258
 ```

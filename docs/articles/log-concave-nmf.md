@@ -47,15 +47,26 @@ library(L0glm)
 library(logconNMF)
 data(gcmsData1)
 Y <- gcmsData1
-X <- convMatrix(convKernel("gaussian", 65L, list(sigma=8)), nrow(Y))
+g <- convKernel("gaussian", 65L, list(sigma=9))
+psf <- estimatePSF(Y, time=as.numeric(rownames(Y)), standard=NULL,
+  nwindows=1L, precluster=1L,
+  control=list(kernel_est=g, maxiter=0L))
+X <- psf$X
 B <- matrix(1, nrow(Y), 1L)
 fit <- logconNMF(Y, X=X, background=B,
-  family=quasipoisson("identity"), precluster=8L, correlation="auto", ncores=8L)
+  family=quasipoisson("identity"), precluster=7L, correlation="auto", ncores=8L,
+  control=list(initial_relaxed=FALSE, fusion_passes=0L))
 fit$rank
 dim(fit$H)
 dim(coef(fit))
 GIC(fit)
 ```
+
+[`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
+applies the same boundary-aware, column-normalised PSF construction used
+by GCMSprime. Thus the settings above recover exactly the same profiles,
+spectra and background in both packages, and repeated fits are
+deterministic.
 
 The constant background is supplied as a single column of ones. Use [PSF
 estimation](https://tomwenseleers.github.io/logconNMF/articles/estimate-psf.md)

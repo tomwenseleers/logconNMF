@@ -220,24 +220,26 @@ ORCID: <a href="https://orcid.org/0000-0002-1434-861X" class="external-link">000
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">simulatedSpectra</span><span class="op">)</span></span>
-<span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">simulateGCMS</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10000</span>,</span>
-<span>                     k <span class="op">=</span> <span class="fl">500</span>,</span>
-<span>                     S <span class="op">=</span> <span class="va">simulatedSpectra</span>,</span>
-<span>                     peak_width_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span>
-<span>                     mean_beta  <span class="op">=</span> <span class="fl">1e4</span>,</span>
-<span>                     sd_logbeta <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                     width_height_coef <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>                     rt_height_coef    <span class="op">=</span> <span class="fl">0.02</span>,</span>
-<span>                     sample_nr <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>                     rt_drift_coef <span class="op">=</span> <span class="fl">0.001</span>,</span>
-<span>                     bg_scale <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>                     family <span class="op">=</span> <span class="st">"poisson"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">D</span>,</span>
-<span>        xlab <span class="op">=</span> <span class="st">"Time (min)"</span>, </span>
-<span>        ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>, </span>
-<span>        main <span class="op">=</span> <span class="st">"Simulated GC/MS chromatogram"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/L0glm/" class="external-link">L0glm</a></span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">simulatedSpectra</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu">simulateGCMS</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">10000</span>,</span></span>
+<span class="r-in"><span>                     k <span class="op">=</span> <span class="fl">500</span>,</span></span>
+<span class="r-in"><span>                     S <span class="op">=</span> <span class="va">simulatedSpectra</span>,</span></span>
+<span class="r-in"><span>                     peak_width_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                     mean_beta  <span class="op">=</span> <span class="fl">1e4</span>,</span></span>
+<span class="r-in"><span>                     sd_logbeta <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>                     width_height_coef <span class="op">=</span> <span class="fl">3</span>,</span></span>
+<span class="r-in"><span>                     rt_height_coef    <span class="op">=</span> <span class="fl">0.02</span>,</span></span>
+<span class="r-in"><span>                     sample_nr <span class="op">=</span> <span class="fl">1</span>,</span></span>
+<span class="r-in"><span>                     rt_drift_coef <span class="op">=</span> <span class="fl">0.001</span>,</span></span>
+<span class="r-in"><span>                     bg_scale <span class="op">=</span> <span class="fl">100</span>,</span></span>
+<span class="r-in"><span>                     family <span class="op">=</span> <span class="st">"poisson"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">D</span>,</span></span>
+<span class="r-in"><span>        xlab <span class="op">=</span> <span class="st">"Time (min)"</span>, </span></span>
+<span class="r-in"><span>        ylab <span class="op">=</span> <span class="st">"Mass (m/z)"</span>, </span></span>
+<span class="r-in"><span>        main <span class="op">=</span> <span class="st">"Simulated GC/MS chromatogram"</span><span class="op">)</span></span></span>
+<span class="r-plt img"><img src="simulateGCMS-1.png" alt="" width="700" height="433"></span>
+</code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

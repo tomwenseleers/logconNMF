@@ -186,33 +186,33 @@ print(x, ...)
   `native_sweeps=6L`, `block_sweeps=6L`, `psf_width=NULL`,
   `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
-  `profile_fusion=TRUE`, `profile_restarts=TRUE`. `joint_trials` uses
-  direct Poisson fusion for Poisson data and joint local refinement for
-  the other families. `psf_width` supplies the typical FWHM in scans.
-  When omitted, local updates use the middle design column and
-  broad-profile fusion uses the median of up to 21 representative design
-  columns. `screen_factor` scales the initial selection penalty.
-  `censor` is the Gamma detection limit: recorded zero intensities are
-  left-censored below this value; positive values must be at least the
-  limit. Zero requests an uncensored Gamma model. A supplied Gamma
-  family constructor provides its own detection limit unless overridden
-  here. `linkage` may be `"ward"` or `"bregman"`. `joint_trials` allows
-  overlapping compounds to adjust together during local fusion
-  refinement. `profile_cycles` bounds the smooth shape/background
-  initialization; positive values also enable the final
-  likelihood-checked local restarts. `profile_restarts=FALSE` disables
-  those alternative starting profiles. positive values also enable fine
-  native profile/spectrum refinement. Zero skips these shape-polishing
-  cycles. `fusion_passes` optionally adds broad-anchor and
-  compatible-tail searches during initialization. `profile_fusion`
-  enables algebraic profile fusion, retained contained-fragment
-  proposals and a final broad-fragment pass on every original channel.
-  Broad fusions are compared with an equally refined unmerged local
-  model. The entire support of every updated component is included in
-  the local fit, with the remaining components and background held in an
-  offset. `original_cleanup=TRUE` enables a final original-channel
-  deletion, local fusion and residual-discovery pass. Set it to `FALSE`
-  to skip that pass.
+  `initial_relaxed=TRUE`, `profile_fusion=TRUE`,
+  `profile_restarts=TRUE`. `joint_trials` uses direct Poisson fusion for
+  Poisson data and joint local refinement for the other families.
+  `psf_width` supplies the typical FWHM in scans. When omitted, local
+  updates use the middle design column and broad-profile fusion uses the
+  median of up to 21 representative design columns. `screen_factor`
+  scales the initial selection penalty. `censor` is the Gamma detection
+  limit: recorded zero intensities are left-censored below this value;
+  positive values must be at least the limit. Zero requests an
+  uncensored Gamma model. A supplied Gamma family constructor provides
+  its own detection limit unless overridden here. `linkage` may be
+  `"ward"` or `"bregman"`. `joint_trials` allows overlapping compounds
+  to adjust together during local fusion refinement. `profile_cycles`
+  bounds the smooth shape/background initialization; positive values
+  also enable the final likelihood-checked local restarts.
+  `profile_restarts=FALSE` disables those alternative starting profiles.
+  positive values also enable fine native profile/spectrum refinement.
+  Zero skips these shape-polishing cycles. `fusion_passes` optionally
+  adds broad-anchor and compatible-tail searches during initialization.
+  `profile_fusion` enables algebraic profile fusion, retained
+  contained-fragment proposals and a final broad-fragment pass on every
+  original channel. Broad fusions are compared with an equally refined
+  unmerged local model. The entire support of every updated component is
+  included in the local fit, with the remaining components and
+  background held in an offset. `original_cleanup=TRUE` enables a final
+  original-channel deletion, local fusion and residual-discovery pass.
+  Set it to `FALSE` to skip that pass.
 
 - start:
 
@@ -502,11 +502,41 @@ Y <- matrix(rpois(length(mu), mu), n, 8)
 fit <- splogconNMF(X, Y, background = B, family = poisson("identity"),
   precluster = 4L, correlation = "none", ncores = 2L)
 fit
+#> Sparse log-concave NMF (poisson)
+#> 5 compounds; 8 channels; 4.78 s
+#> dispersion = 1; theta = 1; lag-one correlation = 0
+#> GIC = 15438.9384
 c(compounds = fit$rank, GIC = GIC(fit), seconds = fit$seconds[["total"]])
+#> compounds       GIC   seconds
+#>      5.00  15438.94      4.78
 # Broad profiles with nearly identical shapes can share complementary ion sets.
 # A conservative fusion pass runs on all original channels after preclustering.
 fit$contained_fusion
+#> $narrow
+#> data frame with 0 columns and 0 rows
+#>
+#> $broad
+#> data frame with 0 columns and 0 rows
+#>
+#> $source_components
+#> $source_components[[1]]
+#> [1] 1
+#>
+#> $source_components[[2]]
+#> [1] 2
+#>
+#> $source_components[[3]]
+#> [1] 3
+#>
+#> $source_components[[4]]
+#> [1] 4
+#>
+#> $source_components[[5]]
+#> [1] 5
+#>
+#>
 matplot(fit$H, type = "l", lty = 1, xlab = "Scan", ylab = "Elution profile")
+
 
 # For overdispersed intensities, estimate one common noise scale from temporal
 # differences. Selection and fusion use four groups; the result has all channels.
@@ -514,6 +544,7 @@ Yq <- 5 * matrix(rpois(length(mu), mu / 5), n, 8)
 fitq <- splogconNMF(X, Yq, background = B, family = quasipoisson("identity"),
   precluster = 4L, correlation = "none", ncores = 2L)
 GIC(fitq)
+#> [1] 9845.814
 
 # Other identity-link choices include gaussian(), mgcv::nb(), Gamma(),
 # nb1(dispersion=5, link="identity"), and

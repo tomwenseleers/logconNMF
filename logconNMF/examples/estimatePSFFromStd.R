@@ -74,7 +74,9 @@ for (i in 1:length(which(Matrix::rowSums(fit.mc$coefficients)!=0)) ) {
   plot(x = as.numeric(colnames(gcmsData1)),
        y = fit.mc$coefficients[which(Matrix::rowSums(fit.mc$coefficients)!=0)[i],],
        main = paste0("Spectrum deconvoluted compound ", as.character(i),
-                     "\nRT ", rownames(gcmsData1)[which(Matrix::rowSums(fit.mc$coefficients)!=0)[1]], " min"),
+                     "\nRT ",
+                     rownames(gcmsData1)[which(Matrix::rowSums(fit.mc$coefficients)!=0)[1]],
+                     " min"),
        ylab = "Intensity", xlab = "Mass",
        col = "blue", type = "h")
 }

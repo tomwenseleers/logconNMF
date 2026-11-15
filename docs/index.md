@@ -271,10 +271,14 @@ ladder, or the sample chromatogram itself.
 library(logconNMF)
 data(gcmsData1)
 Y <- gcmsData1
-g <- convKernel("gaussian", 65L, list(sigma = 8))
-X <- convMatrix(g, nrow(Y))
+g <- convKernel("gaussian", 65L, list(sigma = 9))
+psf <- estimatePSF(Y, time = as.numeric(rownames(Y)), standard = NULL,
+  nwindows = 1L, precluster = 1L,
+  control = list(kernel_est = g, maxiter = 0L))
+X <- psf$X
 fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
-  family = quasipoisson("identity"), precluster = 8L)
+  family = quasipoisson("identity"), precluster = 7L,
+  control = list(initial_relaxed = FALSE, fusion_passes = 0L))
 
 fit$rank                         # estimated number of components
 profiles <- fit$H                 # scans x components
@@ -283,10 +287,22 @@ spectra <- coef(fit, normalize = "l1")
 GIC(fit)
 ```
 
+Using
+[`estimatePSF()`](https://tomwenseleers.github.io/logconNMF/reference/estimatePSF.md)
+here applies the same boundary-aware, column-normalised PSF construction
+as the high-level GCMSprime workflow. Consequently, these settings
+reproduce the identical fitted profiles, spectra and background in both
+packages; repeated fits are deterministic.
+
 The columns of `profiles` sum to one, so each row sum in `loadings`
 gives the component’s total fitted signal across scans and channels.
 Grouping similar channels can speed up the initial search. The reported
-spectra use every original channel.
+spectra use every original channel. We selected this six-component
+example after a sensitivity grid over Gaussian PSF widths and precluster
+counts: among solutions with six factors and chemically plausible
+retention times, it gave the best balance of low GIC, accurate apex
+times, compact profiles and strong enrichment of the compounds’
+diagnostic ions.
 
 ![Background-corrected ion traces in grey, six fitted log-concave
 profiles and a 2 by 3 panel of recovered spectra for six co-eluting
@@ -324,7 +340,7 @@ al. (2009)](https://doi.org/10.1002/9780470747278), [Badea
 and [Lee et al. (2012)](https://doi.org/10.1371/journal.pone.0048238):
 
 \mathbf{Y}\_s \approx
-\mathbf{H}\_s\operatorname{diag}(\mathbf{a}\_s)\mathbf{S}
+\mathbf{H}\_s\mathrm{diag}(\mathbf{a}\_s)\mathbf{S}
 +\mathbf{B}\_s\mathbf{A}\_s.
 
 Here \mathbf{H}\_s contains unit-area log-concave profiles,
@@ -359,17 +375,17 @@ xcms + CAMERA or MSHub, see the [full GCMSprime
 benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 report.
 
-**733 / 769**true occurrences recovered
+**752 / 769**true occurrences recovered
 
-**0.921**peak-level F1
+**0.905**peak-level F1
 
-**0.996**robust adjusted log-area R²
+**0.9992**robust adjusted log-area R²
 
-**0.999942**median spectral cosine
+**0.999982**median spectral cosine
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence
-recovery and false-positive counts (90 in this benchmark). Ion-support
+recovery and false-positive counts (140 in this benchmark). Ion-support
 F1 applies the same 0.1% of base-peak cutoff to the reference and
 recovered spectra.
 
@@ -377,20 +393,20 @@ recovered spectra.
 with robust regression and prediction
 band](reference/figures/simultaneous-benchmark-area-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-area-accuracy.png)
 
-Peak-area accuracy: robust adjusted R² 0.996 and median absolute area
-error 2.00% over 733 matched occurrences.
+Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area
+error 1.33% over 752 matched occurrences.
 
 [![Distribution of spectral cosine similarity for correctly matched
 spectra from simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-Spectral accuracy: median cosine similarity 0.999942 for 733 correctly
+Spectral accuracy: median cosine similarity 0.999982 for 752 correctly
 matched true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-Spectral sparsity: mean within-spectrum ion-support F1 0.939 under the
+Spectral sparsity: mean within-spectrum ion-support F1 0.971 under the
 shared 0.1% cutoff.
 
 [![Inferred and true elution profiles for representative regular and

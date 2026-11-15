@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection</title>
+<title>logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -66,7 +66,10 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-
+<div class="page-header">
+<img src="logo.png" class="logo" alt=""><h1 id="logconnmf">logconNMF<a class="anchor" aria-label="anchor" href="#logconnmf"></a>
+</h1>
+</div>
 <div class="l0-hero">
 <div class="l0-hero-copy">
 <p class="l0-eyebrow">
@@ -302,17 +305,22 @@ Sparse screening and local likelihood updates support full chromatograms and lar
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData1</span><span class="op">)</span></span>
 <span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">gcmsData1</span></span>
-<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="va">g</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma <span class="op">=</span> <span class="fl">9</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">psf</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/estimatePSF.html">estimatePSF</a></span><span class="op">(</span><span class="va">Y</span>, time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, standard <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nwindows <span class="op">=</span> <span class="fl">1L</span>, precluster <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kernel_est <span class="op">=</span> <span class="va">g</span>, maxiter <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">psf</span><span class="op">$</span><span class="va">X</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X <span class="op">=</span> <span class="va">X</span>, background <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
-<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">8L</span><span class="op">)</span></span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster <span class="op">=</span> <span class="fl">7L</span>,</span>
+<span>  control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial_relaxed <span class="op">=</span> <span class="cn">FALSE</span>, fusion_passes <span class="op">=</span> <span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                         <span class="co"># estimated number of components</span></span>
 <span><span class="va">profiles</span> <span class="op">&lt;-</span> <span class="va">fit</span><span class="op">$</span><span class="va">H</span>                 <span class="co"># scans x components</span></span>
 <span><span class="va">loadings</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>             <span class="co"># components x original channels</span></span>
 <span><span class="va">spectra</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span>, normalize <span class="op">=</span> <span class="st">"l1"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-<p>The columns of <code>profiles</code> sum to one, so each row sum in <code>loadings</code> gives the component’s total fitted signal across scans and channels. Grouping similar channels can speed up the initial search. The reported spectra use every original channel.</p>
+<p>Using <code><a href="reference/estimatePSF.html">estimatePSF()</a></code> here applies the same boundary-aware, column-normalised PSF construction as the high-level GCMSprime workflow. Consequently, these settings reproduce the identical fitted profiles, spectra and background in both packages; repeated fits are deterministic.</p>
+<p>The columns of <code>profiles</code> sum to one, so each row sum in <code>loadings</code> gives the component’s total fitted signal across scans and channels. Grouping similar channels can speed up the initial search. The reported spectra use every original channel. We selected this six-component example after a sensitivity grid over Gaussian PSF widths and precluster counts: among solutions with six factors and chemically plausible retention times, it gave the best balance of low GIC, accurate apex times, compact profiles and strong enrichment of the compounds’ diagnostic ions.</p>
 <div class="float">
 <img src="reference/figures/gcms-data1-decomposition.png" alt="Background-corrected ion traces in grey, six fitted log-concave profiles and a 2 by 3 panel of recovered spectra for six co-eluting components"><div class="figcaption">Background-corrected ion traces in grey, six fitted log-concave profiles and a 2 by 3 panel of recovered spectra for six co-eluting components</div>
 </div>
@@ -331,7 +339,7 @@ Sparse screening and local likelihood updates support full chromatograms and lar
 <p>For related matrices, logconNMF performs <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al. (2009)</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea (2008)</a> and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et al. (2012)</a>:</p>
 <p><span class="math display">
 \mathbf{Y}_s
-\approx \mathbf{H}_s\operatorname{diag}(\mathbf{a}_s)\mathbf{S}
+\approx \mathbf{H}_s\mathrm{diag}(\mathbf{a}_s)\mathbf{S}
 +\mathbf{B}_s\mathbf{A}_s.
 </span></p>
 <p>Here <span class="math inline">\mathbf{H}_s</span> contains unit-area log-concave profiles, <span class="math inline">\mathbf{a}_s</span> gives the component areas, <span class="math inline">\mathbf{S}</span> contains the shared unit-sum component spectra, and <span class="math inline">\mathbf{B}_s\mathbf{A}_s</span> is the smooth nonnegative background. Monotone area-preserving time warps model retention drift and are taken into account as alignment and Jacobian offsets without resampling samples on a common grid; components may be absent from any subset of samples. This shares chemical information without imposing PARAFAC trilinearity or the PARAFAC2 constant-cross-product constraint.</p>
@@ -339,29 +347,29 @@ Sparse screening and local likelihood updates support full chromatograms and lar
 <p>As an example, we provide a simulated <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">16-sample GC/MS benchmark</a> with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769 true sample–compound occurrences include absent compounds, concentration-dependent broadening, retention drift, a shark-fin-shaped acid, a smooth experimental background and quasi-Poisson noise. The plots below summarise the simultaneous logconNMF result. On this benchmark, its recovery and reconstruction metrics are exceptionally strong: among the purpose-built workflows tested, it achieves the highest sensitivity, peak-level F1, ion-support F1, spectral cosine, profile cosine and peak-area agreement. Taken together, these results are nothing short of spectacular in comparison with the performance obtained by the competing software MS-DIAL, mzmine GC-EI, eRah, AMDIS, xcms + CAMERA or MSHub, see the <a href="https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html" class="external-link">full GCMSprime benchmark</a> report.</p>
 <div class="l0-benchmark-summary">
 <div>
-<strong>733 / 769</strong><span>true occurrences recovered</span>
+<strong>752 / 769</strong><span>true occurrences recovered</span>
 </div>
 <div>
-<strong>0.921</strong><span>peak-level F1</span>
+<strong>0.905</strong><span>peak-level F1</span>
 </div>
 <div>
-<strong>0.996</strong><span>robust adjusted log-area R²</span>
+<strong>0.9992</strong><span>robust adjusted log-area R²</span>
 </div>
 <div>
-<strong>0.999942</strong><span>median spectral cosine</span>
+<strong>0.999982</strong><span>median spectral cosine</span>
 </div>
 </div>
-<p>Area and spectral summaries are conditional on correctly matched true components and should therefore be read together with occurrence recovery and false-positive counts (90 in this benchmark). Ion-support F1 applies the same 0.1% of base-peak cutoff to the reference and recovered spectra.</p>
+<p>Area and spectral summaries are conditional on correctly matched true components and should therefore be read together with occurrence recovery and false-positive counts (140 in this benchmark). Ion-support F1 applies the same 0.1% of base-peak cutoff to the reference and recovered spectra.</p>
 <div class="l0-benchmark-grid">
 <figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a>
 <figcaption>
-Peak-area accuracy: robust adjusted R² 0.996 and median absolute area error 2.00% over 733 matched occurrences.
+Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area error 1.33% over 752 matched occurrences.
 </figcaption></figure><figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a>
 <figcaption>
-Spectral accuracy: median cosine similarity 0.999942 for 733 correctly matched true spectra.
+Spectral accuracy: median cosine similarity 0.999982 for 752 correctly matched true spectra.
 </figcaption></figure><figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a>
 <figcaption>
-Spectral sparsity: mean within-spectrum ion-support F1 0.939 under the shared 0.1% cutoff.
+Spectral sparsity: mean within-spectrum ion-support F1 0.971 under the shared 0.1% cutoff.
 </figcaption></figure><figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a>
 <figcaption>
 Representative sample-specific profiles: solid inferred curves and dashed ground truth for a regular component and the acid-shaped component.

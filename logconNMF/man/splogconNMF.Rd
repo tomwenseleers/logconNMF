@@ -129,6 +129,7 @@ a number between zero and 0.49 supplies the lag-one correlation.}
 \code{final_polishes=1L}, \code{native_sweeps=6L}, \code{block_sweeps=6L},
 \code{psf_width=NULL}, \code{screen_factor=1}, \code{censor=0.5}, \code{linkage="ward"},
 \code{joint_trials=NULL}, \code{profile_cycles=4L}, \code{fusion_passes=0L},
+\code{initial_relaxed=TRUE},
 \code{profile_fusion=TRUE}, \code{profile_restarts=TRUE}. \code{joint_trials} uses direct Poisson fusion for Poisson data
 and joint local refinement for the other families. \code{psf_width} supplies
 the typical FWHM in scans. When omitted, local updates use the middle design

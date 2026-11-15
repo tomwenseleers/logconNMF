@@ -203,6 +203,7 @@ y      <- rpois(n, y_true)                # with Poisson noise
 plot(y, type = "l", ylim = c(0,max(y)), main = "Simulated blurred spike train with baseline in red")
 lines(y_baseline, col="red")
 
+
 ## ------------------------------------------------------------------------
 ## 2  Deconvolution with an initial PSF guess
 ## ------------------------------------------------------------------------

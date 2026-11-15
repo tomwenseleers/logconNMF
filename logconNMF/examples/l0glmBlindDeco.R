@@ -105,7 +105,11 @@ plot(a_est, a_true,
      main = main_expr)
 
 # Multichannel fits use an individual background offset for each channel.
-Y <- cbind(y, rpois(n, 0.7 * y_true), rpois(n, 1.3 * y_true))
+n_multi <- 500L
+keep_multi <- seq_len(n_multi)
+Y <- cbind(y[keep_multi],
+           rpois(n_multi, 0.7 * y_true[keep_multi]),
+           rpois(n_multi, 1.3 * y_true[keep_multi]))
 multi <- l0glmBlindDeco(Y, family = poisson(identity), kernel_est = g0,
                          baseline = "bspline", nknots = 6L,
                          maxiter = 3L, plot = FALSE)
