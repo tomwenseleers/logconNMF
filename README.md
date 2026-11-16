@@ -20,16 +20,16 @@ chromatographic separation is rarely complete: when compounds co-elute, the
 spectrum observed at one scan is an additive mixture of their spectra. In
 matrix notation,
 
-$$
+```math
 \mathbf{Y}_{i\boldsymbol{\cdot}}
 \approx \sum_{r=1}^{R} H_{ir}\mathbf{S}_{r\boldsymbol{\cdot}}
 + \mathbf{B}_{i\boldsymbol{\cdot}},
-$$
+```
 
-where $\mathbf{H}_{\boldsymbol{\cdot}r}$ is the elution-mode factor,
-$\mathbf{S}_{r\boldsymbol{\cdot}}$ is the spectral-mode factor for component
-$r$, and $\mathbf{B}_{i\boldsymbol{\cdot}}$ represents the smooth background
-at scan $i$. Recovering the latent components is therefore a
+where $`\mathbf{H}_{\boldsymbol{\cdot}r}`$ is the elution-mode factor,
+$`\mathbf{S}_{r\boldsymbol{\cdot}}`$ is the spectral-mode factor for component
+$`r`$, and $`\mathbf{B}_{i\boldsymbol{\cdot}}`$ represents the smooth background
+at scan $`i`$. Recovering the latent components is therefore a
 constrained nonnegative factorisation problem: model order must be identified
 while chemically meaningful structure is imposed on both modes.
 
@@ -69,10 +69,10 @@ interact.
   A more appropriate peak-shape constraint would be log-concavity, which is stronger:
   when imposed on the positive support,
 
-  $$
+  ```math
   \Delta^2\log h_i
   = \log h_{i+1}-2\log h_i+\log h_{i-1}\leq 0,
-  $$
+  ```
 
   which implies unimodality while still allowing asymmetric and long-tailed
   peaks.
@@ -93,8 +93,8 @@ interact.
   each compound has the same elution profile in every sample. Shifted PARAFAC
   adds translations but not compound- and concentration-specific broadening or
   tailing. Classical PARAFAC2 is more flexible, but still requires
-  $\mathbf{H}_s^{\mathsf T}\mathbf{H}_s=\boldsymbol{\Phi}$ for every sample
-  $s$. Retention shifts can preserve
+  $`\mathbf{H}_s^{\mathsf T}\mathbf{H}_s=\boldsymbol{\Phi}`$ for every sample
+  $`s`$. Retention shifts can preserve
   these cross-products; changing widths, tails and pairwise overlaps generally
   do not. Flexible and fully constrained PARAFAC2 variants relax important
   parts of this restriction
@@ -257,15 +257,15 @@ of [Cichocki et al. (2009)](https://doi.org/10.1002/9780470747278),
 [Badea (2008)](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf)
 and [Lee et al. (2012)](https://doi.org/10.1371/journal.pone.0048238):
 
-$$
+```math
 \mathbf{Y}_s
 \approx \mathbf{H}_s\mathrm{diag}(\mathbf{a}_s)\mathbf{S}
 +\mathbf{B}_s\mathbf{A}_s.
-$$
+```
 
-Here $\mathbf{H}_s$ contains unit-area log-concave profiles,
-$\mathbf{a}_s$ gives the component areas, $\mathbf{S}$ contains the shared
-unit-sum component spectra, and $\mathbf{B}_s\mathbf{A}_s$ is the smooth
+Here $`\mathbf{H}_s`$ contains unit-area log-concave profiles,
+$`\mathbf{a}_s`$ gives the component areas, $`\mathbf{S}`$ contains the shared
+unit-sum component spectra, and $`\mathbf{B}_s\mathbf{A}_s`$ is the smooth
 nonnegative background. Monotone area-preserving time warps model retention
 drift and are taken into account as alignment and Jacobian offsets without
 resampling samples on a common grid; components may be absent from any subset
