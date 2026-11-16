@@ -67,15 +67,10 @@ interact.
   ([Bro & Sidiropoulos, 1998](https://doi.org/10.1002/%28SICI%291099-128X%28199807/08%2912%3A4%3C223%3A%3AAID-CEM511%3E3.0.CO%3B2-2)),
   but unimodality by itself permits shoulders, plateaus and irregular tails.
   A more appropriate peak-shape constraint would be log-concavity, which is stronger:
-  when imposed on the positive support,
-
-  ```math
-  \Delta^2\log h_i
-  = \log h_{i+1}-2\log h_i+\log h_{i-1}\leq 0,
-  ```
-
-  which implies unimodality while still allowing asymmetric and long-tailed
-  peaks.
+  when imposed on the positive support, it requires
+  $`\displaystyle \Delta^2\log h_i = \log h_{i+1}-2\log h_i+\log h_{i-1}\leq 0`$,
+  which implies unimodality
+  while still allowing asymmetric and long-tailed peaks.
 - **Instrument response, background and noise.** Standard factorisations do
   not jointly estimate a constant or smoothly time-varying point-spread
   function (PSF) and a smooth nonnegative background. Least squares also
