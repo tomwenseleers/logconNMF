@@ -163,7 +163,7 @@ spolo_algebraic_fusion <- function(model, d, lambda_rank, radius = 0.08, max_gap
     initial_area <- colSums(st$T)
     visit <- order(initial_area * vapply(st$h, max, 0), decreasing = TRUE)
     proposals <- 0L
-    fusion_seconds <- system.time(for (anchor in visit) {
+    fusion_seconds <- slcn_time(for (anchor in visit) {
         area <- colSums(st$T)
         if (area[anchor] <= max(initial_area) * 1e-12) 
             next

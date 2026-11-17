@@ -34,10 +34,16 @@ GIC(fitq)
 # Six co-eluting compounds, retaining all 670 mass channels.
 data(gcmsData1)
 Y <- gcmsData1
-X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
+psf1 <- estimatePSF(Y, family = quasipoisson("identity"),
+  standard = NULL, nwindows = 1L, precluster = 1L, ncores = 8L,
+  control = list(kernel_est = convKernel("gaussian", 65L,
+    list(sigma = 9)), maxiter = 0L))
+X <- psf1$X
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
-  family = quasipoisson("identity"), precluster = 16L,
-  correlation = "auto", ncores = 8L)
+  family = quasipoisson("identity"), precluster = 7L,
+  correlation = "auto", ncores = 8L,
+  control = list(initial_relaxed = FALSE, fusion_passes = 0L))
+stopifnot(f1$rank == 6L)
 c(compounds = f1$rank, GIC = GIC(f1), seconds = f1$seconds[["total"]])
 matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
@@ -46,7 +52,11 @@ matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
 data(gcmsData2)
 Y <- gcmsData2
 time <- as.numeric(rownames(Y))
-X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
+psf2 <- estimatePSF(Y, family = quasipoisson("identity"),
+  standard = NULL, nwindows = 1L, precluster = 1L, ncores = 8L,
+  control = list(kernel_est = convKernel("gaussian", 65L,
+    list(sigma = 6)), maxiter = 0L))
+X <- psf2$X
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,

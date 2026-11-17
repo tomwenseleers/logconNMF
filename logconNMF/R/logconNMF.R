@@ -90,8 +90,10 @@
 #' refinement and fusion, deletion or addition of candidate components
 #' provide the approximate rank search.
 #' Final single-sample refinement also tries broader local starts for nearly
-#' coincident profiles, with acceptance checked on every original channel
-#' against the current fit and a refined control. This is enabled
+#' coincident profiles. Compatible Poisson/quasipoisson fits use their existing
+#' channel groups for preliminary screening; completed candidates and controls
+#' are always refined and checked on every original channel. Other cases retain
+#' full-channel screening. This is enabled
 #' by default. For one matrix, `control=list(profile_restarts=FALSE)` disables
 #' the pass; simultaneous fits pass this option through `control$initial`.
 #'

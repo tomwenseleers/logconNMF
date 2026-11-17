@@ -2,10 +2,8 @@
 
 ## logconNMF 0.1.0.9000
 
-- Corrected the historical one-unit mass-axis offset in `gcmsData1`: the
-  all-zero leading channel was removed and the retained channels now
-  have their nominal labels, m/z 30:699. `gcmsData2` was independently
-  checked against its source CDF and required no correction.
+- Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass
+  axes are checked against the source data.
 
 ### PSF estimation and deconvolution
 
@@ -43,12 +41,16 @@
   refinement preserve candidate components for final correlation-aware
   rank selection.
 - Likelihood-checked local width restarts resolve signal allocation
-  between nearly coincident profiles. Screening and acceptance retain
-  all original channels and compare with an equally refined control.
+  between nearly coincident profiles. Compatible Poisson/quasi-Poisson
+  proposal screens reuse channel aggregates; completed candidates and
+  matched controls always use every original channel. Scalar
+  control-score caches are invalidated after each accepted move.
 - Contained broad-peak fragments are compared with equally refined
   unmerged controls. Complete local supports, reconstructed
   original-channel means and separate initialization/final-criterion
   ledgers make each decision auditable.
+- Nested stage timing avoids forced garbage collection between local
+  fits; ordinary R memory management remains active.
 
 ### Simultaneous multisample models
 

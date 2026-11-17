@@ -131,7 +131,7 @@ slcn_fusion_refit <- function(f, Y, block, free) {
 slcn_refine_profiles <- function(f, Y, verbose = FALSE, psf_width = f$control$psf_width) {
   audit <- list();begun <- proc.time()[["elapsed"]]
   accept <- function(label, expression) {
-    seconds <- system.time(candidate <- force(expression))[["elapsed"]]
+    seconds <- slcn_time(candidate <- force(expression))[["elapsed"]]
     delta <- if (identical(f$mu, candidate$mu) && ncol(candidate$H) == ncol(f$H)) 0 else
       slcn_delta(Y, f$mu, candidate$mu, f$spec$kind, f$spec$dispersion,
         f$spec$theta, as.numeric(f$weights), nrow(Y), 0L, f$control$censor) +

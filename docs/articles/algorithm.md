@@ -833,9 +833,14 @@ the specified observation model.
     only complete original-channel improvements under this fixed final
     criterion.
 7.  For nearly coincident modes, screen left-, right- and two-sided
-    width restarts. Refine promising starts and an unperturbed control
-    on the original channels, retaining a restart only when its complete
-    J improves on both the current fit and the refined control.
+    width restarts. Compatible Poisson/quasi-Poisson fits use the
+    existing aggregated channels for this proposal screen; other cases
+    use the original channels. Expand promising spectra using their
+    current within-group proportions. Refine each candidate and an
+    unperturbed control on all original channels, retaining a restart
+    only when its complete J improves on both the current fit and the
+    refined control. Reuse a control score for an identical local block
+    only while the current fit is unchanged; invalidate it after a move.
 8.  Return temporally ordered H,S, background, family/noise parameters,
     likelihood, rank criterion, stage acceptance ledger and timings.
 
@@ -853,11 +858,37 @@ T\_{l,r}(i)=a+\frac{i-a}{l\\\mathbf1\\i\<a\\+r\\\mathbf1\\i\geq a\\},
 Concave slopes remain nonincreasing on each side, and their change from
 nonnegative to nonpositive at the mode preserves log concavity across
 the join. Candidate pairs have mode separation at most one quarter of
-both FWHMs. Preliminary screening, refinement and acceptance use the
-original channels and fixed noise, weights, offsets, background and
-component count. Thus \Delta J=-2\Delta\ell\_\nu for an accepted
-restart. The `profile_starts` audit records the input component index,
-chosen start, score changes and time.
+both FWHMs. Let P\in\\0,1\\^{m\times g} be the existing channel-group
+assignment. For Poisson/quasi-Poisson with scalar dispersion and
+likelihood weight and a zero offset, preliminary screening uses Y_a=YP,
+S_a=SP and M_a=MP. Under the working independence model, summed counts
+preserve the Poisson mean and the quasi-Poisson relationship
+\operatorname{Var}(Y_a)=\phi M_a. No new clustering is needed.
+
+For a promising candidate, expand each grouped spectral coefficient
+using the entry model’s within-group ion proportions. Refine this
+candidate and a separate unperturbed control on the **original
+observations**. The final polish allows eight block cycles after
+aggregated screening, or sixteen for the full-channel route, with local
+convergence stopping earlier when appropriate. The control receives one
+additional cycle. Noise, weights, offsets, background and component
+count remain fixed, and acceptance requires
+
+\ell\_\nu(Y;M\_{candidate})\>
+\max\\\ell\_\nu(Y;M\_{entry}),\ell\_\nu(Y;M\_{control})\\.
+
+Thus \Delta J=-2\Delta\ell\_\nu\<0 for an accepted restart. Aggregation
+accelerates proposals; it does not replace the original-data objective
+and need not choose the same local optimum as full-channel screening.
+Other families, channel-specific scales, nonscalar observation weights
+or nonzero offsets retain full-channel screening.
+
+The cache stores only scalar control scores, not fitted mean matrices,
+and is cleared after every accepted move. The `profile_starts` audit
+records input component indices, starts, screening and original-data
+changes, channel count, polish budget, cache hits/misses and time. Stage
+timers measure elapsed work without forcing garbage collection between
+nested fits; automatic R garbage collection remains active.
 
 The initialization ledger records its unadjusted criterion. When the
 final information multiplier differs from one, the final ledger begins

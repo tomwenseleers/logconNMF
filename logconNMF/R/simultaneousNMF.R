@@ -24,7 +24,7 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(!is.logical(ctl$cache)||length(ctl$cache)!=1L||is.na(ctl$cache))stop("cache must be TRUE or FALSE.")
   runtime<-sinmf_runtime(ncores,length(samples),ctl$workers)
   on.exit(sinmf_close_runtime(runtime),add=TRUE)
-  initial<-system.time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
+  initial<-slcn_time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
   state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
   state$runtime<-runtime;state$parallel<-runtime$budget
   state<-sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)

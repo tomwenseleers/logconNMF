@@ -281,21 +281,21 @@ eRah, AMDIS, xcms + CAMERA or MSHub, see the
 report.
 
 <div class="l0-benchmark-summary">
-<div><strong>752 / 769</strong><span>true occurrences recovered</span></div>
-<div><strong>0.905</strong><span>peak-level F1</span></div>
+<div><strong>750 / 769</strong><span>true occurrences recovered</span></div>
+<div><strong>0.903</strong><span>peak-level F1</span></div>
 <div><strong>0.9992</strong><span>robust adjusted log-area R²</span></div>
-<div><strong>0.999982</strong><span>median spectral cosine</span></div>
+<div><strong>0.999983</strong><span>median spectral cosine</span></div>
 </div>
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (140 in this benchmark). Ion-support F1 applies the same
+false-positive counts (142 in this benchmark). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 <div class="l0-benchmark-grid">
-<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a><figcaption>Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area error 1.33% over 752 matched occurrences.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.999982 for 752 correctly matched true spectra.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.971 under the shared 0.1% cutoff.</figcaption></figure>
+<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a><figcaption>Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area error 1.38% over 750 matched occurrences.</figcaption></figure>
+<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.999983 for 750 correctly matched true spectra.</figcaption></figure>
+<figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.972 under the shared 0.1% cutoff.</figcaption></figure>
 <figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a><figcaption>Representative sample-specific profiles: solid inferred curves and dashed ground truth for a regular component and the acid-shaped component.</figcaption></figure>
 </div>
 

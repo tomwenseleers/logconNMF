@@ -304,14 +304,22 @@ fixed. \code{contained_fusion} stores the trial diagnostics and source groups.
 exchange signal during refinement. By default, final refinement also tries
 doubling the left, right or both widths about the current mode, interpolating
 the log profile to retain log concavity. Mode separation must be at most one
-quarter of both starting FWHMs. Preliminary screening and final acceptance
-both use every original channel to preserve informative spectral contrasts.
-Promising starts are refined locally; an unperturbed control receives at least
+quarter of both starting FWHMs. With a saved channel map, Poisson and
+quasipoisson fits with scalar dispersion/weights and zero offset screen
+proposals in the aggregated channels. Other cases screen on every original
+channel. Promising spectra are expanded using their current within-group ion
+proportions, then both the candidate and an unperturbed control are refined
+on all original channels. The final polish allows eight block cycles after
+aggregated screening and sixteen otherwise; local convergence can stop sooner.
+An unperturbed control receives at least
 the same refinement budget. A restart is accepted only if it improves the complete original-channel
 criterion relative to both the current fit and the refined control, with
 component count, noise parameters and background fixed. \code{profile_starts}
-records the proposals, accepted changes and time. Component indices in its
-audit refer to the factors entering this pass.
+records the proposals, accepted changes, screening channel count, refinement
+budget, cache hits/misses and time. Its \code{screen_delta} uses the screening
+data; \code{delta} records the original-channel criterion change. Control scores
+are cached only while the current fit is unchanged, then invalidated after
+each accepted move. Component indices refer to the factors entering this pass.
 
 \strong{Noise models.} Gaussian variance is \eqn{\phi}; quasipoisson variance is
 \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma
@@ -405,10 +413,16 @@ GIC(fitq)
 # Six co-eluting compounds, retaining all 670 mass channels.
 data(gcmsData1)
 Y <- gcmsData1
-X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 8)), nrow(Y))
+psf1 <- estimatePSF(Y, family = quasipoisson("identity"),
+  standard = NULL, nwindows = 1L, precluster = 1L, ncores = 8L,
+  control = list(kernel_est = convKernel("gaussian", 65L,
+    list(sigma = 9)), maxiter = 0L))
+X <- psf1$X
 f1 <- splogconNMF(X, Y, background = matrix(1, nrow(Y), 1L),
-  family = quasipoisson("identity"), precluster = 16L,
-  correlation = "auto", ncores = 8L)
+  family = quasipoisson("identity"), precluster = 7L,
+  correlation = "auto", ncores = 8L,
+  control = list(initial_relaxed = FALSE, fusion_passes = 0L))
+stopifnot(f1$rank == 6L)
 c(compounds = f1$rank, GIC = GIC(f1), seconds = f1$seconds[["total"]])
 matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
   xlab = "Retention time (min)", ylab = "Unit-area elution profile")
@@ -417,7 +431,11 @@ matplot(as.numeric(rownames(Y)), as.matrix(f1$H), type = "l", lty = 1,
 data(gcmsData2)
 Y <- gcmsData2
 time <- as.numeric(rownames(Y))
-X <- convMatrix(convKernel("gaussian", 65L, list(sigma = 6)), nrow(Y))
+psf2 <- estimatePSF(Y, family = quasipoisson("identity"),
+  standard = NULL, nwindows = 1L, precluster = 1L, ncores = 8L,
+  control = list(kernel_est = convKernel("gaussian", 65L,
+    list(sigma = 6)), maxiter = 0L))
+X <- psf2$X
 B <- splines::bs(time, df = 4L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,

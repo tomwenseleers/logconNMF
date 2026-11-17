@@ -76,7 +76,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
   d <- list(X = X, Y = Y, B = B, lambda = scalar, lambda_rank = penalty, psf_width = control$psf_width)
   elapsed <- numeric();history <- list()
   timer <- function(label, expression) {
-    elapsed[label] <<- system.time(value <- force(expression))[["elapsed"]]
+    elapsed[label] <<- slcn_time(value <- force(expression))[["elapsed"]]
     value
   }
   current <- if (is.null(start)) timer("initial", slcn_initial(X, Y, B, spec, W, offset,
@@ -88,7 +88,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
   history[[1L]] <- data.frame(stage = "initial", seconds = if (length(elapsed)) sum(elapsed) else 0,
     delta = 0, accepted = TRUE, compounds = ncol(current$H))
   step <- function(label, expression) {
-    seconds <- system.time(candidate <- force(expression))[["elapsed"]]
+    seconds <- slcn_time(candidate <- force(expression))[["elapsed"]]
     delta <- engine$spolo_delta_cpp(Y, current$mu, candidate$mu) + penalty * (ncol(candidate$H) - ncol(current$H))
     accepted <- is.finite(delta) && delta <= 1e-6
     history[[length(history) + 1L]] <<- data.frame(stage = label, seconds = seconds,
@@ -132,7 +132,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
   theta_update <- function(label) {
     if (ctx$spec$name != "nb" || !isTRUE(ctx$spec$theta_update)) return(invisible(NULL))
     old_theta <- ctx$spec$theta;old_ll <- score(current);accepted <- FALSE
-    seconds <- system.time({
+    seconds <- slcn_time({
       for (iteration in 1:3) {
         derivative <- slcn_nb_score(Y, current$mu, ctx$spec$theta, ctx$W, ncores)
         move <- if (is.finite(derivative[2]) && derivative[2] < 0) -derivative[1] / derivative[2] else sign(derivative[1])
@@ -388,14 +388,22 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #' exchange signal during refinement. By default, final refinement also tries
 #' doubling the left, right or both widths about the current mode, interpolating
 #' the log profile to retain log concavity. Mode separation must be at most one
-#' quarter of both starting FWHMs. Preliminary screening and final acceptance
-#' both use every original channel to preserve informative spectral contrasts.
-#' Promising starts are refined locally; an unperturbed control receives at least
+#' quarter of both starting FWHMs. With a saved channel map, Poisson and
+#' quasipoisson fits with scalar dispersion/weights and zero offset screen
+#' proposals in the aggregated channels. Other cases screen on every original
+#' channel. Promising spectra are expanded using their current within-group ion
+#' proportions, then both the candidate and an unperturbed control are refined
+#' on all original channels. The final polish allows eight block cycles after
+#' aggregated screening and sixteen otherwise; local convergence can stop sooner.
+#' An unperturbed control receives at least
 #' the same refinement budget. A restart is accepted only if it improves the complete original-channel
 #' criterion relative to both the current fit and the refined control, with
 #' component count, noise parameters and background fixed. `profile_starts`
-#' records the proposals, accepted changes and time. Component indices in its
-#' audit refer to the factors entering this pass.
+#' records the proposals, accepted changes, screening channel count, refinement
+#' budget, cache hits/misses and time. Its `screen_delta` uses the screening
+#' data; `delta` records the original-channel criterion change. Control scores
+#' are cached only while the current fit is unchanged, then invalidated after
+#' each accepted move. Component indices refer to the factors entering this pass.
 #'
 #' **Noise models.** Gaussian variance is \eqn{\phi}; quasipoisson variance is
 #' \eqn{\phi\mu}; NB2 variance is \eqn{\mu+\mu^2/\theta}; standard Gamma
@@ -557,7 +565,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   if (!is.null(precluster) && (length(precluster) != 1L || !is.finite(precluster) || precluster < 1 || precluster != as.integer(precluster))) stop("precluster must be NULL, logical or a positive integer.")
   if (length(lambda)!=1L || !(is.character(lambda) || is.numeric(lambda)))
     stop("lambda must be an IC name or one nonnegative compound penalty.")
-  nuisance <- system.time(noise <- slcn_noise(Y, spec, W, ncores, correlation, control$censor))[["elapsed"]]
+  nuisance <- slcn_time(noise <- slcn_noise(Y, spec, W, ncores, correlation, control$censor))[["elapsed"]]
   spec <- noise$spec
   scalar <- if (is.character(lambda)) presetLambda(lambda, p = ncol(X), n = n) else lambda / m
   scalar <- scalar * spec$information_factor
@@ -570,7 +578,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   initial_spec$correlation <- 0
   clustering_seconds <- aggregate_seconds <- 0;aggregation <- NULL
   if (is.null(start) && !is.null(precluster) && !identical(precluster, FALSE) && precluster < m) {
-    clustering_seconds <- system.time(cl <- if(!is.null(channel_map))
+    clustering_seconds <- slcn_time(cl <- if(!is.null(channel_map))
       list(clusterids=sinmf_channel_index(channel_map,if(is.null(colnames(Y)))as.character(seq_len(m))else colnames(Y))) else
       glmCluster(pmax(Y, 0), family = poisson("identity"),
       weights = W, method = "poissondist", size_fac = colSums(pmax(Y, 0)),
@@ -589,7 +597,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     if (spec$name == "Gamma") aggregated_spec$dispersion <- spec$dispersion * pmax(sumsq, 1e-12)
     aggregate_W <- if (length(W) == 1L) W else as.matrix(W %*% P) / rep(sizes, each = n)
     aggregate_O <- if (length(O) == 1L) matrix(O, n, g) * rep(sizes, each = n) else as.matrix(O %*% P)
-    aggregate_seconds <- system.time(a <- slcn_run(X, aggregate_Y, B, aggregated_spec,
+    aggregate_seconds <- slcn_time(a <- slcn_run(X, aggregate_Y, B, aggregated_spec,
       aggregate_W, aggregate_O, initial_scalar, ncores, control, verbose = verbose, censor = control$censor,
       rank_channels = m))[["elapsed"]]
     S <- sweep(a$S[, group, drop = FALSE], 2, fractions, "*")
@@ -602,7 +610,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
       weighted_approximation = length(W) != 1L, model = a,
       sumsq_fractions = sumsq, original_channels = m)
   }
-  fit_seconds <- system.time(fit <- slcn_run(X, Y, B, initial_spec, W, O, initial_scalar, ncores, control,
+  fit_seconds <- slcn_time(fit <- slcn_run(X, Y, B, initial_spec, W, O, initial_scalar, ncores, control,
     start, verbose, control$censor, selection = is.null(aggregation)))[["elapsed"]]
   fit$background <- B;fit$offset <- O;fit$weights <- W;fit$y <- Y
   fit$family <- family;fit$n <- n;fit$p <- ncol(X);fit$lambda <- initial_scalar * m
@@ -611,11 +619,11 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   fit$ic_df <- m * fit$rank + fit$nuisance_df
   fit$aggregation <- aggregation;fit$control <- control;fit$ncores <- ncores
   fit <- slcn_temporal_order(fit)
-  refinement_seconds <- system.time(
+  refinement_seconds <- slcn_time(
     if (ncol(fit$H) && control$profile_cycles) fit <- slcn_refine_fit(fit, Y, verbose))[["elapsed"]]
-  if (control$profile_fusion) refinement_seconds <- refinement_seconds + system.time(
+  if (control$profile_fusion) refinement_seconds <- refinement_seconds + slcn_time(
     fit <- slcn_refine_profiles(fit, Y, verbose, fusion_width))[["elapsed"]]
-  refinement_seconds <- refinement_seconds + system.time(
+  refinement_seconds <- refinement_seconds + slcn_time(
     fit <- slcn_polish(fit, Y, X, verbose))[["elapsed"]]
   fit$initialization <- list(lambda = fit$lambda, objective = fit$objective,
     compounds = ncol(fit$H), history = fit$history)
@@ -630,7 +638,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   }
   if (control$profile_fusion && ncol(fit$H) > 1L) {
     before <- slcn_sync(fit, Y)
-    seconds <- system.time(candidate <- slcn_contained_broad(fit, Y, fusion_width, verbose))[["elapsed"]]
+    seconds <- slcn_time(candidate <- slcn_contained_broad(fit, Y, fusion_width, verbose))[["elapsed"]]
     delta <- candidate$objective - before$objective
     ok <- is.finite(delta) && delta <= 1e-6
     if (ok) fit <- candidate
@@ -640,7 +648,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
   }
   if (control$profile_restarts && control$profile_cycles > 0L && ncol(fit$H) > 1L) {
     before <- slcn_sync(fit, Y)
-    seconds <- system.time(candidate <- slcn_profile_starts(fit, Y))[["elapsed"]]
+    seconds <- slcn_time(candidate <- slcn_profile_starts(fit, Y))[["elapsed"]]
     delta <- candidate$objective - before$objective
     ok <- is.finite(delta) && delta <= 1e-6
     if (ok) fit <- candidate

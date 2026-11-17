@@ -63,7 +63,7 @@ slcn_contained_narrow <- function(f, Y, seed, verbose = FALSE) {
     for (i in seq_len(nrow(proposals))) for (shape in c("anchor", "hull")) {
       group <- c(proposals$anchor[i], proposals$fragment[i])
       proposal <- list(group = group, anchor = group[1L], shape = shape)
-      seconds <- system.time(z <- slcn_merge_anchor(f, Y, proposal,
+      seconds <- slcn_time(z <- slcn_merge_anchor(f, Y, proposal,
         cycles = 6L, profile_steps = 2L, neighbor_mass = .05))[["elapsed"]]
       z <- slcn_sync(z, Y)
       audit[[length(audit) + 1L]] <- data.frame(
@@ -101,14 +101,14 @@ slcn_contained_broad <- function(f, Y, psf_width, verbose = FALSE) {
     if (length(group) < 2L) next
     members <- sort(unlist(f$members[group]))
     block <- slcn_local_block(f, group, anchor)
-    seconds_control <- system.time(control <- slcn_refine_block(f, Y,
+    seconds_control <- slcn_time(control <- slcn_refine_block(f, Y,
       block = block, cycles = 6L, profile_steps = 4L, adaptive = FALSE,
       free = block, knots = 256L))[["elapsed"]]
     control <- slcn_sync(control, Y)
     best <- if (is.finite(control$objective) && control$objective <= f$objective) control else f
     chosen <- NULL
     for (shape in c("anchor", "hull")) {
-      seconds <- system.time({
+      seconds <- slcn_time({
         z <- slcn_merge_anchor(f, Y, list(group = group, anchor = anchor, shape = shape),
           cycles = 0L, neighbor_mass = .05)
         merged <- ncol(z$H);block <- slcn_local_block(z, merged, merged)
@@ -137,7 +137,7 @@ slcn_polish <- function(f, Y, X, verbose = FALSE) {
   if (is.null(f$members)) f$members <- lapply(seq_len(ncol(f$H)), identity)
   f <- slcn_sync(f, Y);seed <- f
   advance <- function(label, expression) {
-    seconds <- system.time(candidate <- force(expression))[["elapsed"]]
+    seconds <- slcn_time(candidate <- force(expression))[["elapsed"]]
     candidate <- slcn_sync(candidate, Y)
     delta <- candidate$objective - f$objective
     ok <- is.finite(delta) && delta <= 1e-6

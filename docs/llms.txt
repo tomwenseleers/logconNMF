@@ -375,17 +375,17 @@ xcms + CAMERA or MSHub, see the [full GCMSprime
 benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 report.
 
-**752 / 769**true occurrences recovered
+**750 / 769**true occurrences recovered
 
-**0.905**peak-level F1
+**0.903**peak-level F1
 
 **0.9992**robust adjusted log-area R²
 
-**0.999982**median spectral cosine
+**0.999983**median spectral cosine
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence
-recovery and false-positive counts (140 in this benchmark). Ion-support
+recovery and false-positive counts (142 in this benchmark). Ion-support
 F1 applies the same 0.1% of base-peak cutoff to the reference and
 recovered spectra.
 
@@ -394,19 +394,19 @@ with robust regression and prediction
 band](reference/figures/simultaneous-benchmark-area-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-area-accuracy.png)
 
 Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area
-error 1.33% over 752 matched occurrences.
+error 1.38% over 750 matched occurrences.
 
 [![Distribution of spectral cosine similarity for correctly matched
 spectra from simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-Spectral accuracy: median cosine similarity 0.999982 for 752 correctly
+Spectral accuracy: median cosine similarity 0.999983 for 750 correctly
 matched true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-Spectral sparsity: mean within-spectrum ion-support F1 0.971 under the
+Spectral sparsity: mean within-spectrum ion-support F1 0.972 under the
 shared 0.1% cutoff.
 
 [![Inferred and true elution profiles for representative regular and

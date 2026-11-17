@@ -25,11 +25,11 @@ function (f, Y, verbose = FALSE)
         ok
     }
     f$members <- lapply(seq_len(ncol(f$H)), identity)
-    seconds <- system.time(z <- slcn_refine_block(f, Y, cycles = f$control$profile_cycles,
+    seconds <- slcn_time(z <- slcn_refine_block(f, Y, cycles = f$control$profile_cycles,
         profile_steps = 1L, adaptive = FALSE, joint = FALSE,
         background = TRUE))[["elapsed"]]
     accept(z, "smooth_profiles", seconds)
-    seconds <- system.time(z <- slcn_joint_fixed(f, Y))[["elapsed"]]
+    seconds <- slcn_time(z <- slcn_joint_fixed(f, Y))[["elapsed"]]
     accept(z, "joint_spectra", seconds)
     for (pairs in c(FALSE, TRUE)) for (pass in seq_len(f$control$fusion_passes)) {
         proposals <- slcn_anchor_proposals(f, pairs)
@@ -37,7 +37,7 @@ function (f, Y, verbose = FALSE)
             break
         changed <- FALSE
         for (proposal in head(proposals, 2L)) {
-            seconds <- system.time({
+            seconds <- slcn_time({
                 z <- slcn_merge_anchor(f, Y, proposal)
                 if (!pairs)
                   z <- slcn_restore_atoms(z, Y, f, proposal$donors,

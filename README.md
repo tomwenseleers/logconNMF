@@ -291,30 +291,30 @@ report.
 
 | Quantity | Simultaneous logconNMF result |
 |:--|--:|
-| True occurrences recovered | 752 / 769 |
-| Peak-level F1 | 0.905 |
+| True occurrences recovered | 750 / 769 |
+| Peak-level F1 | 0.903 |
 | Robust adjusted log-area R² | 0.9992 |
-| Median spectral cosine | 0.999982 |
-| Mean within-spectrum ion-support F1 | 0.971 |
+| Median spectral cosine | 0.999983 |
+| Mean within-spectrum ion-support F1 | 0.972 |
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (140 in this benchmark). Ion-support F1 applies the same
+false-positive counts (142 in this benchmark). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 [![True versus estimated peak areas for the simultaneous logconNMF fit](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)
 
 Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area error
-1.33% over 752 matched occurrences.
+1.38% over 750 matched occurrences.
 
 [![Distribution of spectral cosine similarity for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-Spectral accuracy: median cosine similarity 0.999982 for 752 correctly matched
+Spectral accuracy: median cosine similarity 0.999983 for 750 correctly matched
 true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-Spectral sparsity: mean within-spectrum ion-support F1 0.971 under the shared
+Spectral sparsity: mean within-spectrum ion-support F1 0.972 under the shared
 0.1% cutoff.
 
 [![Inferred and true regular and acid-shaped profiles across the simultaneous fit](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)

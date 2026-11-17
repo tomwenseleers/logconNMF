@@ -141,7 +141,7 @@ slcn_cleanup <- function(f, Y, X, verbose = FALSE) {
     z$spec$theta, as.numeric(z$weights), as.integer(z$ncores), z$control$censor) + z$lambda * ncol(z$H)
   initial <- criterion(f);audit <- list()
   stage <- function(name, expression) {
-    before <- criterion(f);seconds <- system.time(z <- force(expression))[["elapsed"]]
+    before <- criterion(f);seconds <- slcn_time(z <- force(expression))[["elapsed"]]
     delta <- criterion(z$fit) - before;ok <- is.finite(delta) && delta <= 1e-6
     if (ok) f <<- z$fit
     audit[[name]] <<- z$audit

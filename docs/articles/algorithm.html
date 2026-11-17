@@ -1017,9 +1017,15 @@ contained fragments of broad components against equally refined unmerged
 local controls. Accept only complete original-channel improvements under
 this fixed final criterion.</li>
 <li>For nearly coincident modes, screen left-, right- and two-sided
-width restarts. Refine promising starts and an unperturbed control on
-the original channels, retaining a restart only when its complete <span class="math inline">J</span> improves on both the current fit and the
-refined control.</li>
+width restarts. Compatible Poisson/quasi-Poisson fits use the existing
+aggregated channels for this proposal screen; other cases use the
+original channels. Expand promising spectra using their current
+within-group proportions. Refine each candidate and an unperturbed
+control on all original channels, retaining a restart only when its
+complete <span class="math inline">J</span> improves on both the current
+fit and the refined control. Reuse a control score for an identical
+local block only while the current fit is unchanged; invalidate it after
+a move.</li>
 <li>Return temporally ordered <span class="math inline">H,S</span>,
 background, family/noise parameters, likelihood, rank criterion, stage
 acceptance ledger and timings.</li>
@@ -1038,12 +1044,38 @@ piecewise-linear interpolation of <span class="math inline">\eta</span>.
 Concave slopes remain nonincreasing on each side, and their change from
 nonnegative to nonpositive at the mode preserves log concavity across
 the join. Candidate pairs have mode separation at most one quarter of
-both FWHMs. Preliminary screening, refinement and acceptance use the
-original channels and fixed noise, weights, offsets, background and
-component count. Thus <span class="math inline">\Delta
-J=-2\Delta\ell_\nu</span> for an accepted restart. The
-<code>profile_starts</code> audit records the input component index,
-chosen start, score changes and time.</p>
+both FWHMs. Let <span class="math inline">P\in\{0,1\}^{m\times g}</span>
+be the existing channel-group assignment. For Poisson/quasi-Poisson with
+scalar dispersion and likelihood weight and a zero offset, preliminary
+screening uses <span class="math inline">Y_a=YP</span>, <span class="math inline">S_a=SP</span> and <span class="math inline">M_a=MP</span>. Under the working independence model,
+summed counts preserve the Poisson mean and the quasi-Poisson
+relationship <span class="math inline">\operatorname{Var}(Y_a)=\phi
+M_a</span>. No new clustering is needed.</p>
+<p>For a promising candidate, expand each grouped spectral coefficient
+using the entry model’s within-group ion proportions. Refine this
+candidate and a separate unperturbed control on the <strong>original
+observations</strong>. The final polish allows eight block cycles after
+aggregated screening, or sixteen for the full-channel route, with local
+convergence stopping earlier when appropriate. The control receives one
+additional cycle. Noise, weights, offsets, background and component
+count remain fixed, and acceptance requires</p>
+<p><span class="math display">
+\ell_\nu(Y;M_{candidate})&gt;
+\max\{\ell_\nu(Y;M_{entry}),\ell_\nu(Y;M_{control})\}.
+</span></p>
+<p>Thus <span class="math inline">\Delta J=-2\Delta\ell_\nu&lt;0</span>
+for an accepted restart. Aggregation accelerates proposals; it does not
+replace the original-data objective and need not choose the same local
+optimum as full-channel screening. Other families, channel-specific
+scales, nonscalar observation weights or nonzero offsets retain
+full-channel screening.</p>
+<p>The cache stores only scalar control scores, not fitted mean
+matrices, and is cleared after every accepted move. The
+<code>profile_starts</code> audit records input component indices,
+starts, screening and original-data changes, channel count, polish
+budget, cache hits/misses and time. Stage timers measure elapsed work
+without forcing garbage collection between nested fits; automatic R
+garbage collection remains active.</p>
 <p>The initialization ledger records its unadjusted criterion. When the
 final information multiplier differs from one, the final ledger begins
 at the completed initialization and uses the fixed adjusted criterion
