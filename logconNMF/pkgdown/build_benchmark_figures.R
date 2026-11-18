@@ -218,7 +218,7 @@ grDevices::png(
   width = 1900L, height = 950L, res = 160L
 )
 graphics::par(mfrow = c(1L, 2L), mar = c(4.6, 6.8, 5.2, 0.8),
-  oma = c(2.3, 0.2, 1.5, 0.2), mgp = c(3.0, 0.8, 0), las = 1)
+  oma = c(2.3, 0.2, 2.2, 0.2), mgp = c(3.0, 0.8, 0), las = 1)
 for (kind in c("Regular", "Acid")) {
   data <- profiles[profiles$kind == kind, , drop = FALSE]
   known <- data[data$method == "Ground truth", , drop = FALSE]
@@ -244,11 +244,11 @@ for (kind in c("Regular", "Acid")) {
     side = 3, line = 0.55, cex = 0.88, col = muted)
 }
 graphics::mtext(
-  "Solid: inferred profiles | dashed: ground truth | blue: smallest true area | red: largest true area",
+  "All 16 samples; absent true profiles lie at zero | solid: inferred | dashed: truth | blue to red: increasing true area",
   side = 1, outer = TRUE, line = 0.65, cex = 0.98, col = muted
 )
-graphics::mtext("Representative profile recovery across the 16-sample simultaneous fit",
-  side = 3, outer = TRUE, line = 0.4, cex = 1.35, font = 2, col = navy)
+graphics::mtext("Small-scale 16-sample benchmark | 100 reference compounds | 1,200 scans",
+  side = 3, outer = TRUE, line = 0.4, cex = 1.2, font = 2, col = navy)
 grDevices::dev.off()
 
 invisible(TRUE)

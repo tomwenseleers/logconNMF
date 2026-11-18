@@ -308,14 +308,16 @@ buffers, matching structures and sparse PSFs require additional memory.
 Coupled count-model workers can retain one original matrix up to 64 MiB plus
 an equally sized likelihood-normalizer cache; larger samples use local reads. See the
 [multisample tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
-for measured full-size resource use. A full-size validation with 16 samples, 10,000 scans and 550 recorded
+for measured full-size resource use. A separate large-scale validation with 16 samples, 10,000 scans and 550 recorded
 channels per sample recovers 7,864 of 7,917 true
 occurrences (F1 0.988), with a measured peak private memory of
-22.78 GiB. The linked tutorial gives the complete
-timing boundaries, recovery results and reproducible code.
+22.78 GiB and total wall time **2534.14 s (42.24 min)**, including
+**1530.20 s (25.50 min)** of alignment and simultaneous refinement.
+The linked tutorial compares this run with the small-scale benchmark below
+and gives the distinct settings, timing boundaries and reproduction code.
 
 As an example, we provide a simulated
-[16-sample GC/MS benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
+[small-scale 16-sample GC/MS benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769
 true sample–compound occurrences include absent compounds,
 concentration-dependent broadening, retention drift, a shark-fin-shaped acid,
@@ -337,6 +339,12 @@ report.
 | Robust adjusted log-area R² | 0.9992 |
 | Median spectral cosine | 0.999983 |
 | Mean within-spectrum ion-support F1 | 0.972 |
+
+This small fit took **146.50 s (2.44 min)**, including **22.87 s** for
+alignment and simultaneous refinement, with an explicit three-cycle coupled
+budget. The separate large-scale benchmark above uses 35 cycles. The
+[two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales)
+gives the differing PSF settings and short reproduction recipes.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
@@ -360,8 +368,10 @@ Spectral sparsity: mean within-spectrum ion-support F1 0.972 under the shared
 
 [![Inferred and true regular and acid-shaped profiles across the simultaneous fit](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)
 
-Representative sample-specific profiles: solid inferred curves and dashed
-ground truth for a regular component and the acid-shaped component.
+Small-scale 16-sample benchmark (100 reference compounds, 1,200 scans): the
+same profiles as the GCMSprime software comparison. The regular compound occurs
+in 11 samples and the acid in seven. All 16 samples are drawn; absent true
+profiles lie at zero. Solid: inferred; dashed: truth; colours rank all 16 true areas.
 
 The [simultaneous-NMF tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
 explains shared spectra, sample-specific profiles, missing compounds and the
