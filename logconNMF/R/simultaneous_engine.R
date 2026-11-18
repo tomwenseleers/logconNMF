@@ -17,7 +17,8 @@ sinmf_checkpoint <- function(state,s,f,tag) {
   state
 }
 sinmf_profile_pass <- function(state,samples=seq_along(state$paths),roots=NULL,steps=4L,q=32L) {
-  sinmf_parallel_pass(state,samples,"profile",roots,steps=steps,q=q)
+  operation <- if(anyDuplicated(state$map)) "shared_profile" else "profile"
+  sinmf_parallel_pass(state,samples,operation,roots,steps=steps,q=q)
 }
 
 sinmf_spectrum_pass <- function(state,samples=seq_along(state$paths),roots=NULL) {

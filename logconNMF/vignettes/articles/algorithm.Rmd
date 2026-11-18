@@ -1230,12 +1230,19 @@ The map is learned once from summed time-bin counts or supplied as a saved
 The fitting grids, bin exposures and sparse PSF matrices $X_s$ remain sample
 specific.
 
-For Poisson and common-scale quasipoisson observations with shared scan
-weights, channel sums provide inexpensive profile proposals. Each proposal is
-checked on all original channels in its affected time window. Other families
-retain their original-channel profile objective. Spectral, background and
+Before matching, Poisson and common-scale quasipoisson observations with shared
+scan weights use channel sums for profile proposals and all original channels
+for acceptance. Once spectra are shared, every family uses the native kernel of
+`fitLogConcaveProfile()` on the original observations. For the focal component,
+the background and overlapping neighbours form a fixed offset. A weighted
+projection of the log rate onto the cone of nonincreasing slopes gives a
+scoring direction on the aligned scan grid. A line search checks the resulting
+mean against the family's original-scale likelihood. The local window extends
+two nominal narrow-peak FWHMs past each end of the initial support and stays
+fixed across sweeps. Channels with zero focal loading contribute a constant
+to this conditional objective and can be skipped. Spectral, background and
 likelihood passes read at most 32 original channels per block through a native
-binary-matrix reader. Thus aggregation accelerates the proposal and matching
+binary-matrix reader. Thus aggregation accelerates the initial proposal and matching
 steps while the target criterion continues to use the original observations.
 
 The execution order is:

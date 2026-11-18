@@ -33,7 +33,11 @@
 #' @param control Named controls. See [splogconNMF()] for one matrix. For a
 #'   simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
 #'   `rounds=3L` sets the number of grouping rounds, and `q=64L` sets the
-#'   local profile update resolution. The default `rt_tolerance=NULL` and
+#'   initial profile update resolution. After a cross-sample match, each
+#'   local profile is refined on all original channels using the hard shape
+#'   constraint of [fitLogConcaveProfile()]. Its window extends two local
+#'   PSF full widths at half maximum on either side of the initial support.
+#'   The default `rt_tolerance=NULL` and
 #'   `alignment_window=NULL` derive matching windows from the narrow-peak
 #'   widths. `ridge=TRUE` checks the profile ridge across samples. The
 #'   remaining defaults are `censor=0.5`, `correlation="none"`,

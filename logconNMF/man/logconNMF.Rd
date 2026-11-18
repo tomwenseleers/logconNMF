@@ -110,7 +110,11 @@ between sample workers and their native threads, with one BLAS thread per worker
 \item{control}{Named controls. See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. For a
 simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
 \code{rounds=3L} sets the number of grouping rounds, and \code{q=64L} sets the
-local profile update resolution. The default \code{rt_tolerance=NULL} and
+initial profile update resolution. After a cross-sample match, each
+local profile is refined on all original channels using the hard shape
+constraint of \code{\link[=fitLogConcaveProfile]{fitLogConcaveProfile()}}. Its window extends two local
+PSF full widths at half maximum on either side of the initial support.
+The default \code{rt_tolerance=NULL} and
 \code{alignment_window=NULL} derive matching windows from the narrow-peak
 widths. \code{ridge=TRUE} checks the profile ridge across samples. The
 remaining defaults are \code{censor=0.5}, \code{correlation="none"},

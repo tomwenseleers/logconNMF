@@ -17,6 +17,10 @@ slcn_log_profile <- function(y, mean, profile, spectrum, family, phi, theta, wei
     .Call(`_logconNMF_slcn_log_profile`, y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, q, nthreads, apex_lo, apex_hi, mode, time, exposure)
 }
 
+slcn_fit_profile <- function(y, channels, first, offset, weights, start, spectrum, time, exposure, family, phi, theta, censor, maxit, nthreads, require_improvement = FALSE) {
+    .Call(`_logconNMF_slcn_fit_profile`, y, channels, first, offset, weights, start, spectrum, time, exposure, family, phi, theta, censor, maxit, nthreads, require_improvement)
+}
+
 logconc_quadratic_cpp <- function(target, weights, smooth = 0, maxit = 2000L, tol = 1e-8) {
     .Call(`_logconNMF_logconc_quadratic_cpp`, target, weights, smooth, maxit, tol)
 }

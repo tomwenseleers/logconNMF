@@ -93,6 +93,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// slcn_fit_profile
+Rcpp::NumericVector slcn_fit_profile(Rcpp::NumericMatrix y, Rcpp::IntegerVector channels, int first, Rcpp::NumericVector offset, Rcpp::NumericVector weights, Rcpp::NumericVector start, Rcpp::NumericVector spectrum, Rcpp::NumericVector time, Rcpp::NumericVector exposure, int family, Rcpp::NumericVector phi, Rcpp::NumericVector theta, double censor, int maxit, int nthreads, bool require_improvement);
+RcppExport SEXP _logconNMF_slcn_fit_profile(SEXP ySEXP, SEXP channelsSEXP, SEXP firstSEXP, SEXP offsetSEXP, SEXP weightsSEXP, SEXP startSEXP, SEXP spectrumSEXP, SEXP timeSEXP, SEXP exposureSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP censorSEXP, SEXP maxitSEXP, SEXP nthreadsSEXP, SEXP require_improvementSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type channels(channelsSEXP);
+    Rcpp::traits::input_parameter< int >::type first(firstSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type weights(weightsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type start(startSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type spectrum(spectrumSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type exposure(exposureSEXP);
+    Rcpp::traits::input_parameter< int >::type family(familySEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< double >::type censor(censorSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    Rcpp::traits::input_parameter< bool >::type require_improvement(require_improvementSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_fit_profile(y, channels, first, offset, weights, start, spectrum, time, exposure, family, phi, theta, censor, maxit, nthreads, require_improvement));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logconc_quadratic_cpp
 List logconc_quadratic_cpp(NumericVector target, NumericVector weights, double smooth, int maxit, double tol);
 RcppExport SEXP _logconNMF_logconc_quadratic_cpp(SEXP targetSEXP, SEXP weightsSEXP, SEXP smoothSEXP, SEXP maxitSEXP, SEXP tolSEXP) {
@@ -435,6 +461,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_nuisance_poisson_checked_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_checked_cpp, 8},
     {"_logconNMF_nuisance_gaussian_cpp", (DL_FUNC) &_logconNMF_nuisance_gaussian_cpp, 7},
     {"_logconNMF_slcn_log_profile", (DL_FUNC) &_logconNMF_slcn_log_profile, 19},
+    {"_logconNMF_slcn_fit_profile", (DL_FUNC) &_logconNMF_slcn_fit_profile, 16},
     {"_logconNMF_logconc_quadratic_cpp", (DL_FUNC) &_logconNMF_logconc_quadratic_cpp, 5},
     {"_logconNMF_logconc_profile_cpp", (DL_FUNC) &_logconNMF_logconc_profile_cpp, 14},
     {"_logconNMF_slcn_read_block", (DL_FUNC) &_logconNMF_slcn_read_block, 4},

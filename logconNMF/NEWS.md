@@ -40,6 +40,11 @@
 
 ## Simultaneous multisample models
 
+* `fitLogConcaveProfile()` estimates a rate profile for a fixed spectrum,
+  background and exposure under any of the seven identity-link noise models.
+  After cross-sample matching, coupled fits use this update on the original
+  channels and evaluate shared spectra with the joint information criterion.
+
 * `logconNMF()` with a sample list shares spectra across samples with sample-specific profiles,
   areas and backgrounds, allowing compounds to be absent from individual samples.
 * Monotone alignment, area-ordered profile compatibility and exposure-aware

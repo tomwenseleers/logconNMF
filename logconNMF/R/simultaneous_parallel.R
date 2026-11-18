@@ -66,6 +66,8 @@ sinmf_sample_operation <- function(task) {
   f$ncores<-as.integer(task$threads);f$gid<-seq_along(gid)
   meta<-readRDS(file.path(task$directory,"metadata.rds"))
   tiny<-list(map=seq_along(gid),P=task$P,scale=task$scale)
+  if(task$operation=="shared_profile")
+    return(sinmf_shared_profile(task,f,meta,old_threads,gid))
   if(task$operation%in%c("score","gradient","background"))
     return(sinmf_stream_operation(task,f,meta,tiny,old_threads,gid))
   if(task$operation=="profile"&&!is.null(task$aggregate))

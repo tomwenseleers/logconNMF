@@ -70,7 +70,7 @@ reference:
   - title: Sparse and simultaneous factorization
     contents: [logconNMF, splogconNMF, channelGroups, aggregateChannels]
   - title: Noise calibration and profile constraints
-    contents: [estimateSignalNoise, logConcSmooth]
+    contents: [estimateSignalNoise, fitLogConcaveProfile, logConcSmooth]
   - title: Simulations and experimental data
     contents: [simulateGCMS, simulateGCMSSamples, gcmsData1, gcmsData2]
   - title: Shared tools and package overview

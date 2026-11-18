@@ -1,0 +1,10 @@
+set.seed(42)
+time <- cumsum(runif(70, 0.8, 1.2))
+exposure <- rep(c(0.8, 1.2), 35)
+spectrum <- c(0.6, 0.3, 0.1)
+rate <- 100 * exp(-abs(time - 30) / ifelse(time < 30, 3, 7))
+mu <- 4 + (exposure * rate) %o% spectrum
+y <- matrix(rpois(length(mu), mu), nrow(mu))
+h <- fitLogConcaveProfile(y, spectrum, offset = 4, time = time, exposure = exposure)
+plot(time, rate, type = "l", xlab = "Time", ylab = "Total-ion rate")
+lines(time, h, col = "steelblue")
