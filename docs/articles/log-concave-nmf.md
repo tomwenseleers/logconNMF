@@ -110,10 +110,15 @@ smooth background:
 data(gcmsData2)
 Y2 <- gcmsData2
 t2 <- as.numeric(rownames(Y2))
-X2 <- convMatrix(convKernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
-B2 <- splines::bs(t2, df=4L, intercept=TRUE)
+psf2 <- estimatePSF(Y2, family=quasipoisson("identity"), time=t2,
+  standard=NULL, nwindows=1L, precluster=1L, ncores=8L,
+  control=list(kernel_est=convKernel("gaussian", 65L, list(sigma=6)),
+    maxiter=0L))
+X2 <- psf2$X
+B2 <- splines::bs(t2, df=6L, intercept=TRUE)
 fit2 <- logconNMF(Y2, X=X2, background=B2,
-  family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L)
+  family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L,
+  control=list(initial_relaxed=TRUE, fusion_passes=0L))
 fit2$rank
 fit2$contained_fusion$broad
 ```
@@ -130,8 +135,8 @@ PSF dictionary and background basis is outside the timing.
 
 | Window             | Scans | Channels | Components | Quasi-GIC | Seconds |
 |:-------------------|------:|---------:|-----------:|----------:|--------:|
-| Hydrocarbon window |   119 |      670 |          6 |   247,888 |    7.96 |
-| Beer volatiles     | 1,764 |      518 |         38 | 1,467,426 |   67.00 |
+| Hydrocarbon window |   119 |      670 |          6 |   247,218 |    1.61 |
+| Beer volatiles     | 1,764 |      518 |         36 | 1,466,362 |   32.12 |
 
 The [GCMSprime
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)

@@ -167,7 +167,34 @@ chromatographic model.** Its main design choices are:
 The same formulation applies to other ordered multichannel signals with
 nonnegative, single-peaked components.
 
-### Installation
+### Rank-selection objective
+
+The single- and multisample algorithms approximately minimize the same
+original-channel, shape-constrained penalized likelihood:
+
+```math
+\mathcal J=-2\sum_s\ell_{\nu_s}(M_s;Y_s)
++\kappa\lambda_{\mathrm{IC}}\{(m-1)G+L+d_\nu\}.
+```
+
+Here $`m`$ is the original channel count, $`G`$ counts shared
+unit-sum spectra, and $`L`$ counts detected sample-component occurrences.
+Each shared spectrum contributes $`m-1`$ spectral coordinates and each
+occurrence contributes one amplitude. For a single sample,
+$`G=L=K`$ gives the same $`mK`$ compound charge. Estimated
+noise parameters contribute $`d_\nu`$; this count is constant during
+rank comparisons. Profile complexity and smooth background coefficients
+receive no separate rank penalty.
+
+The likelihood follows the chosen noise family; quasi-Poisson uses its
+dispersion-scaled Poisson kernel. `lambda="gic"` supplies the default
+information-criterion weight, and $`\kappa`$ is the optional temporal
+information adjustment. Completed rank and fusion candidates are checked
+against the criterion on the original channels. This is an approximate search, rather
+than a guarantee of the global optimum. The [mathematical description](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#common-rank-objective)
+specifies the noise models, penalty units and acceptance rules.
+
+## Installation
 
 ```r
 install.packages("remotes")
@@ -277,14 +304,14 @@ blockwise, disk-backed refinement keep memory and computation manageable as
 the experiment grows. With `ncores=NULL`, sample lists use the available logical
 cores; one matrix uses physical cores. The common observation cache for 16
 samples with 10,000 scans and 32 groups occupies 40.96 MB. Active-worker
-buffers, matching structures and sparse PSFs require additional memory; original channels are
-streamed during coupled refinement, with a bounded read buffer up to 64 MiB
-per active worker. See the
+buffers, matching structures and sparse PSFs require additional memory.
+Coupled count-model workers can retain one original matrix up to 64 MiB plus
+an equally sized likelihood-normalizer cache; larger samples use local reads. See the
 [multisample tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
 for measured full-size resource use. A full-size validation with 16 samples, 10,000 scans and 550 recorded
 channels per sample recovers 7,864 of 7,917 true
 occurrences (F1 0.988), with a measured peak private memory of
-22.86 GiB. The linked tutorial gives the complete
+22.78 GiB. The linked tutorial gives the complete
 timing boundaries, recovery results and reproducible code.
 
 As an example, we provide a simulated

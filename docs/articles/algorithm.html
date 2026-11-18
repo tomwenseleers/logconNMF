@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -958,7 +958,7 @@ variance-matched Poisson working weights</p>
 w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 </span></p>
-<p>It fits grouped nonnegative <code>l0glmFit()</code> on the PSF design
+<p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> on the PSF design
 with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
 original-channel polish use <span class="math display">
 J_0=-2\ell_\nu+m\lambda_{\rm IC}K.
@@ -1488,11 +1488,35 @@ bracketing zero grid points: all omitted trapezoidal contributions are
 exactly zero. These changes reduce repeated file reads and work on
 unrelated time points without changing spectral distances, compatibility
 thresholds or original-channel acceptance criteria.</p>
-<p>Each aggregate profile pass can additionally buffer one original
-chromatogram up to 64 MiB per active worker. This replaces repeated
-strided file reads with identical matrix slices; it does not cache the
-whole experiment. Larger samples retain local strided reads. At 16
-workers these live buffers add at most 1 GiB.</p>
+<p>Eligible Poisson/quasipoisson workers retain at most one original
+matrix of 64 MiB plus an equally sized matrix of <span class="math inline">\log\Gamma(y+1)</span> normalizers. The cache
+belongs to the active runtime, is replaced when the assigned sample
+changes, and is released on success or error. Larger samples retain
+local strided reads. Sixteen workers therefore add at most 2 GiB of
+persistent original-data buffers, independent of the total batch size.
+<code>control=list(cache=FALSE)</code> disables persistent input caches.
+Reuse depends on sample affinity; a one-entry cache may be replaced
+between passes when there are more samples than workers.</p>
+<p>For a count observation the working negative log-likelihood is <span class="math display">
+L(y,\mu)=\{\mu-y\log\mu+\log\Gamma(y+1)\}/\phi,
+</span> with <span class="math inline">\phi=1</span> for Poisson noise.
+Gradients and Fisher information use <span class="math inline">(1-y/\mu)/\phi</span> and <span class="math inline">1/(\phi\mu)</span>, without evaluating the data-only
+normalizer. Absolute likelihoods retain that constant through the cache;
+local likelihood differences use the same stable difference kernel. A
+spectrum gradient pass also supplies the baseline likelihood for its
+acceptance check. Scaled spectra are reused within each local profile
+pass. These execution details leave the original-channel objective and
+acceptance thresholds intact.</p>
+<p>Within coupled refinement, conditional Poisson backgrounds first
+check the existing scaled KKT residual. Initialization and standalone
+conditional refits retain their original Newton-update sequence. For
+fixed peak means the background Hessian is <span class="math inline">B^\mathsf{T}\operatorname{diag}(v_i
+y_i/\mu_i^2)B\succeq0</span>, where <span class="math inline">v_i</span>
+includes observation weights and inverse dispersion. A stationary
+nonnegative start therefore needs no further Newton solve. Nonstationary
+starts retain the same constrained updates and convergence tolerance.
+Noise-update passes are omitted when no sample has an iteratively
+estimated NB2 shape.</p>
 <p>The resident observation cache uses <span class="math inline">8q\sum_s n_s</span> bytes. For 1,000 samples with
 10,000 scans and 32 groups, this is 2.56 GB, plus factors and
 active-worker buffers. Original observations and factor checkpoints are

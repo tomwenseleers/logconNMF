@@ -142,7 +142,7 @@ sinmf_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
       proposals<-sinmf_refresh_proposals(state,method,occ,matching,proposals,c(p$a,p$b),groups,center)
     } else assign(key,TRUE,rejected)
   }
-  state$grouping_cache_bytes<-sum(vapply(geometry,object.size,0))
+  state$grouping_cache_bytes<-sum(vapply(geometry,utils::object.size,0))
   state$batch_grouping<-if(length(audit))do.call(rbind,audit)else data.frame()
   after<-sinmf_score(state)
   state$history<-rbind(state$history,data.frame(stage="algebraic_grouping",cycle=0L,

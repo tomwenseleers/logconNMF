@@ -255,7 +255,7 @@ system.time(fit.mc <- l0glmFit(
   ncores = round(parallel::detectCores(logical = FALSE))
 ))
 #>    user  system elapsed
-#>   24.60    0.17    3.18
+#>   26.06    0.24    3.45
 
 plotMat(gcmsData1, 
         xlab = "Elution time (min)",

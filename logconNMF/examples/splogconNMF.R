@@ -57,10 +57,11 @@ psf2 <- estimatePSF(Y, family = quasipoisson("identity"),
   control = list(kernel_est = convKernel("gaussian", 65L,
     list(sigma = 6)), maxiter = 0L))
 X <- psf2$X
-B <- splines::bs(time, df = 4L, intercept = TRUE)
+B <- splines::bs(time, df = 6L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
-  correlation = "auto", ncores = 8L)
+  correlation = "auto", ncores = 8L,
+  control = list(initial_relaxed = TRUE, fusion_passes = 0L))
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
 plotMat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")

@@ -1,6 +1,6 @@
 # Changelog
 
-## logconNMF 0.1.0.9000
+## logconNMF 0.1.0.9002
 
 - Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass
   axes are checked against the source data.
@@ -68,8 +68,9 @@
 
 - A total logical-core budget schedules independent fits and
   simultaneous sample updates concurrently, with deterministic spectral
-  reductions and restored BLAS settings. Native block reads retain
-  bounded original-channel buffers.
+  reductions and restored BLAS settings. Automatic sample-list budgets
+  use logical cores, while single samples use physical cores. Native
+  block reads retain bounded original-channel buffers.
 
 - Common saved channel maps, a compact aggregate cache and full-channel
   acceptance checks support reusable, memory-efficient multisample
@@ -77,6 +78,24 @@
 
 - Incremental fusion candidates retain the same greedy order while
   refreshing only edges affected by a merge.
+
+- Coupled refinement reuses baseline likelihoods, local scaled spectra
+  and derivative-only kernels. Eligible count workers retain one
+  original matrix up to 64 MiB plus its likelihood normalizers; larger
+  samples stream blocks. Runtime-scoped caches are released on success
+  or error, and `cache=FALSE` disables persistent input buffers.
+  Absolute scores keep all likelihood constants, and original-channel
+  acceptance checks are retained.
+
+- Coupled background updates recognize starts satisfying the existing
+  KKT tolerance; initialization retains its original Newton-update
+  sequence; unchanged noise parameters avoid redundant passes. Iteration
+  budgets, grouping rules and the statistical objective are unchanged.
+
+- Algebraic grouping caches sparse profiles without observations,
+  updates only changed root centers, and restricts ridge integrals to
+  their nonzero local supports while preserving complete-grid scores and
+  greedy decisions.
 
 ### Simulation and interpretation
 

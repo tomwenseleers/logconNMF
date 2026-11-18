@@ -1275,16 +1275,64 @@ The execution order is:
     objective and return full spectra, original-grid profiles and
     integrated areas.
 
-`ncores` is a total logical-CPU budget. With W concurrent sample
+`ncores` is a total logical-CPU budget; its automatic value for a sample
+list is the detected logical core count. With W concurrent sample
 workers, each receives \lfloor\texttt{ncores}/W\rfloor native threads.
 BLAS runs with one thread during batch fitting and its caller setting is
 restored afterwards. Only the assigned sample and compact factors are
 sent to each worker; the complete observation cache is never serialized
 to every worker.
 
+During algebraic grouping, sparse profiles and aligned time vectors are
+read once per sample into a transient geometry cache; this cache
+contains no observations. Only merged roots need their occurrence groups
+and area-weighted anchor centers updated. Rejected edges are skipped
+when removed from the ordered queue, preserving the same greedy merge
+order. Ridge integrals use the lower-area profile’s support and
+bracketing zero grid points: all omitted trapezoidal contributions are
+exactly zero. These changes reduce repeated file reads and work on
+unrelated time points without changing spectral distances, compatibility
+thresholds or original-channel acceptance criteria.
+
+Eligible Poisson/quasipoisson workers retain at most one original matrix
+of 64 MiB plus an equally sized matrix of \log\Gamma(y+1) normalizers.
+The cache belongs to the active runtime, is replaced when the assigned
+sample changes, and is released on success or error. Larger samples
+retain local strided reads. Sixteen workers therefore add at most 2 GiB
+of persistent original-data buffers, independent of the total batch
+size. `control=list(cache=FALSE)` disables persistent input caches.
+Reuse depends on sample affinity; a one-entry cache may be replaced
+between passes when there are more samples than workers.
+
+For a count observation the working negative log-likelihood is
+L(y,\mu)=\\\mu-y\log\mu+\log\Gamma(y+1)\\/\phi, with \phi=1 for Poisson
+noise. Gradients and Fisher information use (1-y/\mu)/\phi and
+1/(\phi\mu), without evaluating the data-only normalizer. Absolute
+likelihoods retain that constant through the cache; local likelihood
+differences use the same stable difference kernel. A spectrum gradient
+pass also supplies the baseline likelihood for its acceptance check.
+Scaled spectra are reused within each local profile pass. These
+execution details leave the original-channel objective and acceptance
+thresholds intact.
+
+Within coupled refinement, conditional Poisson backgrounds first check
+the existing scaled KKT residual. Initialization and standalone
+conditional refits retain their original Newton-update sequence. For
+fixed peak means the background Hessian is
+B^\mathsf{T}\operatorname{diag}(v_i y_i/\mu_i^2)B\succeq0, where v_i
+includes observation weights and inverse dispersion. A stationary
+nonnegative start therefore needs no further Newton solve. Nonstationary
+starts retain the same constrained updates and convergence tolerance.
+Noise-update passes are omitted when no sample has an iteratively
+estimated NB2 shape.
+
 The resident observation cache uses 8q\sum_s n_s bytes. For 1,000
 samples with 10,000 scans and 32 groups, this is 2.56 GB, plus factors
 and active-worker buffers. Original observations and factor checkpoints
 are disk backed. Sparse sample-specific PSFs are modest in size: a
-measured 14,946-by-14,946 design with 1.47 million stored nonzero values
-occupied 16.9 MiB.
+measured 14,946-by-14,946 design with 1,464,433 stored nonzero values
+occupied 16.82 MiB. Sparse PSF workspace checks count unique structural
+Gram entries and symbolic Cholesky fill; repeated overlaps are not
+counted as distinct entries. Unpenalized spline columns are separated
+before the Woodbury workspace check. The memory budget still applies to
+designs with genuinely large Gram matrices or factor fill.

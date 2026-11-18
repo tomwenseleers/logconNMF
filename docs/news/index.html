@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,10 +40,10 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0.9000" id="logconnmf-0109000">logconNMF 0.1.0.9000<a class="anchor" aria-label="anchor" href="#logconnmf-0109000"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.1.0.9002" id="logconnmf-0109002">logconNMF 0.1.0.9002<a class="anchor" aria-label="anchor" href="#logconnmf-0109002"></a></h2>
 <ul><li>Bundled <code>gcmsData1</code> channels use nominal m/z 30:699; experimental mass axes are checked against the source data.</li>
 </ul><div class="section level3">
-<h3 id="psf-estimation-and-deconvolution-0-1-0-9000">PSF estimation and deconvolution<a class="anchor" aria-label="anchor" href="#psf-estimation-and-deconvolution-0-1-0-9000"></a></h3>
+<h3 id="psf-estimation-and-deconvolution-0-1-0-9002">PSF estimation and deconvolution<a class="anchor" aria-label="anchor" href="#psf-estimation-and-deconvolution-0-1-0-9002"></a></h3>
 <ul><li>
 <code><a href="../reference/convKernel.html">convKernel()</a></code>, <code><a href="../reference/convKernel.html">shiftKernel()</a></code> and <code><a href="../reference/convMatrix.html">convMatrix()</a></code> construct PSFs and convolution designs, including asymmetric bigaussian and EMG responses.</li>
 <li>
@@ -51,7 +51,7 @@
 <li>Alternating spike-train and kernel estimation supports single or multiple channels, smooth backgrounds and information-criterion checkpoints.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="sparse-log-concave-matrix-factorization-0-1-0-9000">Sparse log-concave matrix factorization<a class="anchor" aria-label="anchor" href="#sparse-log-concave-matrix-factorization-0-1-0-9000"></a></h3>
+<h3 id="sparse-log-concave-matrix-factorization-0-1-0-9002">Sparse log-concave matrix factorization<a class="anchor" aria-label="anchor" href="#sparse-log-concave-matrix-factorization-0-1-0-9002"></a></h3>
 <ul><li>
 <code><a href="../reference/logconNMF.html">logconNMF()</a></code> estimates nonnegative profiles and loadings with hard log-concavity constraints and automatic best rank tuning.</li>
 <li>Local profile, spectrum and background updates, algebraic candidate fusion, conditional deletion and residual additions use original-channel criteria.</li>
@@ -64,18 +64,19 @@
 <li>Nested stage timing avoids forced garbage collection between local fits; ordinary R memory management remains active.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="simultaneous-multisample-models-0-1-0-9000">Simultaneous multisample models<a class="anchor" aria-label="anchor" href="#simultaneous-multisample-models-0-1-0-9000"></a></h3>
+<h3 id="simultaneous-multisample-models-0-1-0-9002">Simultaneous multisample models<a class="anchor" aria-label="anchor" href="#simultaneous-multisample-models-0-1-0-9002"></a></h3>
 <ul><li><p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> with a sample list shares spectra across samples with sample-specific profiles, areas and backgrounds, allowing compounds to be absent from individual samples.</p></li>
 <li><p>Monotone alignment, area-ordered profile compatibility and exposure-aware likelihoods retain each sample’s original irregular scan grid.</p></li>
 <li><p>Disk-backed observations, batched native spectral scores, shared row inputs, sparse profiles and OpenMP support efficient fitting.</p></li>
 <li><p>A total logical-core budget schedules independent fits and simultaneous sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Automatic sample-list budgets use logical cores, while single samples use physical cores. Native block reads retain bounded original-channel buffers.</p></li>
 <li><p>Common saved channel maps, a compact aggregate cache and full-channel acceptance checks support reusable, memory-efficient multisample analyses.</p></li>
 <li><p>Incremental fusion candidates retain the same greedy order while refreshing only edges affected by a merge.</p></li>
-<li><p>Original-channel profile checks reuse a per-worker buffer up to 64 MiB; larger chromatograms retain bounded strided reads. This changes data access while retaining every original-channel acceptance check.</p></li>
+<li><p>Coupled refinement reuses baseline likelihoods, local scaled spectra and derivative-only kernels. Eligible count workers retain one original matrix up to 64 MiB plus its likelihood normalizers; larger samples stream blocks. Runtime-scoped caches are released on success or error, and <code>cache=FALSE</code> disables persistent input buffers. Absolute scores keep all likelihood constants, and original-channel acceptance checks are retained.</p></li>
+<li><p>Coupled background updates recognize starts satisfying the existing KKT tolerance; initialization retains its original Newton-update sequence; unchanged noise parameters avoid redundant passes. Iteration budgets, grouping rules and the statistical objective are unchanged.</p></li>
 <li><p>Algebraic grouping caches sparse profiles without observations, updates only changed root centers, and restricts ridge integrals to their nonzero local supports while preserving complete-grid scores and greedy decisions.</p></li>
 </ul></div>
 <div class="section level3">
-<h3 id="simulation-and-interpretation-0-1-0-9000">Simulation and interpretation<a class="anchor" aria-label="anchor" href="#simulation-and-interpretation-0-1-0-9000"></a></h3>
+<h3 id="simulation-and-interpretation-0-1-0-9002">Simulation and interpretation<a class="anchor" aria-label="anchor" href="#simulation-and-interpretation-0-1-0-9002"></a></h3>
 <ul><li>Single- and multisample simulations include drifting retention times, concentration-dependent width/tailing, broad profiles and missing compounds.</li>
 <li>Optional retention-index calibration places reference spectra along the chromatogram. Concentration-dependent broadening preserves leading edges, and each sample records its generating retention-time–RI map.</li>
 <li>Simulation baselines can be supplied as common levels, channel-specific intensities or smooth reference matrices on the original intensity scale.</li>

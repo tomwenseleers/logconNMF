@@ -511,12 +511,12 @@ fit <- splogconNMF(X, Y, background = B, family = poisson("identity"),
   precluster = 4L, correlation = "none", ncores = 2L)
 fit
 #> Sparse log-concave NMF (poisson)
-#> 5 compounds; 8 channels; 0.36 s
+#> 5 compounds; 8 channels; 0.48 s
 #> dispersion = 1; theta = 1; lag-one correlation = 0
 #> GIC = 15438.9384
 c(compounds = fit$rank, GIC = GIC(fit), seconds = fit$seconds[["total"]])
 #> compounds       GIC   seconds
-#>      5.00  15438.94      0.36
+#>      5.00  15438.94      0.48
 # Broad profiles with nearly identical shapes can share complementary ion sets.
 # A conservative fusion pass runs on all original channels after preclustering.
 fit$contained_fusion
@@ -585,10 +585,11 @@ psf2 <- estimatePSF(Y, family = quasipoisson("identity"),
   control = list(kernel_est = convKernel("gaussian", 65L,
     list(sigma = 6)), maxiter = 0L))
 X <- psf2$X
-B <- splines::bs(time, df = 4L, intercept = TRUE)
+B <- splines::bs(time, df = 6L, intercept = TRUE)
 f2 <- splogconNMF(X, Y, background = B,
   family = quasipoisson("identity"), precluster = 32L,
-  correlation = "auto", ncores = 8L)
+  correlation = "auto", ncores = 8L,
+  control = list(initial_relaxed = TRUE, fusion_passes = 0L))
 c(compounds = f2$rank, GIC = GIC(f2), seconds = f2$seconds[["total"]])
 plotMat(fitted(f2), xlab = "Retention time (min)", ylab = "Mass (m/z)",
   main = "Fitted GC/MS chromatogram")

@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -199,7 +199,9 @@ remaining defaults are <code>censor=0.5</code>, <code>correlation="none"</code>,
 the independent initial fits and defaults to
 <code>list(initial_relaxed=FALSE)</code>; single-sample fits default to a relaxed
 grouped-support initialization. <code>workers</code> limits concurrent samples
-within <code>ncores</code>. The cache stores aggregated observations in memory.</p></dd>
+within <code>ncores</code>. The cache retains aggregated observations and at most
+one original count matrix up to 64 MiB plus its likelihood normalizers per
+worker. <code>cache=FALSE</code> disables persistent input caches.</p></dd>
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
@@ -339,8 +341,11 @@ NB2 <code>theta</code> allows bounded, likelihood-improving shape updates.</p>
 <p>The common channel map is learned from samples aggregated on common time
 bins. The fitter retains only the aggregated observations in its shared
 cache. Spectral, background and score passes stream original-channel blocks.
-Compatible Poisson/quasipoisson profile passes may additionally buffer one
-original sample up to 64 MiB per active worker; larger samples use local reads.
+Poisson/quasipoisson workers may additionally retain one original sample
+up to 64 MiB and an equally sized log-factorial cache. Larger samples use
+local reads. These bounded caches are released with the runtime, including
+error exits; they do not grow with the number of samples. Absolute likelihoods
+retain their normalizers and local acceptance checks retain all original ions.
 Other profile passes load one assigned sample per active worker.
 Keep the store with the saved fitted object for reconstruction and plots.</p>
     </div>

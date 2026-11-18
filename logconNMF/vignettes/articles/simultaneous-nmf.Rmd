@@ -97,7 +97,7 @@ The generating quasi-Poisson dispersion is 783.18; the fitted median is 829.55.
 The [GCMSprime CDF workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
 built on logconNMF, recovers **750 true occurrences with 142 false positives**
 (peak F1 **0.903**), including the acid in all seven samples where it occurs.
-It takes **149.31 s** with 16 single-threaded workers on an HP ZBook Fury G8
+It takes **146.50 s** with 16 single-threaded workers on an HP ZBook Fury G8
 with an Intel Core i9-11950H, eight physical cores and 16 logical threads.
 The common 32-group map accelerates initialization; final spectra retain all
 258 original channels.
@@ -150,21 +150,20 @@ seven-workflow comparison above.
 
 | Workflow stage | Seconds |
 |:--|--:|
-| Common ion grouping | 18.72 |
-| Parallel independent fits, including sample PSFs | 928.45 |
-| Alignment, grouping and simultaneous refinement | 2059.51 |
-| Result construction and exports | 45.60 |
-| Package-reported workflow total | 3052.28 |
+| Common ion grouping | 18.94 |
+| Parallel independent fits, including sample PSFs | 933.45 |
+| Alignment, grouping and simultaneous refinement | 1530.20 |
+| Result construction and exports | 51.55 |
+| Complete workflow | 2534.14 |
 
 The workstation is an HP ZBook Fury G8 with an Intel Core i9-11950H at 2.60 GHz,
 eight physical cores, 16 logical threads and 64 GB RAM, running Windows and
-R 4.5.0. Sampled peak combined private memory is **22.86
-GiB**, and peak summed working set is **18.61 GiB**;
-at least **23.59 GiB** of physical memory remains
+R 4.5.0. Sampled peak combined private memory is **22.78
+GiB**, and peak summed working set is **18.53 GiB**;
+at least **26.07 GiB** of physical memory remains
 available. These measurements include active workers and fitting workspaces,
 not just the 40.96 MB aggregate observation cache. Mean CPU use over the complete
-run is 11.67 logical-core equivalents. The independent process-tree monitor
-records 3,054.88 s, including R startup and the final saved result.
+run is 10.83 logical-core equivalents.
 
 ![Measured process-tree memory and CPU use for sixteen full-sized chromatograms](../reference/figures/fullsize-16-resources.png)
 
@@ -234,8 +233,10 @@ areas and matching structures stay in memory. Spectral, background and score
 passes stream original-channel blocks; other-family profile passes can load
 one assigned original sample per worker. By default only the common
 aggregate observations are cached across samples, using 2.56 GB for 1,000
-samples with 10,000 scans and 32 groups. Compatible profile checks can also
-use an original-channel read buffer up to 64 MiB per active worker. Set
+samples with 10,000 scans and 32 groups. Each coupled count-model worker
+can additionally retain one original matrix up to 64 MiB plus an equally
+sized likelihood-normalizer cache. Larger samples stream blocks. The
+buffers belong to the active runtime and are released on exit. Set
 `control=list(cache=FALSE)` to
 read those data from disk. `ncores=NULL` uses the detected logical core count
 for a sample list; `control$workers` can cap concurrency. With at least 16

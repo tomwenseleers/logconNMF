@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -154,7 +154,7 @@ when the initial response shape is unknown or varies with position.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"l"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Profile"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"h"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Channel"</span>, ylab<span class="op">=</span><span class="st">"Loading"</span><span class="op">)</span></span>
 <span><span class="fu">L0glm</span><span class="fu">::</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Channel"</span><span class="op">)</span></span>
-<span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitted_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">seconds</span></span></code></pre></div>
 <div class="float">
@@ -178,10 +178,15 @@ the smooth background:</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">gcmsData2</span><span class="op">)</span></span>
 <span><span class="va">Y2</span> <span class="op">&lt;-</span> <span class="va">gcmsData2</span></span>
 <span><span class="va">t2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="fu"><a href="../reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">psf2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePSF.html">estimatePSF</a></span><span class="op">(</span><span class="va">Y2</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, time<span class="op">=</span><span class="va">t2</span>,</span>
+<span>  standard<span class="op">=</span><span class="cn">NULL</span>, nwindows<span class="op">=</span><span class="fl">1L</span>, precluster<span class="op">=</span><span class="fl">1L</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
+<span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kernel_est<span class="op">=</span><span class="fu"><a href="../reference/convKernel.html">convKernel</a></span><span class="op">(</span><span class="st">"gaussian"</span>, <span class="fl">65L</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>sigma<span class="op">=</span><span class="fl">6</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    maxiter<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="va">psf2</span><span class="op">$</span><span class="va">X</span></span>
 <span><span class="va">B2</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">t2</span>, df<span class="op">=</span><span class="fl">6L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y2</span>, X<span class="op">=</span><span class="va">X2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
-<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span><span class="op">)</span></span>
+<span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
+<span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial_relaxed<span class="op">=</span><span class="cn">TRUE</span>, fusion_passes<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">rank</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">contained_fusion</span><span class="op">$</span><span class="va">broad</span></span></code></pre></div>
 <div class="float">
@@ -207,7 +212,7 @@ PSF dictionary and background basis is outside the timing.</p>
 <td align="right">670</td>
 <td align="right">6</td>
 <td align="right">247,218</td>
-<td align="right">1.64</td>
+<td align="right">1.61</td>
 </tr>
 <tr class="even">
 <td align="left">Beer volatiles</td>
@@ -215,7 +220,7 @@ PSF dictionary and background basis is outside the timing.</p>
 <td align="right">518</td>
 <td align="right">36</td>
 <td align="right">1,466,362</td>
-<td align="right">29.47</td>
+<td align="right">32.12</td>
 </tr>
 </tbody>
 </table>
