@@ -236,6 +236,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// slcn_log_factorial
+NumericMatrix slcn_log_factorial(NumericMatrix y, int nthreads);
+RcppExport SEXP _logconNMF_slcn_log_factorial(SEXP ySEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_log_factorial(y, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // slcn_loglik
 double slcn_loglik(NumericMatrix y, NumericMatrix mu, int family, NumericVector phi, NumericVector theta, NumericVector weights, int nthreads, double censor);
 RcppExport SEXP _logconNMF_slcn_loglik(SEXP ySEXP, SEXP muSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP nthreadsSEXP, SEXP censorSEXP) {
@@ -414,6 +426,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_slcn_commit", (DL_FUNC) &_logconNMF_slcn_commit, 3},
     {"_logconNMF_slcn_mean", (DL_FUNC) &_logconNMF_slcn_mean, 1},
     {"_logconNMF_slcn_delta", (DL_FUNC) &_logconNMF_slcn_delta, 10},
+    {"_logconNMF_slcn_log_factorial", (DL_FUNC) &_logconNMF_slcn_log_factorial, 2},
     {"_logconNMF_slcn_loglik", (DL_FUNC) &_logconNMF_slcn_loglik, 8},
     {"_logconNMF_slcn_spectral", (DL_FUNC) &_logconNMF_slcn_spectral, 16},
     {"_logconNMF_slcn_profile", (DL_FUNC) &_logconNMF_slcn_profile, 14},

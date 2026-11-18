@@ -27,13 +27,14 @@ sinmf_spectrum_pass <- function(state,samples=seq_along(state$paths),roots=NULL)
   tasks<-sinmf_tasks(state,samples,"gradient",roots)
   contributions<-sinmf_apply(state$runtime,tasks,sinmf_sample_operation)
   for(i in seq_along(samples)) {
-    z<-contributions[[i]];if(is.null(z))next
+    z<-contributions[[i]];if(is.null(z)||!length(tasks[[i]]$selected))next
     f<-readRDS(state$paths[samples[i]]);ids<-state$map[f$gid]
     j<-match(ids[tasks[[i]]$selected],roots)
     gradient[j,]<-gradient[j,,drop=FALSE]+z$gradient
     information[j,]<-information[j,,drop=FALSE]+z$information
   }
-  old<-sinmf_score(state,samples,penalty=FALSE)
+  ll<-0;for(z in contributions)ll<-ll+z$loglik
+  old<- -2*ll
   floor<-pmax(apply(information,1,max)*1e-10,1e-20)
   direction<- -gradient/pmax(information,floor)
   for(half in 0:20) {
@@ -339,6 +340,8 @@ sinmf_read_matrix_file <- function(path,n,m,channels=NULL,rows=NULL) {
   if(is.null(rows)) rows<-seq_len(n)
   if(any(channels<1|channels>m)||any(rows<1|rows>n))stop("Invalid matrix slice.")
   if(!length(channels)||!length(rows))return(matrix(0,length(rows),length(channels)))
+  cached<-sinmf_cached_read(path,n,m,channels,rows)
+  if(!is.null(cached))return(cached)
   slcn_read_block(path,as.integer(n),as.integer(channels),as.integer(rows))
 }
 sinmf_sample_data <- function(store,s,channels=NULL,rows=NULL,aggregate=FALSE) {

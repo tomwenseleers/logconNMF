@@ -41,7 +41,9 @@
 #'   the independent initial fits and defaults to
 #'   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
 #'   grouped-support initialization. `workers` limits concurrent samples
-#'   within `ncores`. The cache stores aggregated observations in memory.
+#'   within `ncores`. The cache retains aggregated observations and at most
+#'   one original count matrix up to 64 MiB plus its likelihood normalizers per
+#'   worker. `cache=FALSE` disables persistent input caches.
 #' @param ncores Total core budget. `NULL` uses physical cores for one sample
 #'   and logical cores for simultaneous fits. Simultaneous fits divide the budget
 #'   between sample workers and their native threads, with one BLAS thread per worker.
@@ -135,8 +137,11 @@
 #' The common channel map is learned from samples aggregated on common time
 #' bins. The fitter retains only the aggregated observations in its shared
 #' cache. Spectral, background and score passes stream original-channel blocks.
-#' Compatible Poisson/quasipoisson profile passes may additionally buffer one
-#' original sample up to 64 MiB per active worker; larger samples use local reads.
+#' Poisson/quasipoisson workers may additionally retain one original sample
+#' up to 64 MiB and an equally sized log-factorial cache. Larger samples use
+#' local reads. These bounded caches are released with the runtime, including
+#' error exits; they do not grow with the number of samples. Absolute likelihoods
+#' retain their normalizers and local acceptance checks retain all original ions.
 #' Other profile passes load one assigned sample per active worker.
 #' Keep the store with the saved fitted object for reconstruction and plots.
 #'

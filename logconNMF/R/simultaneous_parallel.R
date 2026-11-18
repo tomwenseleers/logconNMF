@@ -5,16 +5,18 @@ sinmf_core_count <- function(ncores) {
   as.integer(ncores)
 }
 
-sinmf_runtime <- function(ncores,n,workers=NULL) {
+sinmf_runtime <- function(ncores,n,workers=NULL,cache=TRUE) {
   ncores<-sinmf_core_count(ncores)
   if(is.null(workers))workers<-min(n,ncores)
   workers<-min(n,ncores,sinmf_core_count(workers));threads<-ncores%/%workers
   env<-new.env(parent=emptyenv());env$cl<-NULL
   env$budget<-list(ncores=ncores,workers=workers,threads=threads)
+  env$cache_previous<-as.list(.sinmf_cache)
+  sinmf_cache_reset(isTRUE(cache)&&workers==1L)
   env$blas<-RhpcBLASctl::blas_get_num_procs()
   RhpcBLASctl::blas_set_num_threads(1L)
   success<-FALSE
-  on.exit(if(!success)RhpcBLASctl::blas_set_num_threads(env$blas),add=TRUE)
+  on.exit(if(!success){sinmf_cache_restore(env$cache_previous);RhpcBLASctl::blas_set_num_threads(env$blas)},add=TRUE)
   if(workers>1L) {
     keys<-c("OPENBLAS_NUM_THREADS","MKL_NUM_THREADS","OMP_NUM_THREADS","OMP_WAIT_POLICY","R_LIBS")
     old<-Sys.getenv(keys,unset=NA_character_)
@@ -23,15 +25,18 @@ sinmf_runtime <- function(ncores,n,workers=NULL) {
       R_LIBS=paste(.libPaths(),collapse=.Platform$path.sep))
     env$cl<-parallel::makePSOCKcluster(workers,rscript_args="--vanilla",useXDR=FALSE)
     ok<-FALSE;on.exit(if(!ok)parallel::stopCluster(env$cl),add=TRUE)
-    initialize<-function(paths){.libPaths(paths);loadNamespace("logconNMF");NULL}
+    initialize<-function(paths,cache) {
+      .libPaths(paths);loadNamespace("logconNMF")
+      get("sinmf_cache_reset",asNamespace("logconNMF"))(cache);NULL
+    }
     environment(initialize)<-baseenv()
-    parallel::clusterCall(env$cl,initialize,.libPaths())
+    parallel::clusterCall(env$cl,initialize,.libPaths(),isTRUE(cache))
     ok<-TRUE
   }
   success<-TRUE;env
 }
 sinmf_close_runtime <- function(runtime) {
-  on.exit(RhpcBLASctl::blas_set_num_threads(runtime$blas),add=TRUE)
+  on.exit({sinmf_cache_restore(runtime$cache_previous);RhpcBLASctl::blas_set_num_threads(runtime$blas)},add=TRUE)
   if(!is.null(runtime$cl))parallel::stopCluster(runtime$cl)
 }
 sinmf_apply <- function(runtime,tasks,fun) {
@@ -57,6 +62,7 @@ sinmf_tasks <- function(state,samples,operation,roots=NULL,...) {
 
 sinmf_sample_operation <- function(task) {
   f<-readRDS(task$path);old_threads<-f$ncores;gid<-f$gid
+  sinmf_cache_sample(f$kind)
   f$ncores<-as.integer(task$threads);f$gid<-seq_along(gid)
   meta<-readRDS(file.path(task$directory,"metadata.rds"))
   tiny<-list(map=seq_along(gid),P=task$P,scale=task$scale)
@@ -124,7 +130,7 @@ sinmf_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
     mu<-sinmf_block_mean(f,task$P,task$scale,js)
     W<-sinmf_slice_observation(f$weights,js)
     phi<-sinmf_slice_noise(f$phi,js);theta<-sinmf_slice_noise(f$theta,js)
-    if(task$operation=="score")ll<-ll+slcn_loglik(Y,mu,f$kind,phi,theta,as.numeric(W),f$ncores,f$censor)
+    if(task$operation%in%c("score","gradient"))ll<-ll+slcn_loglik(Y,mu,f$kind,phi,theta,as.numeric(W),f$ncores,f$censor)
     if(task$operation=="gradient"&&length(selected)) {
       z<-slcn_pooled_spectra(Y,mu,as(f$H[,selected,drop=FALSE],"dgCMatrix"),
         f$exposure,f$area[selected]*task$scale[selected],f$kind,phi,theta,as.numeric(W),f$ncores,f$censor)
@@ -141,13 +147,13 @@ sinmf_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
           as.numeric(W),nrow(Y),0L,4L,f$ncores,20L,1e-8,f$censor)
         z<-list(coefficients=t(z$S),background=z$mu-fixed)
       }
-      score<-function(mean)slcn_loglik(Y,mean,f$kind,phi,theta,as.numeric(W),f$ncores,f$censor)
-      # All channels of a native nuisance update improve independently.
-      if(score(fixed+z$background)>=score(mu)-1e-7)f$alpha[,js]<-z$coefficients
+      # Constants cancel, but acceptance still uses every original channel.
+      if(-.5*slcn_delta(Y,mu,fixed+z$background,f$kind,phi,theta,
+        as.numeric(W),nrow(Y),0L,f$censor)>= -1e-7)f$alpha[,js]<-z$coefficients
     }
   }
   if(task$operation=="score")return(ll)
-  if(task$operation=="gradient")return(if(length(selected))list(gradient=gradient,information=information)else NULL)
+  if(task$operation=="gradient")return(list(gradient=gradient,information=information,loglik=ll))
   f$gid<-gid;f$ncores<-old_threads
   sinmf_checkpoint_sample(f,task$directory,task$operation)
 }
@@ -168,6 +174,7 @@ sinmf_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
     aggregateChannels(f$offset,groups,meta$mass)
   mu<-as.matrix(f$H%*%(P*(f$area*task$scale)))*f$exposure+
     f$background%*%alpha*f$raw_exposure+O
+  spectra_full<-task$P*(f$area*task$scale)
   block<-task$selected
   raw_cache<-if(length(block))sinmf_original_cache(task$directory,meta$n,meta$m)else NULL
   for(k in block[order(f$area[block]*task$scale[block],decreasing=TRUE)]) {
@@ -181,12 +188,15 @@ sinmf_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
     fullY<-if(is.null(raw_cache))
       sinmf_read_matrix_file(file.path(task$directory,"observed.bin"),meta$n,meta$m,rows=at)else
       raw_cache[at,,drop=FALSE]
-    oldmu<-sinmf_block_mean(f,task$P,task$scale,seq_len(meta$m),at)
+    oldmu<-as.matrix(f$H[at,,drop=FALSE]%*%spectra_full)*f$exposure[at]+
+      f$background[at,,drop=FALSE]%*%f$alpha*f$raw_exposure[at]+
+      sinmf_observation_block(f$offset,at)
     nextmu<-oldmu+(f$exposure[at]*(hnew-h))%o%sp
-    delta<-slcn_loglik(fullY,nextmu,f$kind,f$phi,f$theta,as.numeric(W),f$ncores,f$censor)-
-      slcn_loglik(fullY,oldmu,f$kind,f$phi,f$theta,as.numeric(W),f$ncores,f$censor)
+    delta<- -.5*slcn_delta(fullY,oldmu,nextmu,f$kind,f$phi,f$theta,
+      as.numeric(W),length(at),0L,f$censor)
     if(is.finite(delta)&&delta>= -1e-7) {
       f$H[at,k]<-hnew/scale;f$area[k]<-f$area[k]*scale
+      spectra_full[k,]<-task$P[k,]*(f$area[k]*task$scale[k])
       mu[at,]<-mu[at,,drop=FALSE]+(f$exposure[at]*(hnew-h))%o%sp32
     }
   }

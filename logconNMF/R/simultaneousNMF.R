@@ -22,7 +22,7 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(dir.exists(path))stop("Use a new, empty store path.")
   dir.create(path,recursive=TRUE);path<-normalizePath(path,winslash="/",mustWork=TRUE)
   if(!is.logical(ctl$cache)||length(ctl$cache)!=1L||is.na(ctl$cache))stop("cache must be TRUE or FALSE.")
-  runtime<-sinmf_runtime(ncores,length(samples),ctl$workers)
+  runtime<-sinmf_runtime(ncores,length(samples),ctl$workers,cache=ctl$cache)
   on.exit(sinmf_close_runtime(runtime),add=TRUE)
   initial<-slcn_time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
   state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
@@ -276,7 +276,11 @@ plot.simultaneousNMF <- function(x,type=c("areas","spectra","profiles"),sample=N
 }
 
 sinmf_noise_pass <- function(state,samples) {
-  sinmf_parallel_pass(state,samples,"noise")
+  active<-vapply(samples,function(s) {
+    f<-readRDS(state$paths[s]);f$kind==3L&&isTRUE(f$spec$theta_update)
+  },TRUE)
+  if(!any(active))return(state)
+  sinmf_parallel_pass(state,samples[active],"noise")
 }
 
 #' @rdname logconNMF

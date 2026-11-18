@@ -121,16 +121,50 @@ double slcn_delta(NumericMatrix y,NumericMatrix old,NumericMatrix next_mu,int fa
   return (double)value;
 }
 
+// Immutable count-data normalizers, reusable across changes in fitted means.
+// [[Rcpp::export]]
+NumericMatrix slcn_log_factorial(NumericMatrix y,int nthreads=1) {
+  if(nthreads<1)stop("Invalid normalizer thread count.");
+  const int n=y.nrow(),m=y.ncol();NumericMatrix result(n,m);int invalid=0;
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(nthreads) reduction(|:invalid)
+#endif
+  for(int j=0;j<m;++j)for(int i=0;i<n;++i) {
+    if(!std::isfinite(y(i,j))||y(i,j)<0){invalid=1;continue;}
+    result(i,j)=R::lgammafn(y(i,j)+1);
+  }
+  if(invalid)stop("Count normalizers require finite nonnegative observations.");
+  return result;
+}
+
 // [[Rcpp::export]]
 double slcn_loglik(NumericMatrix y,NumericMatrix mu,int family,NumericVector phi,
   NumericVector theta,NumericVector weights,int nthreads=1,double censor=.5) {
+  if(mu.nrow()!=y.nrow()||mu.ncol()!=y.ncol())stop("Incompatible likelihood dimensions.");
   Parameters p(family,phi,theta,weights,y.nrow(),0,censor);NumericVector totals(y.ncol());
+  const double* normalizer=nullptr;
+  if((family==1||family==2)&&y.hasAttribute("sinmf_log_factorial")) {
+    SEXP cached=y.attr("sinmf_log_factorial");
+    if(TYPEOF(cached)!=REALSXP||!Rf_isMatrix(cached))stop("Invalid cached count normalizers.");
+    IntegerVector dims=Rf_getAttrib(cached,R_DimSymbol);
+    if(dims[0]!=y.nrow()||dims[1]!=y.ncol())stop("Invalid cached count normalizer dimensions.");
+    normalizer=REAL(cached);
+  }
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads)
 #endif
   for(int j=0;j<y.ncol();++j) {
     long double value=0;
-    for(int i=0;i<y.nrow();++i)if(p.w(i,j)>0)value-=p.w(i,j)*terms(y(i,j),mu(i,j),family,p.p(j),p.t(j),censor).loss;
+    for(int i=0;i<y.nrow();++i)if(p.w(i,j)>0) {
+      double loss;
+      if(normalizer) {
+        const double observed=y(i,j),mean=mu(i,j),scale=family==2?p.p(j):1;
+        if(!std::isfinite(mean)||mean<0)loss=R_PosInf;
+        else if(mean==0)loss=observed==0?0:R_PosInf;
+        else loss=(mean-(observed?observed*std::log(mean):0)+normalizer[(size_t)y.nrow()*j+i])/scale;
+      } else loss=terms(y(i,j),mu(i,j),family,p.p(j),p.t(j),censor).loss;
+      value-=p.w(i,j)*loss;
+    }
     totals[j]=(double)value;
   }
   long double value=0;for(double a:totals)value+=a;return (double)value;

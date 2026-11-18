@@ -1,4 +1,4 @@
-# logconNMF 0.1.0.9000
+# logconNMF 0.1.0.9001
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes
   are checked against the source data.
@@ -68,3 +68,6 @@
   extraction, likelihood and information-criterion methods.
 * Tutorials follow PSF estimation, single-sample factorization and simultaneous
   factorization; a separate mathematical article gives objectives and pseudocode.
+
+* Coupled refinement reuses likelihoods and bounded worker caches, with
+  unchanged objectives, grouping rules and original-channel checks.

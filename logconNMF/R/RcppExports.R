@@ -53,6 +53,10 @@ slcn_delta <- function(y, old, next_mu, family, phi, theta, weights, full_n, fir
     .Call(`_logconNMF_slcn_delta`, y, old, next_mu, family, phi, theta, weights, full_n, first, censor)
 }
 
+slcn_log_factorial <- function(y, nthreads = 1L) {
+    .Call(`_logconNMF_slcn_log_factorial`, y, nthreads)
+}
+
 slcn_loglik <- function(y, mu, family, phi, theta, weights, nthreads = 1L, censor = .5) {
     .Call(`_logconNMF_slcn_loglik`, y, mu, family, phi, theta, weights, nthreads, censor)
 }

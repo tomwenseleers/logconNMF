@@ -46,6 +46,15 @@ test_that("sample scheduling preserves fits for every supported noise family", {
     ctl<-list(initial_cycles=1L,cycles=1L,rounds=1L,q=12L)
     one<-simultaneousNMF(desc,family=family,path=paths[1],precluster=3L,ncores=1L,control=ctl)
     two<-simultaneousNMF(desc,family=family,path=paths[2],precluster=one$channel_groups,ncores=2L,control=ctl)
+    if(family%in%c("poisson","quasipoisson")) {
+      uncached_path<-tempfile();on.exit(unlink(uncached_path,recursive=TRUE),add=TRUE)
+      uncached<-simultaneousNMF(desc,family=family,path=uncached_path,
+        precluster=one$channel_groups,ncores=1L,control=c(ctl,list(cache=FALSE)))
+      expect_equal(uncached$P,one$P,tolerance=1e-10,info=family)
+      expect_equal(uncached$areas,one$areas,tolerance=1e-10,info=family)
+      expect_equal(GIC(uncached),GIC(one),tolerance=1e-10,info=family)
+    }
+    expect_null(get(".sinmf_cache",asNamespace("logconNMF"))$Y)
     expect_equal(two$P,one$P,tolerance=1e-10,info=family)
     expect_equal(two$areas,one$areas,tolerance=1e-10,info=family)
     expect_equal(GIC(two),GIC(one),tolerance=1e-10,info=family)

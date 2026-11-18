@@ -118,7 +118,9 @@ remaining defaults are \code{censor=0.5}, \code{correlation="none"},
 the independent initial fits and defaults to
 \code{list(initial_relaxed=FALSE)}; single-sample fits default to a relaxed
 grouped-support initialization. \code{workers} limits concurrent samples
-within \code{ncores}. The cache stores aggregated observations in memory.}
+within \code{ncores}. The cache retains aggregated observations and at most
+one original count matrix up to 64 MiB plus its likelihood normalizers per
+worker. \code{cache=FALSE} disables persistent input caches.}
 
 \item{start}{Optional list \code{H}, \code{S} and \code{alpha}, with original dimensions.
 \code{H} has scans in rows and compounds in columns; \code{S} has compounds in rows
@@ -243,8 +245,11 @@ NB2 \code{theta} allows bounded, likelihood-improving shape updates.
 The common channel map is learned from samples aggregated on common time
 bins. The fitter retains only the aggregated observations in its shared
 cache. Spectral, background and score passes stream original-channel blocks.
-Compatible Poisson/quasipoisson profile passes may additionally buffer one
-original sample up to 64 MiB per active worker; larger samples use local reads.
+Poisson/quasipoisson workers may additionally retain one original sample
+up to 64 MiB and an equally sized log-factorial cache. Larger samples use
+local reads. These bounded caches are released with the runtime, including
+error exits; they do not grow with the number of samples. Absolute likelihoods
+retain their normalizers and local acceptance checks retain all original ions.
 Other profile passes load one assigned sample per active worker.
 Keep the store with the saved fitted object for reconstruction and plots.
 }

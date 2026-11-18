@@ -5,6 +5,7 @@
 #endif
 using namespace Rcpp;
 // Pooled shared-spectrum score and Fisher information on the original scale.
+// Density normalizers are unnecessary for these derivative-only updates.
 // [[Rcpp::export]]
 List slcn_pooled_terms(NumericMatrix y,NumericMatrix mean,NumericVector design,
  int family,NumericVector phi,NumericVector theta,NumericMatrix weights,int nthreads=1,double censor=.5) {
@@ -20,7 +21,7 @@ List slcn_pooled_terms(NumericMatrix y,NumericMatrix mean,NumericVector design,
  for(int j=0;j<m;++j) {
    long double g=0,I=0;
    for(int i=0;i<n;++i)if(weights(i,weights.ncol()==1?0:j)>0&&design[i]>0) {
-     auto z=L0glmScalar::derivatives(y(i,j),std::max(1e-15,mean(i,j)),family,phi[phi.size()==1?0:j],theta[theta.size()==1?0:j],censor);
+     auto z=L0glmScalar::derivatives_only(y(i,j),std::max(1e-15,mean(i,j)),family,phi[phi.size()==1?0:j],theta[theta.size()==1?0:j],censor);
      g+=weights(i,weights.ncol()==1?0:j)*design[i]*z.gradient;
      I+=weights(i,weights.ncol()==1?0:j)*design[i]*design[i]*z.information;
    }
@@ -50,7 +51,7 @@ List slcn_pooled_spectra(NumericMatrix y,NumericMatrix mean,
    for(int i=0;i<n;++i) {
      w[i]=weights[weights.size()==1?0:i+(weights.size()==n?0:n*j)];
      if(w[i]<=0)continue;
-     const auto z=L0glmScalar::derivatives(y(i,j),std::max(1e-15,mean(i,j)),family,
+     const auto z=L0glmScalar::derivatives_only(y(i,j),std::max(1e-15,mean(i,j)),family,
        phi[phi.size()==1?0:j],theta[theta.size()==1?0:j],censor);
      g[i]=z.gradient;I[i]=z.information;
    }

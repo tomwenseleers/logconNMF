@@ -1,4 +1,4 @@
-# logconNMF 0.1.0.9000
+# logconNMF 0.1.0.9001
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes
   are checked against the source data.
@@ -55,9 +55,15 @@
   acceptance checks support reusable, memory-efficient multisample analyses.
 * Incremental fusion candidates retain the same greedy order while refreshing
   only edges affected by a merge.
-* Original-channel profile checks reuse a per-worker buffer up to 64 MiB;
-  larger chromatograms retain bounded strided reads. This changes data access
-  while retaining every original-channel acceptance check.
+* Coupled refinement reuses baseline likelihoods, local scaled spectra and
+  derivative-only kernels. Eligible count workers retain one original matrix
+  up to 64 MiB plus its likelihood normalizers; larger samples stream blocks.
+  Runtime-scoped caches are released on success or error, and `cache=FALSE`
+  disables persistent input buffers. Absolute scores keep all likelihood
+  constants, and original-channel acceptance checks are retained.
+* Background updates recognize starts satisfying the existing KKT tolerance;
+  unchanged noise parameters avoid redundant passes. Iteration budgets,
+  grouping rules and the statistical objective are unchanged.
 * Algebraic grouping caches sparse profiles without observations, updates only
   changed root centers, and restricts ridge integrals to their nonzero local
   supports while preserving complete-grid scores and greedy decisions.
