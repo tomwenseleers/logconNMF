@@ -1251,14 +1251,35 @@ The execution order is:
 7. Accept the complete candidate using the original-channel penalized objective
    and return full spectra, original-grid profiles and integrated areas.
 
-`ncores` is a total logical-CPU budget. With $W$ concurrent sample workers, each
+`ncores` is a total logical-CPU budget; its automatic value for a sample list
+is the detected logical core count. With $W$ concurrent sample workers, each
 receives $\lfloor\texttt{ncores}/W\rfloor$ native threads. BLAS runs with one
 thread during batch fitting and its caller setting is restored afterwards.
 Only the assigned sample and compact factors are sent to each worker; the
 complete observation cache is never serialized to every worker.
 
+During algebraic grouping, sparse profiles and aligned time vectors are read
+once per sample into a transient geometry cache; this cache contains no
+observations. Only merged roots need their occurrence groups and area-weighted
+anchor centers updated. Rejected edges are skipped when removed from the
+ordered queue, preserving the same greedy merge order. Ridge integrals use
+the lower-area profile's support and bracketing zero grid points: all omitted
+trapezoidal contributions are exactly zero. These changes reduce repeated
+file reads and work on unrelated time points without changing spectral
+distances, compatibility thresholds or original-channel acceptance criteria.
+
+
+Each aggregate profile pass can additionally buffer one original chromatogram
+up to 64 MiB per active worker. This replaces repeated strided file reads with
+identical matrix slices; it does not cache the whole experiment. Larger samples
+retain local strided reads. At 16 workers these live buffers add at most 1 GiB.
+
 The resident observation cache uses $8q\sum_s n_s$ bytes. For 1,000 samples with
 10,000 scans and 32 groups, this is 2.56 GB, plus factors and active-worker
 buffers. Original observations and factor checkpoints are disk backed. Sparse
 sample-specific PSFs are modest in size: a measured 14,946-by-14,946 design
-with 1.47 million stored nonzero values occupied 16.9 MiB.
+with 1,464,433 stored nonzero values occupied 16.82 MiB. Sparse PSF workspace
+checks count unique structural Gram entries and symbolic Cholesky fill;
+repeated overlaps are not counted as distinct entries. Unpenalized spline
+columns are separated before the Woodbury workspace check. The memory budget
+still applies to designs with genuinely large Gram matrices or factor fill.

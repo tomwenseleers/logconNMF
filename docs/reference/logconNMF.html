@@ -182,9 +182,9 @@ or <code>control$correlation</code> if supplied for a simultaneous fit.</p></dd>
 
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
-<dd><p>Total core budget. <code>NULL</code> uses the detected physical core count.
-Simultaneous fits divide that budget between sample workers and their native
-threads, with one BLAS thread per worker.</p></dd>
+<dd><p>Total core budget. <code>NULL</code> uses physical cores for one sample
+and logical cores for simultaneous fits. Simultaneous fits divide the budget
+between sample workers and their native threads, with one BLAS thread per worker.</p></dd>
 
 
 <dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
@@ -338,7 +338,10 @@ areas. Noise scales are held fixed when comparing groupings. A negative
 NB2 <code>theta</code> allows bounded, likelihood-improving shape updates.</p>
 <p>The common channel map is learned from samples aggregated on common time
 bins. The fitter retains only the aggregated observations in its shared
-cache and reads the original channels in blocks from each sample store.
+cache. Spectral, background and score passes stream original-channel blocks.
+Compatible Poisson/quasipoisson profile passes may additionally buffer one
+original sample up to 64 MiB per active worker; larger samples use local reads.
+Other profile passes load one assigned sample per active worker.
 Keep the store with the saved fitted object for reconstruction and plots.</p>
     </div>
     <div class="section level2">

@@ -101,24 +101,28 @@ sinmf_proposals <- function(state,method="cosine",rt_tolerance=state$control$rt_
 sinmf_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
   begun<-proc.time()[["elapsed"]];before<-sinmf_score(state)
   # Put shared scaling into occurrence amplitudes before pooling spectra.
+  geometry<-vector("list",length(state$paths))
   for(s in seq_along(state$paths)) {
     f<-readRDS(state$paths[s]);f$area<-f$area*state$scale[state$map[f$gid]]
+    geometry[[s]]<-list(H=f$H,aligned_time=f$aligned_time)
     state<-sinmf_checkpoint(state,s,f,"batch_scale")
   }
-  state$scale[]<-1;rejected<-character();audit<-list()
+  state$scale[]<-1;rejected<-new.env(hash=TRUE,parent=emptyenv());audit<-list()
   # Profiles and occurrence amplitudes stay fixed during algebraic grouping.
   occ<-sinmf_occurrences(state)
   matching<-if(is.null(state$channel_groups))state$P else aggregateChannels(state$P,state$channel_groups,state$mass)
+  groups<-split(seq_len(nrow(occ)),occ$root)
+  center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
   proposals<-sinmf_proposals(state,method,occ=occ,spectra=matching)
   repeat {
     if(!nrow(proposals))break
-    keys<-paste(proposals$a,proposals$b,sep=";");proposals<-proposals[!keys%in%rejected,,drop=FALSE]
-    if(!nrow(proposals))break
     p<-proposals[1L,];proposals<-proposals[-1L,,drop=FALSE]
+    key<-paste(p$a,p$b,sep=";")
+    if(exists(key,rejected,inherits=FALSE))next
     hit<-which(occ$root%in%c(p$a,p$b))
     profiles<-times<-list();areas<-numeric(length(hit))
     for(j in seq_along(hit)) {
-      v<-occ[hit[j],];f<-readRDS(state$paths[v$sample]);profiles[[j]]<-as.numeric(f$H[,v$local])
+      v<-occ[hit[j],];f<-geometry[[v$sample]];profiles[[j]]<-as.numeric(f$H[,v$local])
       times[[j]]<-f$aligned_time;areas[j]<-v$area
     }
     check<-if(ridge)sinmf_ridge_compatibility(profiles,times,areas,max_shift=state$control$rt_tolerance)else list(pass=TRUE,coverage=1)
@@ -130,9 +134,14 @@ sinmf_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
       matching[p$a,]<-as.numeric(crossprod(weight,matching[c(p$a,p$b),,drop=FALSE]))/sum(weight)
       state$map[state$map==p$b]<-p$a
       occ$root[occ$root==p$b]<-p$a
-      proposals<-sinmf_refresh_proposals(state,method,occ,matching,proposals,c(p$a,p$b))
-    } else rejected<-c(rejected,paste(p$a,p$b,sep=";"))
+      a<-as.character(p$a);b<-as.character(p$b)
+      groups[[a]]<-sort(c(groups[[a]],groups[[b]]));groups[[b]]<-NULL
+      center<-center[names(groups)];i<-groups[[a]]
+      center[a]<-stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i]))
+      proposals<-sinmf_refresh_proposals(state,method,occ,matching,proposals,c(p$a,p$b),groups,center)
+    } else assign(key,TRUE,rejected)
   }
+  state$grouping_cache_bytes<-sum(vapply(geometry,object.size,0))
   state$batch_grouping<-if(length(audit))do.call(rbind,audit)else data.frame()
   after<-sinmf_score(state)
   state$history<-rbind(state$history,data.frame(stage="algebraic_grouping",cycle=0L,
@@ -142,10 +151,11 @@ sinmf_batch_spectral_groups <- function(state,method="cosine",ridge=TRUE) {
 
 # Unchanged roots retain their distances and time gaps. Refresh only edges
 # incident to a merged root, preserving the complete greedy proposal order.
-sinmf_refresh_proposals <- function(state,method,occ,spectra,proposals,changed) {
+sinmf_refresh_proposals <- function(state,method,occ,spectra,proposals,changed,groups=NULL,center=NULL) {
   if(nrow(proposals))proposals<-proposals[!proposals$a%in%changed&!proposals$b%in%changed,,drop=FALSE]
-  groups<-split(seq_len(nrow(occ)),occ$root);ids<-as.integer(names(groups))
-  center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
+  if(is.null(groups))groups<-split(seq_len(nrow(occ)),occ$root)
+  ids<-as.integer(names(groups))
+  if(is.null(center))center<-vapply(groups,function(i)stats::weighted.mean(occ$anchor[i],sqrt(occ$area[i])),0)
   extra<-list()
   for(root in intersect(changed,ids)) {
     a<-match(root,ids)
@@ -272,9 +282,16 @@ sinmf_ridge_compatibility <- function(profiles,times,areas,tolerance=.7,max_shif
   if(length(profiles)<2L)return(list(pass=TRUE,coverage=1))
   o<-order(areas);coverage<-raw_coverage<-shift<-numeric(length(o)-1L)
   for(j in seq_along(coverage)) {
-    a<-o[j];b<-o[j+1L];grid<-sort(unique(c(times[[a]],times[[b]])))
-    low<-approx(times[[a]],profiles[[a]]*areas[a],grid,yleft=0,yright=0)$y
-    high<-approx(times[[b]],profiles[[b]]*areas[b],grid,yleft=0,yright=0)$y
+    a<-o[j];b<-o[j+1L]
+    ta<-times[[a]];tb<-times[[b]];positive<-which(profiles[[a]]>0)
+    if(length(positive)) {
+      ia<-seq.int(max(1L,min(positive)-1L),min(length(ta),max(positive)+1L))
+      ib<-seq.int(max(1L,findInterval(ta[ia[1L]],tb)),
+        min(length(tb),findInterval(ta[ia[length(ia)]],tb)+1L))
+      grid<-sort(unique(c(ta[ia],tb[ib])))
+    } else grid<-sort(unique(c(ta,tb)))
+    low<-approx(times[[a]],profiles[[a]]*areas[a],grid,yleft=0,yright=0,ties="ordered")$y
+    high<-approx(times[[b]],profiles[[b]]*areas[b],grid,yleft=0,yright=0,ties="ordered")$y
     dt<-diff(grid);integral<-function(x)sum(dt*(utils::head(x,-1L)+utils::tail(x,-1L))/2)
     raw_coverage[j]<-integral(pmin(low,high))/max(1e-20,integral(low))
     # Concentration can move the ridge as well as widen it. A bounded
@@ -283,7 +300,7 @@ sinmf_ridge_compatibility <- function(profiles,times,areas,tolerance=.7,max_shif
     start_a<-times[[a]][which(profiles[[a]]>max(profiles[[a]])*.01)[1L]]
     start_b<-times[[b]][which(profiles[[b]]>max(profiles[[b]])*.01)[1L]]
     shift[j]<-max(-max_shift,min(max_shift,start_a-start_b))
-    aligned_high<-approx(times[[b]]+shift[j],profiles[[b]]*areas[b],grid,yleft=0,yright=0)$y
+    aligned_high<-approx(times[[b]]+shift[j],profiles[[b]]*areas[b],grid,yleft=0,yright=0,ties="ordered")$y
     coverage[j]<-max(raw_coverage[j],integral(pmin(low,aligned_high))/max(1e-20,integral(low)))
   }
   list(pass=all(coverage>=tolerance),coverage=coverage,raw_coverage=raw_coverage,shift=shift)

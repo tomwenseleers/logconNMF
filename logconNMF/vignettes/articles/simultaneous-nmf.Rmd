@@ -97,7 +97,7 @@ The generating quasi-Poisson dispersion is 783.18; the fitted median is 829.55.
 The [GCMSprime CDF workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
 built on logconNMF, recovers **750 true occurrences with 142 false positives**
 (peak F1 **0.903**), including the acid in all seven samples where it occurs.
-It takes **154.14 s** with 16 single-threaded workers on an HP ZBook Fury G8
+It takes **149.31 s** with 16 single-threaded workers on an HP ZBook Fury G8
 with an Intel Core i9-11950H, eight physical cores and 16 logical threads.
 The common 32-group map accelerates initialization; final spectra retain all
 258 original channels.
@@ -107,6 +107,88 @@ The common 32-group map accelerates initialization; final spectra retain all
 The [seven-workflow comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports areas, spectral similarities, within-spectrum sparsity and component
 counts. GCMSbenchmark includes the simulation and complete rerun recipe.
+
+
+## Full-sized simultaneous factorization
+
+A separate resource validation uses **16 chromatograms with 10,000 scans and
+550 recorded mass bins each**. There are 1,000 reference compounds, present
+independently in half the samples on average: the realized data contain
+7,917 true occurrences, roughly 500 per sample. Library
+compound ions occupy 258 of the recorded bins; the other bins retain background
+observations. The simulator includes concentration-dependent EMG widths and
+tails, retention drift, irregular scan intervals, a smooth experimental-window
+background and one acid-like compound, present in eight samples. The generating
+quasi-Poisson dispersion is 783.18.
+
+The GCMSprime CDF wrapper supplies the PSF designs and backgrounds to logconNMF.
+It uses the package defaults, a calibrated narrow-peak standard,
+time-varying sample PSFs and at most 32 common ion groups. `ncores=NULL` selects
+**16 single-threaded workers** on the test machine. Original channels enter
+the likelihood checks and final spectra. Input simulation and the separate
+standard calibration are outside the workflow timing.
+
+| Quantity | Measured result |
+|:--|--:|
+| True peak occurrences recovered | 7,864 / 7,917 |
+| False positives / false negatives | 131 / 53 |
+| Occurrence F1 | 0.9884 |
+| Estimated shared components | 1,129 |
+| Joint quasi-GIC | 86,522,402 |
+| Median spectral cosine | 0.9999977 |
+| Mean within-spectrum ion F1 | 0.978 |
+| Mean profile cosine | 0.9994 |
+| Median absolute area error | 0.239% |
+| Acid occurrences recovered | 8 / 8 |
+
+Scoring uses maximum-cardinality one-to-one matching within 0.25 minutes and
+spectral cosine at least 0.9; ion-support F1 uses the shared 0.1% base-peak
+threshold. Area, spectrum and profile summaries condition on correct matches.
+All acid occurrences are detected; one difficult overlap still gives a distorted
+acid profile. This resource test is separate from the RI-aware reciprocal-hit
+seven-workflow comparison above.
+
+| Workflow stage | Seconds |
+|:--|--:|
+| Common ion grouping | 18.72 |
+| Parallel independent fits, including sample PSFs | 928.45 |
+| Alignment, grouping and simultaneous refinement | 2059.51 |
+| Result construction and exports | 45.60 |
+| Package-reported workflow total | 3052.28 |
+
+The workstation is an HP ZBook Fury G8 with an Intel Core i9-11950H at 2.60 GHz,
+eight physical cores, 16 logical threads and 64 GB RAM, running Windows and
+R 4.5.0. Sampled peak combined private memory is **22.86
+GiB**, and peak summed working set is **18.61 GiB**;
+at least **23.59 GiB** of physical memory remains
+available. These measurements include active workers and fitting workspaces,
+not just the 40.96 MB aggregate observation cache. Mean CPU use over the complete
+run is 11.67 logical-core equivalents. The independent process-tree monitor
+records 3,054.88 s, including R startup and the final saved result.
+
+![Measured process-tree memory and CPU use for sixteen full-sized chromatograms](../reference/figures/fullsize-16-resources.png)
+
+![Occurrence recovery and total-ion peak-area accuracy across sixteen full-sized samples](../reference/figures/fullsize-16-recovery.png)
+
+![Acid profiles: inferred solid and true dashed, blue for smaller areas and red for larger areas](../reference/figures/fullsize-16-acid.png)
+
+The acid display subtracts each true 1%-height onset to compare shapes. Fitting
+uses the original scan grid. Curves retain their original count amplitudes;
+they are not normalized to unit height or area.
+
+The [complete reproducible script](https://github.com/tomwenseleers/GCMSprime/blob/master/benchmarks/benchmark_fullsize_16.R)
+and [compact measured results](https://github.com/tomwenseleers/GCMSprime/tree/master/benchmarks/results/fullsize16)
+are supplied with the source. From the GCMSprime repository root:
+
+```r
+source("benchmarks/benchmark_fullsize_16.R")
+benchmarkFullsize16(stage="prepare")
+benchmarkFullsize16(stage="fit")
+benchmarkFullsize16(stage="score")
+```
+
+The generated CDF files and persistent fitted store are written to
+`codex_sandbox/fullsize16` by default. Use `directory=` to select another location.
 
 ## Original scan grids, shared spectra and missing compounds
 
@@ -148,11 +230,16 @@ Alignment's change in bin widths preserves integrated occurrence areas.
 
 Observation matrices and factor checkpoints are stored per sample on disk.
 Each worker uses its assigned sample's factors and observations. Shared spectra,
-areas and compact matching summaries stay in memory. By default only the common
+areas and matching structures stay in memory. Spectral, background and score
+passes stream original-channel blocks; other-family profile passes can load
+one assigned original sample per worker. By default only the common
 aggregate observations are cached across samples, using 2.56 GB for 1,000
-samples with 10,000 scans and 32 groups. Set `control=list(cache=FALSE)` to
-read those data from disk. `ncores` sets the total logical-core budget and
-`control$workers` can cap concurrency. Supply `y` or independent
+samples with 10,000 scans and 32 groups. Compatible profile checks can also
+use an original-channel read buffer up to 64 MiB per active worker. Set
+`control=list(cache=FALSE)` to
+read those data from disk. `ncores=NULL` uses the detected logical core count
+for a sample list; `control$workers` can cap concurrency. With at least 16
+samples and 16 logical cores, the default is 16 single-threaded workers. Supply `y` or independent
 `fit` components as RDS paths for file-backed input; use a new `path=` for each
 fit's persistent store. Keep that store alongside saved fitted objects.
 

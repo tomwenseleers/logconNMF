@@ -68,9 +68,11 @@
 <ul><li><p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> with a sample list shares spectra across samples with sample-specific profiles, areas and backgrounds, allowing compounds to be absent from individual samples.</p></li>
 <li><p>Monotone alignment, area-ordered profile compatibility and exposure-aware likelihoods retain each sample’s original irregular scan grid.</p></li>
 <li><p>Disk-backed observations, batched native spectral scores, shared row inputs, sparse profiles and OpenMP support efficient fitting.</p></li>
-<li><p>A total logical-core budget schedules independent fits and simultaneous sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Native block reads retain bounded original-channel buffers.</p></li>
+<li><p>A total logical-core budget schedules independent fits and simultaneous sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Automatic sample-list budgets use logical cores, while single samples use physical cores. Native block reads retain bounded original-channel buffers.</p></li>
 <li><p>Common saved channel maps, a compact aggregate cache and full-channel acceptance checks support reusable, memory-efficient multisample analyses.</p></li>
 <li><p>Incremental fusion candidates retain the same greedy order while refreshing only edges affected by a merge.</p></li>
+<li><p>Original-channel profile checks reuse a per-worker buffer up to 64 MiB; larger chromatograms retain bounded strided reads. This changes data access while retaining every original-channel acceptance check.</p></li>
+<li><p>Algebraic grouping caches sparse profiles without observations, updates only changed root centers, and restricts ridge integrals to their nonzero local supports while preserving complete-grid scores and greedy decisions.</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="simulation-and-interpretation-0-1-0-9000">Simulation and interpretation<a class="anchor" aria-label="anchor" href="#simulation-and-interpretation-0-1-0-9000"></a></h3>

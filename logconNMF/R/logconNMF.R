@@ -42,9 +42,9 @@
 #'   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
 #'   grouped-support initialization. `workers` limits concurrent samples
 #'   within `ncores`. The cache stores aggregated observations in memory.
-#' @param ncores Total core budget. `NULL` uses the detected physical core count.
-#'   Simultaneous fits divide that budget between sample workers and their native
-#'   threads, with one BLAS thread per worker.
+#' @param ncores Total core budget. `NULL` uses physical cores for one sample
+#'   and logical cores for simultaneous fits. Simultaneous fits divide the budget
+#'   between sample workers and their native threads, with one BLAS thread per worker.
 #' @param path New directory for the sample store and fitted factors in a
 #'   simultaneous fit. `NULL` uses a temporary directory.
 #' @param align Estimate monotone time warps for a simultaneous fit.
@@ -134,7 +134,10 @@
 #'
 #' The common channel map is learned from samples aggregated on common time
 #' bins. The fitter retains only the aggregated observations in its shared
-#' cache and reads the original channels in blocks from each sample store.
+#' cache. Spectral, background and score passes stream original-channel blocks.
+#' Compatible Poisson/quasipoisson profile passes may additionally buffer one
+#' original sample up to 64 MiB per active worker; larger samples use local reads.
+#' Other profile passes load one assigned sample per active worker.
 #' Keep the store with the saved fitted object for reconstruction and plots.
 #'
 #' @section Extract one sample:

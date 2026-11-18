@@ -171,7 +171,10 @@ nonnegative, single-peaked components.
 
 ```r
 install.packages("remotes")
-remotes::install_github("tomwenseleers/logconNMF", subdir="logconNMF")
+remotes::install_github(c(
+  "tomwenseleers/L0glm/L0glm",
+  "tomwenseleers/logconNMF/logconNMF"
+))
 ```
 
 ## Log-concave NMF for single samples
@@ -271,7 +274,18 @@ constant-cross-product constraint.
 The simultaneous implementation likewise scales to large experiments comprising
 hundreds or even thousands of samples. Parallel sample-level operations and
 blockwise, disk-backed refinement keep memory and computation manageable as
-the experiment grows.
+the experiment grows. With `ncores=NULL`, sample lists use the available logical
+cores; one matrix uses physical cores. The common observation cache for 16
+samples with 10,000 scans and 32 groups occupies 40.96 MB. Active-worker
+buffers, matching structures and sparse PSFs require additional memory; original channels are
+streamed during coupled refinement, with a bounded read buffer up to 64 MiB
+per active worker. See the
+[multisample tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
+for measured full-size resource use. A full-size validation with 16 samples, 10,000 scans and 550 recorded
+channels per sample recovers 7,864 of 7,917 true
+occurrences (F1 0.988), with a measured peak private memory of
+22.86 GiB. The linked tutorial gives the complete
+timing boundaries, recovery results and reproducible code.
 
 As an example, we provide a simulated
 [16-sample GC/MS benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)

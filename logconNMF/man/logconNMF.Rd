@@ -103,9 +103,9 @@ scale because the link is identity.}
 fitter's default (\code{"auto"} for one sample and \code{"none"} for simultaneous fits),
 or \code{control$correlation} if supplied for a simultaneous fit.}
 
-\item{ncores}{Total core budget. \code{NULL} uses the detected physical core count.
-Simultaneous fits divide that budget between sample workers and their native
-threads, with one BLAS thread per worker.}
+\item{ncores}{Total core budget. \code{NULL} uses physical cores for one sample
+and logical cores for simultaneous fits. Simultaneous fits divide the budget
+between sample workers and their native threads, with one BLAS thread per worker.}
 
 \item{control}{Named controls. See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. For a
 simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
@@ -242,7 +242,10 @@ NB2 \code{theta} allows bounded, likelihood-improving shape updates.
 
 The common channel map is learned from samples aggregated on common time
 bins. The fitter retains only the aggregated observations in its shared
-cache and reads the original channels in blocks from each sample store.
+cache. Spectral, background and score passes stream original-channel blocks.
+Compatible Poisson/quasipoisson profile passes may additionally buffer one
+original sample up to 64 MiB per active worker; larger samples use local reads.
+Other profile passes load one assigned sample per active worker.
 Keep the store with the saved fitted object for reconstruction and plots.
 }
 

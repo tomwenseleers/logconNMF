@@ -105,7 +105,7 @@ data(gcmsData2)
 Y2 <- gcmsData2
 t2 <- as.numeric(rownames(Y2))
 X2 <- convMatrix(convKernel("gaussian", 65L, list(sigma=6)), nrow(Y2))
-B2 <- splines::bs(t2, df=4L, intercept=TRUE)
+B2 <- splines::bs(t2, df=6L, intercept=TRUE)
 fit2 <- logconNMF(Y2, X=X2, background=B2,
   family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L)
 fit2$rank
@@ -120,8 +120,8 @@ and background basis is outside the timing.
 
 | Window | Scans | Channels | Components | Quasi-GIC | Seconds |
 |:--|--:|--:|--:|--:|--:|
-| Hydrocarbon window | 119 | 670 | 6 | 247,888 | 7.96 |
-| Beer volatiles | 1,764 | 518 | 38 | 1,467,426 | 67.00 |
+| Hydrocarbon window | 119 | 670 | 6 | 247,218 | 1.64 |
+| Beer volatiles | 1,764 | 518 | 36 | 1,466,362 | 29.47 |
 
 The [GCMSprime tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 times the complete CDF-to-MSP workflow separately and provides diagnostic

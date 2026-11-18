@@ -12,7 +12,7 @@ for (name in c("gcmsData1", "gcmsData2")) {
     control=list(kernel_est=convKernel("gaussian",65L,
       list(sigma=if(first)9 else 6)),maxiter=0L))
   B <- if(first) matrix(1,nrow(Y),1L) else
-    splines::bs(time,df=4L,intercept=TRUE)
+    splines::bs(time,df=6L,intercept=TRUE)
   seconds <- system.time(fit <- logconNMF(Y,X=psf$X,background=B,
     family=quasipoisson("identity"),precluster=if(first)7L else 32L,
     correlation="auto",ncores=8L,

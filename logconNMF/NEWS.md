@@ -49,11 +49,18 @@
 
 * A total logical-core budget schedules independent fits and simultaneous sample
   updates concurrently, with deterministic spectral reductions and restored
-  BLAS settings. Native block reads retain bounded original-channel buffers.
+  BLAS settings. Automatic sample-list budgets use logical cores, while single
+  samples use physical cores. Native block reads retain bounded original-channel buffers.
 * Common saved channel maps, a compact aggregate cache and full-channel
   acceptance checks support reusable, memory-efficient multisample analyses.
 * Incremental fusion candidates retain the same greedy order while refreshing
   only edges affected by a merge.
+* Original-channel profile checks reuse a per-worker buffer up to 64 MiB;
+  larger chromatograms retain bounded strided reads. This changes data access
+  while retaining every original-channel acceptance check.
+* Algebraic grouping caches sparse profiles without observations, updates only
+  changed root centers, and restricts ridge integrals to their nonzero local
+  supports while preserving complete-grid scores and greedy decisions.
 
 ## Simulation and interpretation
 

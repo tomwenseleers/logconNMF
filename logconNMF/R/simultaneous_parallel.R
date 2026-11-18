@@ -1,5 +1,5 @@
 sinmf_core_count <- function(ncores) {
-  if(is.null(ncores)){ncores<-parallel::detectCores(logical=FALSE);if(is.na(ncores))ncores<-1L}
+  if(is.null(ncores)){ncores<-parallel::detectCores(logical=TRUE);if(is.na(ncores))ncores<-1L}
   if(!is.numeric(ncores)||length(ncores)!=1L||!is.finite(ncores)||ncores<1||
       ncores!=floor(ncores)||ncores>.Machine$integer.max)stop("ncores must be a positive integer.")
   as.integer(ncores)
@@ -152,6 +152,12 @@ sinmf_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
   sinmf_checkpoint_sample(f,task$directory,task$operation)
 }
 
+# A bounded per-worker buffer avoids repeated strided reads of modest samples.
+sinmf_original_cache <- function(directory,n,m) {
+  if(8*as.double(n)*m<=64*1024^2)
+    sinmf_read_matrix_file(file.path(directory,"observed.bin"),n,m)else NULL
+}
+
 # Sum-Poisson proposals are inexpensive; acceptance uses all original ions.
 sinmf_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
   Y<-task$aggregate;groups<-task$groups
@@ -163,6 +169,7 @@ sinmf_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
   mu<-as.matrix(f$H%*%(P*(f$area*task$scale)))*f$exposure+
     f$background%*%alpha*f$raw_exposure+O
   block<-task$selected
+  raw_cache<-if(length(block))sinmf_original_cache(task$directory,meta$n,meta$m)else NULL
   for(k in block[order(f$area[block]*task$scale[block],decreasing=TRUE)]) {
     at<-which(f$H[,k]>0);if(length(at)<3L)next
     h<-as.numeric(f$H[at,k]);sp<-task$P[k,]*f$area[k]*task$scale[k]
@@ -171,7 +178,9 @@ sinmf_aggregate_profile <- function(task,f,meta,tiny,old_threads,gid) {
       as.numeric(W),length(at),censor=f$censor,maxit=as.integer(task$extra$steps),
       q=as.integer(task$extra$q),nthreads=f$ncores,mode=2L,time=f$aligned_time[at],exposure=f$exposure[at])
     hnew<-z$profile;scale<-sum(hnew*f$quadrature[at]);if(!is.finite(scale)||scale<=0)next
-    fullY<-sinmf_read_matrix_file(file.path(task$directory,"observed.bin"),meta$n,meta$m,rows=at)
+    fullY<-if(is.null(raw_cache))
+      sinmf_read_matrix_file(file.path(task$directory,"observed.bin"),meta$n,meta$m,rows=at)else
+      raw_cache[at,,drop=FALSE]
     oldmu<-sinmf_block_mean(f,task$P,task$scale,seq_len(meta$m),at)
     nextmu<-oldmu+(f$exposure[at]*(hnew-h))%o%sp
     delta<-slcn_loglik(fullY,nextmu,f$kind,f$phi,f$theta,as.numeric(W),f$ncores,f$censor)-

@@ -213,7 +213,7 @@ the fitted median is 829.55.</p>
 CDF workflow</a>, built on logconNMF, recovers <strong>750 true
 occurrences with 142 false positives</strong> (peak F1
 <strong>0.903</strong>), including the acid in all seven samples where
-it occurs. It takes <strong>154.14 s</strong> with 16 single-threaded
+it occurs. It takes <strong>149.31 s</strong> with 16 single-threaded
 workers on an HP ZBook Fury G8 with an Intel Core i9-11950H, eight
 physical cores and 16 logical threads. The common 32-group map
 accelerates initialization; final spectra retain all 258 original
@@ -228,6 +228,148 @@ sparsity and component counts. GCMSbenchmark includes the simulation and
 complete rerun recipe.</p>
 </div>
 <div class="section level2">
+<h2 id="full-sized-simultaneous-factorization">Full-sized simultaneous factorization<a class="anchor" aria-label="anchor" href="#full-sized-simultaneous-factorization"></a>
+</h2>
+<p>A separate resource validation uses <strong>16 chromatograms with
+10,000 scans and 550 recorded mass bins each</strong>. There are 1,000
+reference compounds, present independently in half the samples on
+average: the realized data contain 7,917 true occurrences, roughly 500
+per sample. Library compound ions occupy 258 of the recorded bins; the
+other bins retain background observations. The simulator includes
+concentration-dependent EMG widths and tails, retention drift, irregular
+scan intervals, a smooth experimental-window background and one
+acid-like compound, present in eight samples. The generating
+quasi-Poisson dispersion is 783.18.</p>
+<p>The GCMSprime CDF wrapper supplies the PSF designs and backgrounds to
+logconNMF. It uses the package defaults, a calibrated narrow-peak
+standard, time-varying sample PSFs and at most 32 common ion groups.
+<code>ncores=NULL</code> selects <strong>16 single-threaded
+workers</strong> on the test machine. Original channels enter the
+likelihood checks and final spectra. Input simulation and the separate
+standard calibration are outside the workflow timing.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Quantity</th>
+<th align="right">Measured result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">True peak occurrences recovered</td>
+<td align="right">7,864 / 7,917</td>
+</tr>
+<tr class="even">
+<td align="left">False positives / false negatives</td>
+<td align="right">131 / 53</td>
+</tr>
+<tr class="odd">
+<td align="left">Occurrence F1</td>
+<td align="right">0.9884</td>
+</tr>
+<tr class="even">
+<td align="left">Estimated shared components</td>
+<td align="right">1,129</td>
+</tr>
+<tr class="odd">
+<td align="left">Joint quasi-GIC</td>
+<td align="right">86,522,402</td>
+</tr>
+<tr class="even">
+<td align="left">Median spectral cosine</td>
+<td align="right">0.9999977</td>
+</tr>
+<tr class="odd">
+<td align="left">Mean within-spectrum ion F1</td>
+<td align="right">0.978</td>
+</tr>
+<tr class="even">
+<td align="left">Mean profile cosine</td>
+<td align="right">0.9994</td>
+</tr>
+<tr class="odd">
+<td align="left">Median absolute area error</td>
+<td align="right">0.239%</td>
+</tr>
+<tr class="even">
+<td align="left">Acid occurrences recovered</td>
+<td align="right">8 / 8</td>
+</tr>
+</tbody>
+</table>
+<p>Scoring uses maximum-cardinality one-to-one matching within 0.25
+minutes and spectral cosine at least 0.9; ion-support F1 uses the shared
+0.1% base-peak threshold. Area, spectrum and profile summaries condition
+on correct matches. All acid occurrences are detected; one difficult
+overlap still gives a distorted acid profile. This resource test is
+separate from the RI-aware reciprocal-hit seven-workflow comparison
+above.</p>
+<table class="table">
+<thead><tr class="header">
+<th align="left">Workflow stage</th>
+<th align="right">Seconds</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">Common ion grouping</td>
+<td align="right">18.72</td>
+</tr>
+<tr class="even">
+<td align="left">Parallel independent fits, including sample PSFs</td>
+<td align="right">928.45</td>
+</tr>
+<tr class="odd">
+<td align="left">Alignment, grouping and simultaneous refinement</td>
+<td align="right">2059.51</td>
+</tr>
+<tr class="even">
+<td align="left">Result construction and exports</td>
+<td align="right">45.60</td>
+</tr>
+<tr class="odd">
+<td align="left">Package-reported workflow total</td>
+<td align="right">3052.28</td>
+</tr>
+</tbody>
+</table>
+<p>The workstation is an HP ZBook Fury G8 with an Intel Core i9-11950H
+at 2.60 GHz, eight physical cores, 16 logical threads and 64 GB RAM,
+running Windows and R 4.5.0. Sampled peak combined private memory is
+<strong>22.86 GiB</strong>, and peak summed working set is <strong>18.61
+GiB</strong>; at least <strong>23.59 GiB</strong> of physical memory
+remains available. These measurements include active workers and fitting
+workspaces, not just the 40.96 MB aggregate observation cache. Mean CPU
+use over the complete run is 11.67 logical-core equivalents. The
+independent process-tree monitor records 3,054.88 s, including R startup
+and the final saved result.</p>
+<div class="float">
+<img src="../reference/figures/fullsize-16-resources.png" alt="Measured process-tree memory and CPU use for sixteen full-sized chromatograms"><div class="figcaption">Measured process-tree memory and CPU use for
+sixteen full-sized chromatograms</div>
+</div>
+<div class="float">
+<img src="../reference/figures/fullsize-16-recovery.png" alt="Occurrence recovery and total-ion peak-area accuracy across sixteen full-sized samples"><div class="figcaption">Occurrence recovery and total-ion peak-area
+accuracy across sixteen full-sized samples</div>
+</div>
+<div class="float">
+<img src="../reference/figures/fullsize-16-acid.png" alt="Acid profiles: inferred solid and true dashed, blue for smaller areas and red for larger areas"><div class="figcaption">Acid profiles: inferred solid and true dashed,
+blue for smaller areas and red for larger areas</div>
+</div>
+<p>The acid display subtracts each true 1%-height onset to compare
+shapes. Fitting uses the original scan grid. Curves retain their
+original count amplitudes; they are not normalized to unit height or
+area.</p>
+<p>The <a href="https://github.com/tomwenseleers/GCMSprime/blob/master/benchmarks/benchmark_fullsize_16.R" class="external-link">complete
+reproducible script</a> and <a href="https://github.com/tomwenseleers/GCMSprime/tree/master/benchmarks/results/fullsize16" class="external-link">compact
+measured results</a> are supplied with the source. From the GCMSprime
+repository root:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"benchmarks/benchmark_fullsize_16.R"</span><span class="op">)</span></span>
+<span><span class="fu">benchmarkFullsize16</span><span class="op">(</span>stage<span class="op">=</span><span class="st">"prepare"</span><span class="op">)</span></span>
+<span><span class="fu">benchmarkFullsize16</span><span class="op">(</span>stage<span class="op">=</span><span class="st">"fit"</span><span class="op">)</span></span>
+<span><span class="fu">benchmarkFullsize16</span><span class="op">(</span>stage<span class="op">=</span><span class="st">"score"</span><span class="op">)</span></span></code></pre></div>
+<p>The generated CDF files and persistent fitted store are written to
+<code>codex_sandbox/fullsize16</code> by default. Use
+<code>directory=</code> to select another location.</p>
+</div>
+<div class="section level2">
 <h2 id="original-scan-grids-shared-spectra-and-missing-compounds">Original scan grids, shared spectra and missing compounds<a class="anchor" aria-label="anchor" href="#original-scan-grids-shared-spectra-and-missing-compounds"></a>
 </h2>
 <p>Each sample retains its measured time grid, background and noise
@@ -240,7 +382,7 @@ component and one amplitude per detected occurrence. Profile and
 background complexity are unpenalized. Original-channel likelihood
 checks decide whether a complete grouped/refined candidate is
 retained.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">compounds</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">alignment</span></span>
@@ -269,15 +411,21 @@ preserves the units of supplied data. Alignment’s change in bin widths
 preserves integrated occurrence areas.</p>
 <p>Observation matrices and factor checkpoints are stored per sample on
 disk. Each worker uses its assigned sample’s factors and observations.
-Shared spectra, areas and compact matching summaries stay in memory. By
+Shared spectra, areas and matching structures stay in memory. Spectral,
+background and score passes stream original-channel blocks; other-family
+profile passes can load one assigned original sample per worker. By
 default only the common aggregate observations are cached across
 samples, using 2.56 GB for 1,000 samples with 10,000 scans and 32
-groups. Set <code>control=list(cache=FALSE)</code> to read those data
-from disk. <code>ncores</code> sets the total logical-core budget and
-<code>control$workers</code> can cap concurrency. Supply <code>y</code>
-or independent <code>fit</code> components as RDS paths for file-backed
-input; use a new <code>path=</code> for each fit’s persistent store.
-Keep that store alongside saved fitted objects.</p>
+groups. Compatible profile checks can also use an original-channel read
+buffer up to 64 MiB per active worker. Set
+<code>control=list(cache=FALSE)</code> to read those data from disk.
+<code>ncores=NULL</code> uses the detected logical core count for a
+sample list; <code>control$workers</code> can cap concurrency. With at
+least 16 samples and 16 logical cores, the default is 16 single-threaded
+workers. Supply <code>y</code> or independent <code>fit</code>
+components as RDS paths for file-backed input; use a new
+<code>path=</code> for each fit’s persistent store. Keep that store
+alongside saved fitted objects.</p>
 <p>The native kernel pools spectral scores over sparse profile supports
 and uses OpenMP over channels. On 14,949 scans, 518 channels and 325
 profiles, one pooled score pass took 0.16 s; the <a href="algorithm.html#simultaneous-algorithm">implementation details</a>
