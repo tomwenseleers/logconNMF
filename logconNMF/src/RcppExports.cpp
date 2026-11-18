@@ -29,6 +29,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// nuisance_poisson_checked_cpp
+SEXP nuisance_poisson_checked_cpp(SEXP B, SEXP Y, SEXP Signal, SEXP Prior, SEXP Start, int maxit, double tol, int nthreads);
+RcppExport SEXP _logconNMF_nuisance_poisson_checked_cpp(SEXP BSEXP, SEXP YSEXP, SEXP SignalSEXP, SEXP PriorSEXP, SEXP StartSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Y(YSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Signal(SignalSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Prior(PriorSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type Start(StartSEXP);
+    Rcpp::traits::input_parameter< int >::type maxit(maxitSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(nuisance_poisson_checked_cpp(B, Y, Signal, Prior, Start, maxit, tol, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // nuisance_gaussian_cpp
 SEXP nuisance_gaussian_cpp(SEXP B, SEXP Y, SEXP Signal, SEXP Prior, SEXP Start, SEXP constrained, int nthreads);
 RcppExport SEXP _logconNMF_nuisance_gaussian_cpp(SEXP BSEXP, SEXP YSEXP, SEXP SignalSEXP, SEXP PriorSEXP, SEXP StartSEXP, SEXP constrainedSEXP, SEXP nthreadsSEXP) {
@@ -414,6 +432,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_nuisance_poisson_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_cpp, 8},
+    {"_logconNMF_nuisance_poisson_checked_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_checked_cpp, 8},
     {"_logconNMF_nuisance_gaussian_cpp", (DL_FUNC) &_logconNMF_nuisance_gaussian_cpp, 7},
     {"_logconNMF_slcn_log_profile", (DL_FUNC) &_logconNMF_slcn_log_profile, 19},
     {"_logconNMF_logconc_quadratic_cpp", (DL_FUNC) &_logconNMF_logconc_quadratic_cpp, 5},

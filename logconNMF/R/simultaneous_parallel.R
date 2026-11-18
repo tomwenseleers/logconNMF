@@ -141,7 +141,7 @@ sinmf_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
       precision<-sinmf_weight_matrix(W,nrow(Y))
       if(length(phi)==1L)precision<-precision/phi else precision<-matrix(rep_len(as.numeric(precision),length(Y)),nrow(Y),ncol(Y))/rep(phi,each=nrow(Y))
       z<-if(f$kind==0L)nuisance_gaussian_cpp(B,Y,fixed,precision,A,rep(1L,ncol(B)),f$ncores)else
-        if(f$kind%in%1:2)nuisance_poisson_cpp(B,Y,fixed,precision,A,80L,1e-8,f$ncores)else NULL
+        if(f$kind%in%1:2)nuisance_poisson_checked_cpp(B,Y,fixed,precision,A,80L,1e-8,f$ncores)else NULL
       if(is.null(z)) {
         z<-slcn_spectral(Y,mu,as(Matrix(B,sparse=TRUE),"dgCMatrix"),t(A),f$kind,phi,theta,
           as.numeric(W),nrow(Y),0L,4L,f$ncores,20L,1e-8,f$censor)

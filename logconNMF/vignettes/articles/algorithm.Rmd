@@ -1291,7 +1291,9 @@ gradient pass also supplies the baseline likelihood for its acceptance check.
 Scaled spectra are reused within each local profile pass. These execution
 details leave the original-channel objective and acceptance thresholds intact.
 
-Conditional Poisson backgrounds first check the existing scaled KKT residual.
+Within coupled refinement, conditional Poisson backgrounds first check
+the existing scaled KKT residual. Initialization and standalone conditional
+refits retain their original Newton-update sequence.
 For fixed peak means the background Hessian is
 \(B^\mathsf{T}\operatorname{diag}(v_i y_i/\mu_i^2)B\succeq0\), where
 \(v_i\) includes observation weights and inverse dispersion. A stationary

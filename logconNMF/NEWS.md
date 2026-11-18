@@ -1,4 +1,4 @@
-# logconNMF 0.1.0.9001
+# logconNMF 0.1.0.9002
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes
   are checked against the source data.
@@ -61,7 +61,8 @@
   Runtime-scoped caches are released on success or error, and `cache=FALSE`
   disables persistent input buffers. Absolute scores keep all likelihood
   constants, and original-channel acceptance checks are retained.
-* Background updates recognize starts satisfying the existing KKT tolerance;
+* Coupled background updates recognize starts satisfying the existing KKT
+  tolerance; initialization retains its original Newton-update sequence;
   unchanged noise parameters avoid redundant passes. Iteration budgets,
   grouping rules and the statistical objective are unchanged.
 * Algebraic grouping caches sparse profiles without observations, updates only

@@ -5,6 +5,10 @@ nuisance_poisson_cpp <- function(B, Y, Signal, Prior, Start, maxit = 60L, tol = 
     .Call(`_logconNMF_nuisance_poisson_cpp`, B, Y, Signal, Prior, Start, maxit, tol, nthreads)
 }
 
+nuisance_poisson_checked_cpp <- function(B, Y, Signal, Prior, Start, maxit = 60L, tol = 1e-8, nthreads = 4L) {
+    .Call(`_logconNMF_nuisance_poisson_checked_cpp`, B, Y, Signal, Prior, Start, maxit, tol, nthreads)
+}
+
 nuisance_gaussian_cpp <- function(B, Y, Signal, Prior, Start, constrained, nthreads = 4L) {
     .Call(`_logconNMF_nuisance_gaussian_cpp`, B, Y, Signal, Prior, Start, constrained, nthreads)
 }

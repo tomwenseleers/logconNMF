@@ -1,4 +1,4 @@
-# logconNMF 0.1.0.9001
+# logconNMF 0.1.0.9002
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes
   are checked against the source data.

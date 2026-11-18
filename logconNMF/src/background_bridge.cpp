@@ -14,6 +14,13 @@ SEXP nuisance_poisson_cpp(SEXP B,SEXP Y,SEXP Signal,SEXP Prior,SEXP Start,
   return checked(fun(B,Y,Signal,Prior,Start,Rcpp::wrap(maxit),Rcpp::wrap(tol),Rcpp::wrap(nthreads)));
 }
 // [[Rcpp::export]]
+SEXP nuisance_poisson_checked_cpp(SEXP B,SEXP Y,SEXP Signal,SEXP Prior,SEXP Start,
+                          int maxit=60,double tol=1e-8,int nthreads=4) {
+  typedef SEXP(*Fn)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
+  static Fn fun=(Fn)R_GetCCallable("L0glm","_L0glm_nuisance_poisson_checked_cpp");
+  return checked(fun(B,Y,Signal,Prior,Start,Rcpp::wrap(maxit),Rcpp::wrap(tol),Rcpp::wrap(nthreads)));
+}
+// [[Rcpp::export]]
 SEXP nuisance_gaussian_cpp(SEXP B,SEXP Y,SEXP Signal,SEXP Prior,SEXP Start,
                           SEXP constrained,int nthreads=4) {
   typedef SEXP(*Fn)(SEXP,SEXP,SEXP,SEXP,SEXP,SEXP,SEXP);
