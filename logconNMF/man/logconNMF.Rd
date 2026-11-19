@@ -124,7 +124,13 @@ the independent initial fits and defaults to
 grouped-support initialization. \code{workers} limits concurrent samples
 within \code{ncores}. The cache retains aggregated observations and at most
 one original count matrix up to 64 MiB plus its likelihood normalizers per
-worker. \code{cache=FALSE} disables persistent input caches.}
+worker. \code{cache=FALSE} disables persistent input caches and temporary
+whole-sample profile caches, retaining local-window disk reads.
+For memory-limited series, \verb{workers=1L, cache=FALSE} avoids concurrent
+sample workspaces and retained observation caches. Set
+\code{initial=list(initial_solver=list(solver="eigen", method=3L, precond=1L))}
+to request iterative component selection for every sample. The solver's
+\code{max.memory} budget covers Gram/factor workspace, not total process RAM.}
 
 \item{start}{Optional list \code{H}, \code{S} and \code{alpha}, with original dimensions.
 \code{H} has scans in rows and compounds in columns; \code{S} has compounds in rows

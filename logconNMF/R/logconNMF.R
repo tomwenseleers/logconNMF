@@ -47,7 +47,13 @@
 #'   grouped-support initialization. `workers` limits concurrent samples
 #'   within `ncores`. The cache retains aggregated observations and at most
 #'   one original count matrix up to 64 MiB plus its likelihood normalizers per
-#'   worker. `cache=FALSE` disables persistent input caches.
+#'   worker. `cache=FALSE` disables persistent input caches and temporary
+#'   whole-sample profile caches, retaining local-window disk reads.
+#'   For memory-limited series, `workers=1L, cache=FALSE` avoids concurrent
+#'   sample workspaces and retained observation caches. Set
+#'   `initial=list(initial_solver=list(solver="eigen", method=3L, precond=1L))`
+#'   to request iterative component selection for every sample. The solver's
+#'   `max.memory` budget covers Gram/factor workspace, not total process RAM.
 #' @param ncores Total core budget. `NULL` uses physical cores for one sample
 #'   and logical cores for simultaneous fits. Simultaneous fits divide the budget
 #'   between sample workers and their native threads, with one BLAS thread per worker.

@@ -38,8 +38,26 @@ slcn_temporal_order <- function(model) {
   model
 }
 
+slcn_initial_solver <- function(settings = list()) {
+  if (!is.list(settings) || length(settings) && (is.null(names(settings)) ||
+      anyNA(names(settings)) || any(!nzchar(names(settings))) || anyDuplicated(names(settings)) ||
+      length(setdiff(names(settings), names(formals(controlSolverGen))))))
+    stop("Use a named initial_solver list of controlSolverGen() arguments.", call. = FALSE)
+  settings <- utils::modifyList(list(solver = "eigen", method = 1L), settings, keep.null = TRUE)
+  if (!is.character(settings$solver) || length(settings$solver) != 1L ||
+      is.na(settings$solver) || !settings$solver %in% c("eigen", "bigGlm", "bigglm", "glmnet", "osqp"))
+    stop("Invalid initial_solver solver.", call. = FALSE)
+  if (identical(settings$solver, "eigen") && (!is.numeric(settings$method) ||
+      length(settings$method) != 1L || is.na(settings$method) || !settings$method %in% 1:6))
+    stop("initial_solver method must be an Eigen method from 1 to 6.", call. = FALSE)
+  list(solver = settings$solver, method = settings$method,
+    control.solver = do.call(controlSolverGen, settings))
+}
+
 slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores,
-                         screen_factor = 1, relaxed = TRUE) {
+                         screen_factor = 1, relaxed = TRUE,
+                         initial_solver = list(), initial_fallback = TRUE) {
+  solver <- slcn_initial_solver(initial_solver)
   p <- ncol(X);q <- ncol(B);pilot <- slcn_pilot(Y)
   variance <- switch(spec$name, gaussian = matrix(rep(rep_len(spec$dispersion, ncol(Y)), each = nrow(Y)), nrow(Y), ncol(Y)),
     poisson = pilot, quasipoisson = sweep(pilot, 2, rep_len(spec$dispersion, ncol(Y)), "*"),
@@ -53,12 +71,23 @@ slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores,
     weights = working_weights, offset = offset, lambda = scalar * screen_factor,
     nonnegative = TRUE, intercept = FALSE, always.include = p + seq_len(q),
     grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
-    normalize = "none", ncores = ncores)
+    normalize = "none", ncores = ncores, solver = solver$solver,
+    method = solver$method, control.solver = solver$control.solver)
   if (relaxed) {
     arguments$relaxed <- TRUE
     arguments$local.search <- FALSE
   }
-  fit <- do.call(l0glmFit, arguments)
+  fit <- tryCatch(do.call(l0glmFit, arguments), error = function(error) {
+    if (!isTRUE(initial_fallback) || !identical(solver$solver, "eigen") ||
+        !solver$method %in% 1:2 || !grepl("exceeds the Gram/factor workspace budget",
+          conditionMessage(error), fixed = TRUE)) stop(error)
+    message("Initial component selection exceeded the Cholesky workspace budget; ",
+      "retrying with Eigen CG and diagonal preconditioning.")
+    retry <- utils::modifyList(initial_solver,
+      list(solver = "eigen", method = 3L, precond = 1L), keep.null = TRUE)
+    arguments[names(solver)] <- slcn_initial_solver(retry)
+    do.call(l0glmFit, arguments)
+  })
   beta <- as.matrix(coef(fit));keep <- which(rowSums(beta[seq_len(p), , drop = FALSE]) > 0)
   H <- X[, keep, drop = FALSE];S <- beta[keep, , drop = FALSE]
   alpha <- beta[p + seq_len(q), , drop = FALSE]
@@ -80,7 +109,8 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
     value
   }
   current <- if (is.null(start)) timer("initial", slcn_initial(X, Y, B, spec, W, offset,
-    scalar, ncores, control$screen_factor, control$initial_relaxed)) else start
+    scalar, ncores, control$screen_factor, control$initial_relaxed,
+    control$initial_solver, control$initial_fallback)) else start
   score <- function(model) slcn_loglik(Y, model$mu, ctx$spec$kind,
     ctx$spec$dispersion, ctx$spec$theta, ctx$W, ncores, censor)
   initial_rank <- ncol(current$H);initial_ll <- score(current)
@@ -233,7 +263,7 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   `final_polishes=1L`, `native_sweeps=6L`, `block_sweeps=6L`,
 #'   `psf_width=NULL`, `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
 #'   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
-#'   `initial_relaxed=TRUE`,
+#'   `initial_relaxed=TRUE`, `initial_solver=list()`, `initial_fallback=TRUE`,
 #'   `profile_fusion=TRUE`, `profile_restarts=TRUE`. `joint_trials` uses direct Poisson fusion for Poisson data
 #'   and joint local refinement for the other families. `psf_width` supplies
 #'   the typical FWHM in scans. When omitted, local updates use the middle design
@@ -258,6 +288,17 @@ slcn_run <- function(X, Y, B, spec, W, offset, scalar, ncores, control, start = 
 #'   fit, with the remaining components and background held in an offset.
 #'   `original_cleanup=TRUE` enables a final original-channel deletion, local
 #'   fusion and residual-discovery pass. Set it to `FALSE` to skip that pass.
+#'   `initial_solver` supplies named [L0glm::controlSolverGen()] arguments for
+#'   the initial component-selection fit, including `solver`, `method`,
+#'   `precond`, `tol`, `maxit` and `max.memory` (GiB). For example,
+#'   `list(initial_solver=list(solver="eigen", method=3L, precond=1L))`
+#'   requests Eigen conjugate gradients with diagonal preconditioning.
+#'   The default is Eigen Cholesky. If that fit exceeds L0glm's Gram/factor
+#'   workspace budget, `initial_fallback=TRUE` retries with diagonally
+#'   preconditioned CG and reports the switch. The retry retains the memory
+#'   limit, data, weights, background, penalty and component-selection settings.
+#'   Other errors and failures of explicitly selected iterative solvers propagate.
+#'   Set `initial_fallback=FALSE` to require the requested solver.
 #' @param start Optional list `H`, `S` and `alpha`, with original dimensions.
 #'   `H` has scans in rows and compounds in columns; `S` has compounds in rows
 #'   and all original channels in columns. `alpha` contains background
@@ -517,6 +558,7 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     native_sweeps = 6L, block_sweeps = 6L, psf_width = NULL, screen_factor = 1,
     censor = .5, linkage = "ward", joint_trials = NULL, profile_fusion = TRUE,
     profile_cycles = 4L, fusion_passes = 0L, initial_relaxed = TRUE,
+    initial_solver = list(), initial_fallback = TRUE,
     original_cleanup = TRUE, profile_restarts = TRUE)
   if (!is.list(control) || length(control) && (is.null(names(control)) ||
       any(!nzchar(names(control))) || anyDuplicated(names(control)))) stop("Use a named control list.")
@@ -524,6 +566,9 @@ splogconNMF <- function(X, y, family = poisson("identity"), background = NULL,
     defaults$censor <- family$scalar$censor
   if (length(setdiff(names(control), names(defaults)))) stop("Unknown control entry.")
   control <- utils::modifyList(defaults, control, keep.null = TRUE)
+  slcn_initial_solver(control$initial_solver)
+  if (!is.logical(control$initial_fallback) || length(control$initial_fallback) != 1L ||
+      is.na(control$initial_fallback)) stop("initial_fallback must be TRUE or FALSE.")
   supplied_width <- !is.null(control$psf_width)
   if (is.null(control$joint_trials)) control$joint_trials <- spec$kind != 1L
   control$linkage <- match.arg(control$linkage, c("ward", "bregman"))

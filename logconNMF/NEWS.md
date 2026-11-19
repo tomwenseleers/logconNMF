@@ -1,3 +1,14 @@
+# logconNMF 0.1.0.9003
+
+* `splogconNMF()` and single-sample `logconNMF()` accept `control$initial_solver`,
+  a named list of `L0glm::controlSolverGen()` arguments for component selection.
+* Cholesky workspace-budget failures during initialization automatically retry
+  with diagonally preconditioned Eigen CG and report the switch. The retry
+  preserves the workspace budget, data and selection settings. Unrelated errors
+  propagate; `control$initial_fallback=FALSE` disables the retry.
+* `cache=FALSE` also disables temporary whole-sample observation caches in
+  coupled profile refinement, retaining local-window disk reads.
+
 # logconNMF 0.1.0.9002
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes

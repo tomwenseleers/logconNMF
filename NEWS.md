@@ -1,3 +1,12 @@
+# logconNMF 0.1.0.9003
+
+* Expose component-initialization solver controls via `control$initial_solver`.
+  Cholesky workspace-budget errors retry with diagonally preconditioned Eigen
+  CG, preserving the memory limit and selection settings and reporting the
+  switch. Disable the retry with `control$initial_fallback=FALSE`.
+* Disabling coupled observation caches also prevents temporary full-sample
+  profile caches, retaining local-window disk reads.
+
 # logconNMF 0.1.0.9002
 
 * Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass axes

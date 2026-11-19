@@ -162,7 +162,7 @@ sinmf_stream_operation <- function(task,f,meta,tiny,old_threads,gid) {
 
 # A bounded per-worker buffer avoids repeated strided reads of modest samples.
 sinmf_original_cache <- function(directory,n,m) {
-  if(8*as.double(n)*m<=64*1024^2)
+  if(isTRUE(.sinmf_cache$enabled)&&8*as.double(n)*m<=64*1024^2)
     sinmf_read_matrix_file(file.path(directory,"observed.bin"),n,m)else NULL
 }
 

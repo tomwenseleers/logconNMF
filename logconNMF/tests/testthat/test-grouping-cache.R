@@ -62,11 +62,17 @@ state <- logconNMF(descriptions,align=FALSE,path=store,
 
 test_that("original profile buffers are capped per worker without large allocation", {
   calls<-0L;expected<-matrix(1:4,2L)
+  previous<-as.list(.sinmf_cache)
+  on.exit(sinmf_cache_restore(previous))
   local_mocked_bindings(sinmf_read_matrix_file=function(path,n,m) {
     calls<<-calls+1L
     expect_equal(basename(path),"observed.bin")
     expected
   })
+  sinmf_cache_reset(FALSE)
+  expect_null(sinmf_original_cache(tempdir(),10000L,550L))
+  expect_equal(calls,0L)
+  sinmf_cache_reset(TRUE)
   expect_identical(sinmf_original_cache(tempdir(),10000L,550L),expected)
   expect_identical(sinmf_original_cache(tempdir(),2^20,8L),expected)
   expect_null(sinmf_original_cache(tempdir(),2^20+1,8L))
