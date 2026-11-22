@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9005</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9006</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -254,6 +254,8 @@ simultaneous fit. <code>NULL</code> uses a temporary directory.</p></dd>
 <dt id="arg-algorithm">algorithm<a class="anchor" aria-label="anchor" href="#arg-algorithm"></a></dt>
 <dd><p>Solver for count data. <code>"conditional"</code> alternates hard
 log-concave profiles and sparse spectra on the original ion counts.
+Multisample fits can reassign mixed spectra to recurring components. A local
+refit must improve the same original-channel information criterion.
 <code>"classic"</code> uses the general identity-link solver. <code>"auto"</code> uses the
 conditional solver for supported inputs when its Python runtime is available.</p></dd>
 

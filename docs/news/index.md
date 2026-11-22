@@ -1,5 +1,12 @@
 # Changelog
 
+## logconNMF 0.1.0.9006
+
+- Multisample count fits can resolve a mixed spectrum into several
+  independently observed spectra. Overlapping profiles are refitted on
+  original channels, with each change checked against the same penalized
+  objective.
+
 ## logconNMF 0.1.0.9005
 
 - The joint count solver uses the requested core budget for independent

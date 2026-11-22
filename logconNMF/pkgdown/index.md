@@ -292,9 +292,9 @@ of samples. This shares chemical
 information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
-Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. It updates profiles and backgrounds across samples and fits disjoint ion columns of the shared spectra concurrently. Peak merges and exchanges retain their original order. The classic solver can stream original-channel blocks from disk.
-The full-size fit recovered **7,917 of 7,917 occurrences** with **16 false calls**
-in **11.24 min** across 16 chromatograms of 10,000 scans and 550 channels.
+Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. It updates profiles and backgrounds across samples and fits disjoint ion columns of the shared spectra concurrently. Peak merges and exchanges retain their original order. The general identity-link solver can stream original-channel blocks from disk.
+The full-size fit recovered **7,917 of 7,917 occurrences** with **only 13 false positives**
+in **9.21 min** across 16 chromatograms of 10,000 scans and 550 channels.
 See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
 
 As an example, we provide a simulated
@@ -306,22 +306,22 @@ a smooth experimental background and quasi-Poisson noise. The plots below
 summarise the simultaneous logconNMF result. The [seven-method comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html) reports recovery, false calls and integration accuracy for every workflow.
 
 <div class="l0-benchmark-summary">
-<div><strong>767 / 769</strong><span>true occurrences recovered</span></div>
-<div><strong>0.972</strong><span>peak-level F1</span></div>
-<div><strong>0.999995</strong><span>robust adjusted log-area R²</span></div>
+<div><strong>769 / 769</strong><span>true occurrences recovered</span></div>
+<div><strong>0.983</strong><span>peak-level F1</span></div>
+<div><strong>0.999628</strong><span>ordinary adjusted log-area R²</span></div>
 <div><strong>0.9999991</strong><span>median spectral cosine</span></div>
 </div>
 
-The complete small fit took **70.81 s**. Of this, 51.56 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **54.94 s**. Of this, 39.45 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (42 in this benchmark). Ion-support F1 applies the same
+false-positive counts (only 26 among 795 calls). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 <div class="l0-benchmark-grid">
-<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a><figcaption>Peak-area accuracy: robust adjusted R² 0.999995 and median absolute area error 0.10% over 767 matched occurrences.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.9999991 for 767 correctly matched true spectra.</figcaption></figure>
+<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with ordinary least-squares regression and a 95% prediction interval"></a><figcaption>Peak-area accuracy: ordinary adjusted R² 0.999628 and median absolute area error 0.10% over 769 matched occurrences.</figcaption></figure>
+<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.9999991 for 769 correctly matched true spectra.</figcaption></figure>
 <figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.995 under the shared 0.1% cutoff.</figcaption></figure>
 <figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a><figcaption>Small-scale 16-sample benchmark (100 reference compounds, 1,200 scans): the same profiles as the GCMSprime software comparison. The regular compound occurs in 11 samples and the acid in seven. All 16 samples are drawn; absent true profiles lie at zero. Solid: inferred; dashed: truth; colours rank all 16 true areas.</figcaption></figure>
 </div>

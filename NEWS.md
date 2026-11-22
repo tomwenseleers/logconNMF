@@ -1,3 +1,7 @@
+# logconNMF 0.1.0.9006
+
+- Multisample count fits can resolve a mixed spectrum into several independently observed spectra. Overlapping profiles are refitted on original channels, with each change checked against the same penalized objective.
+
 # logconNMF 0.1.0.9005
 
 * The joint count solver uses the requested core budget for independent sample profiles and background updates, and for ion columns of each shared spectrum. Spectral coordinates retain their update order within each ion. Original-channel GIC and log-concavity checks also apply to threaded fits.
@@ -9,12 +13,14 @@
 
 # logconNMF 0.1.0.9003
 
-* Expose component-initialization solver controls via `control$initial_solver`.
-  Cholesky workspace-budget errors retry with diagonally preconditioned Eigen
-  CG, preserving the memory limit and selection settings and reporting the
-  switch. Disable the retry with `control$initial_fallback=FALSE`.
-* Disabling coupled observation caches also prevents temporary full-sample
-  profile caches, retaining local-window disk reads.
+* `splogconNMF()` and single-sample `logconNMF()` accept `control$initial_solver`,
+  a named list of `L0glm::controlSolverGen()` arguments for component selection.
+* Cholesky workspace-budget failures during initialization automatically retry
+  with diagonally preconditioned Eigen CG and report the switch. The retry
+  preserves the workspace budget, data and selection settings. Unrelated errors
+  propagate; `control$initial_fallback=FALSE` disables the retry.
+* `cache=FALSE` also disables temporary whole-sample observation caches in
+  coupled profile refinement, retaining local-window disk reads.
 
 # logconNMF 0.1.0.9002
 
@@ -72,11 +78,25 @@
 
 * A total logical-core budget schedules independent fits and simultaneous sample
   updates concurrently, with deterministic spectral reductions and restored
-  BLAS settings. Native block reads retain bounded original-channel buffers.
+  BLAS settings. Automatic sample-list budgets use logical cores, while single
+  samples use physical cores. Native block reads retain bounded original-channel buffers.
 * Common saved channel maps, a compact aggregate cache and full-channel
   acceptance checks support reusable, memory-efficient multisample analyses.
 * Incremental fusion candidates retain the same greedy order while refreshing
   only edges affected by a merge.
+* Coupled refinement reuses baseline likelihoods, local scaled spectra and
+  derivative-only kernels. Eligible count workers retain one original matrix
+  up to 64 MiB plus its likelihood normalizers; larger samples stream blocks.
+  Runtime-scoped caches are released on success or error, and `cache=FALSE`
+  disables persistent input buffers. Absolute scores keep all likelihood
+  constants, and original-channel acceptance checks are retained.
+* Coupled background updates recognize starts satisfying the existing KKT
+  tolerance; initialization retains its original Newton-update sequence;
+  unchanged noise parameters avoid redundant passes. Iteration budgets,
+  grouping rules and the statistical objective are unchanged.
+* Algebraic grouping caches sparse profiles without observations, updates only
+  changed root centers, and restricts ridge integrals to their nonzero local
+  supports while preserving complete-grid scores and greedy decisions.
 
 ## Simulation and interpretation
 
@@ -91,6 +111,3 @@
   extraction, likelihood and information-criterion methods.
 * Tutorials follow PSF estimation, single-sample factorization and simultaneous
   factorization; a separate mathematical article gives objectives and pseudocode.
-
-* Coupled refinement reuses likelihoods and bounded worker caches, with
-  unchanged objectives, grouping rules and original-channel checks.

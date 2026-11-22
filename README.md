@@ -301,9 +301,9 @@ of samples. This shares chemical
 information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
-Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. It updates profiles and backgrounds across samples and fits disjoint ion columns of the shared spectra concurrently. Peak merges and exchanges retain their original order. The classic solver can stream original-channel blocks from disk.
-The full-size fit recovered **7,917 of 7,917 occurrences** with **16 false calls**
-in **11.24 min** across 16 chromatograms of 10,000 scans and 550 channels.
+Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. It updates profiles and backgrounds across samples and fits disjoint ion columns of the shared spectra concurrently. Peak merges and exchanges retain their original order. The general identity-link solver can stream original-channel blocks from disk.
+The full-size fit recovered **7,917 of 7,917 occurrences** with **only 13 false positives**
+in **9.21 min** across 16 chromatograms of 10,000 scans and 550 channels.
 See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
 
 As an example, we provide a simulated
@@ -316,27 +316,27 @@ summarise the simultaneous logconNMF result. The [seven-method comparison](https
 
 | Quantity | Simultaneous logconNMF result |
 |:--|--:|
-| True occurrences recovered | 767 / 769 |
-| Peak-level F1 | 0.972 |
-| Robust adjusted log-area R² | 0.999995 |
+| True occurrences recovered | 769 / 769 |
+| Peak-level F1 | 0.983 |
+| Ordinary adjusted log-area R² | 0.999628 |
 | Median spectral cosine | 0.9999991 |
 | Mean within-spectrum ion-support F1 | 0.995 |
 
-The complete small fit took **70.81 s**. Of this, 51.56 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **54.94 s**. Of this, 39.45 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (42 in this benchmark). Ion-support F1 applies the same
+false-positive counts (only 26 among 795 calls). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 [![True versus estimated peak areas for the simultaneous logconNMF fit](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)
 
-Peak-area accuracy: robust adjusted R² 0.999995 and median absolute area error
-0.10% over 767 matched occurrences.
+Peak-area accuracy: ordinary adjusted R² 0.999628 and median absolute area error
+0.10% over 769 matched occurrences.
 
 [![Distribution of spectral cosine similarity for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-Spectral accuracy: median cosine similarity 0.9999991 for 767 correctly matched
+Spectral accuracy: median cosine similarity 0.9999991 for 769 correctly matched
 true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)

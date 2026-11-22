@@ -6,6 +6,8 @@ from .kernels import face, log_shape, update_h, update_p
 from .objective import means, cell_deviance_difference
 from .exchange import choices
 
+MAX_SPECTRAL_RESIDUAL = 0.32
+
 
 def propose(H, P, bands):
     # Prefer templates observed independently of the possible mixture.
@@ -140,7 +142,7 @@ def local_spectra(data, H, P, bands, price):
         bs = get_blocks(data, H, P, mu, ids)
         w, err = nnls(P[rec].T, P[k])
         rel = err / np.linalg.norm(P[k])
-        if rel > 0.32 or np.any(w <= 0):
+        if rel > MAX_SPECTRAL_RESIDUAL or np.any(w <= 0):
             continue
         proposals = [
             (b, keep)

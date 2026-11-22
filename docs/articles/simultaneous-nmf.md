@@ -32,9 +32,9 @@ matrix `X` or an independent
 fit. Matrices can be supplied through RDS paths. Observations, factors,
 weights and offsets are stored per sample. The grouped PSF regressions
 run in separate workers. For joint conditional updates the solver holds
-observations, fitted means and shared spectra in memory. The classic
-solver can stream blocks of ions from the per-sample files. \## Three
-samples, shared spectra and different peak shapes
+observations, fitted means and shared spectra in memory. The general
+identity-link solver can stream blocks of ions from the per-sample
+files. \## Three samples, shared spectra and different peak shapes
 
 The simulator provides exponentially modified Gaussian peaks, broad
 triangular acid profiles, smooth backgrounds and irregular scan
@@ -111,13 +111,13 @@ compounds.
 | True occurrences | 769 | 7,917 |
 | Samples containing the acid | 7 | 8 |
 | PSF calibration | Blind, two windows | Standard-assisted, ten windows |
-| Complete 16-sample analysis | **70.81 s (1.18 min)** | **674.23 s (11.24 min)** |
+| Complete 16-sample analysis | **54.94 s (0.92 min)** | **552.69 s (9.21 min)** |
 
-Both runs used GCMSprime and logconNMF 0.1.0.9005. Timings cover the
+Both runs used GCMSprime and logconNMF 0.1.0.9006. Timings cover the
 complete batch from CDF input through export. In the small experiment,
-CDF preparation, calibration and grouping took 13.81 s, grouped
-initialization and joint refinement took 51.56 s, and result
-construction and export took 5.19 s. The benchmark wrapper added 0.25 s.
+CDF preparation, calibration and grouping took 11.34 s, grouped
+initialization and joint refinement took 39.45 s, and result
+construction and export took 3.91 s. The benchmark wrapper added 0.24 s.
 The large experiment is documented below.
 
 ## Small-scale 16-sample software comparison
@@ -137,13 +137,13 @@ the fitted median is 829.55.
 
 The [GCMSprime CDF
 workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
-built on logconNMF, recovers **767 true occurrences with 42 false
-positives** (peak F1 **0.972**), including the acid in all seven samples
-where it occurs. It takes **70.81 s** with four two-thread PSF workers
-and eight threads available for joint refinement on an HP ZBook Fury G8
-with an Intel Core i9-11950H, eight physical cores and 16 logical
-threads. The common 32-group map accelerates initialization; final
-spectra retain all 258 original channels.
+built on logconNMF, recovers **all 769 true occurrences with only 26
+false positives** (peak F1 **0.983**), including the acid in all seven
+samples where it occurs. It takes **54.94 s** with four two-thread PSF
+workers and eight threads available for joint refinement on an HP ZBook
+Fury G8 with an Intel Core i9-11950H, eight physical cores and 16
+logical threads. The common 32-group map accelerates initialization;
+final spectra retain all 258 original channels.
 
 ![Solid inferred and dashed true acid profiles across
 samples](https://tomwenseleers.github.io/GCMSprime/reference/figures/simulated-16-acid-profiles.png)
@@ -182,7 +182,7 @@ retention time. The data include irregular scan intervals, a background
 estimated from `gcmsData2` and quasi-Poisson dispersion 783.18. A
 separate narrow-peak standard supplies the time-varying PSF.
 
-The conditional solver estimated **1,005 shared identities** from the
+The conditional solver estimated **1,002 shared identities** from the
 original ion measurements. All **7,917 true occurrences** were
 recovered, including every occurrence of the shark-fin acid. The largest
 absolute area error among the eight acid occurrences was **0.19%**.
@@ -190,13 +190,14 @@ absolute area error among the eight acid occurrences was **0.19%**.
 | Quantity                          | Measured result |
 |:----------------------------------|----------------:|
 | True occurrences recovered        |   7,917 / 7,917 |
-| False positives / false negatives |          16 / 0 |
-| Occurrence F1                     |         0.99899 |
-| Joint quasi-GIC                   |      34,070,769 |
+| False positives / false negatives |          13 / 0 |
+| Occurrence F1                     |         0.99918 |
+| Joint quasi-GIC                   |      34,062,277 |
 | Median spectral cosine            |       0.9999989 |
-| Mean within-spectrum ion F1       |         0.99516 |
-| Mean profile cosine               |        0.999983 |
+| Mean within-spectrum ion F1       |         0.99519 |
+| Mean profile cosine               |        0.999984 |
 | Median absolute peak-area error   |          0.095% |
+| Adjusted log-area R²              |        0.999976 |
 | Acid occurrences recovered        |           8 / 8 |
 
 Scoring uses maximum-cardinality one-to-one matching within 0.25 minutes
@@ -207,22 +208,22 @@ uses RI-constrained reciprocal hits.
 
 | CDF workflow stage | Seconds |
 |:---|---:|
-| Reading data, preparing sample PSFs and initialization | 174.00 |
-| Grouped PSF regression, alignment and joint original-channel refinement | 459.06 |
-| Constructing and exporting results | 41.17 |
-| **Complete fit and exports** | **674.23** |
+| Reading data, preparing sample PSFs and initialization | 139.60 |
+| Grouped PSF regression, alignment and joint original-channel refinement | 383.22 |
+| Constructing and exporting results | 29.87 |
+| **Complete fit and exports** | **552.69** |
 
-Within the 459.06 s coupled stage, grouped PSF regression took 111.18 s
-and alignment and joint refinement took 347.55 s. Simulation, separate
+Within the 383.22 s coupled stage, grouped PSF regression took 119.65 s
+and alignment and joint refinement took 263.33 s. Simulation, separate
 standard calibration and scoring against truth are outside the timed
 fit.
 
 On the HP ZBook Fury G8 (Core i9-11950H, eight physical cores, 16
 logical cores and 64 GB RAM), the memory-aware scheduler used **6 PSF
 workers with 2 threads each**. The joint solver could use all 16
-threads. Across the measured workflow the process tree averaged **4.70
-logical-core equivalents** and peaked at **6.75 GiB working set** and
-**6.65 GiB private memory**. At least 29.46 GiB of physical memory
+threads. Across the measured workflow the process tree averaged **5.61
+logical-core equivalents** and peaked at **6.12 GiB working set** and
+**5.78 GiB private memory**. At least 28.57 GiB of physical memory
 stayed available.
 
 ![Measured process-tree memory and CPU use for sixteen full-sized
@@ -236,6 +237,12 @@ full-sized samples](../reference/figures/fullsize-16-recovery.png)
 
 Occurrence recovery and total-ion peak-area accuracy across sixteen
 full-sized samples
+
+In the left panel, the red bar segments count unmatched calls and the
+open circles give the true counts. The right panel shows only calls
+paired with a true occurrence. Violet diamonds identify the eight
+matched acid peaks. The dashed line marks exact agreement and the
+shading is the ordinary 95% prediction interval on the log scale.
 
 ![Acid profiles: inferred solid and true dashed, blue for smaller areas
 and red for larger areas](../reference/figures/fullsize-16-acid.png)
@@ -324,10 +331,10 @@ fit in available memory, including Windows commit headroom. After those
 workers exit, a single process shares the original ion counts and fitted
 means. It updates profiles and backgrounds across samples and fits
 disjoint ion columns of the shared spectra concurrently. Peak merges and
-exchanges retain their original order. The classic solver can stream
-original-channel blocks from disk. Use `control=list(workers=4L)` for an
-explicit sample-worker cap. Keep the fitted store alongside saved
-objects.
+exchanges retain their original order. The general identity-link solver
+can stream original-channel blocks from disk. Use
+`control=list(workers=4L)` for an explicit sample-worker cap. Keep the
+fitted store alongside saved objects.
 
 For sample-group directories, acquisition ordering, alkane standards and
 Excel/MSP reports, use the workflow in

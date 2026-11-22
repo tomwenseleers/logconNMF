@@ -163,6 +163,8 @@ simultaneous fit. \code{NULL} uses a temporary directory.}
 
 \item{algorithm}{Solver for count data. \code{"conditional"} alternates hard
 log-concave profiles and sparse spectra on the original ion counts.
+Multisample fits can reassign mixed spectra to recurring components. A local
+refit must improve the same original-channel information criterion.
 \code{"classic"} uses the general identity-link solver. \code{"auto"} uses the
 conditional solver for supported inputs when its Python runtime is available.}
 

@@ -36,7 +36,7 @@ grid <- seq(min(area$data$log_true), max(area$data$log_true), length.out = 200L)
 interval <- stats::predict(
   area$fit,
   newdata = data.frame(log_true = grid),
-  interval = "prediction"
+  interval = "prediction", level = 0.95
 )
 limits <- range(c(area$data$log_true, area$data$log_estimated, interval))
 padding <- 0.04 * diff(limits)
@@ -75,15 +75,15 @@ graphics::title("Peak-area accuracy of the simultaneous logconNMF fit",
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(
   sprintf(
-    "Robust adjusted R-squared %.6f | median absolute area-factor error %.2f%% | %d matched occurrences",
+    "Adjusted R-squared %.6f | median absolute area-factor error %.2f%% | %d matched occurrences",
     area$adjusted_R2, 100 * summary$area_median_error_factor, nrow(area$data)
   ),
   side = 3, line = 1.0, col = muted, cex = 0.96
 )
 graphics::legend(
   "topleft", bty = "n", inset = 0.015, cex = 0.95,
-  legend = c("Matched occurrence", "Robust log-log fit",
-    "95% robust prediction band", "1:1 reference"),
+  legend = c("Matched occurrence", "Least-squares log-log fit",
+    "95% prediction interval", "1:1 reference"),
   col = c(grDevices::adjustcolor(steelblue, alpha.f = 0.5),
     "black", light_grey, "black"),
   pch = c(16, NA, 15, NA), lty = c(NA, 1, NA, 2),

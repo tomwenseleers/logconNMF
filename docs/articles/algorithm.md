@@ -82,6 +82,20 @@ the reported information criterion for that dataset.
     searches return a local solution. Supplied ground truth need not
     minimize a penalized criterion on one realization of noisy data.
 
+For overlapping peaks, a spectrum observed in relatively few samples can
+be proposed as a nonnegative combination of recurring spectra from the
+same aligned retention interval. Each proposed template must also occur
+in a sample where the putative mixture is absent. The solver refits the
+contributing log-concave profiles and shared spectra on the original ion
+counts. It tests both redistribution and retention of a residual
+spectrum. Within a sample, profiles whose half-height intervals overlap
+and whose spectra are nearly linearly dependent are also refitted
+jointly. The fit compares keeping the locally redundant profiles with
+dropping them. The fitted background and other compounds contribute to
+the offset in each comparison. An exchange is accepted only when it
+lowers the same deviance-plus-dimension penalty as the factor updates.
+Library identities and known peak areas enter only at validation.
+
 With the spectra fixed, profiles in different samples have separate
 likelihood contributions. With profiles fixed, the spectral likelihood
 and ion inclusion penalty separate by ion. Workers therefore update
@@ -123,7 +137,7 @@ A first run compiles numerical kernels into the user’s cache. The
 general solver supplies the other identity-link families, observation
 weights, offsets and exposures.
 
-## Rank selection in the classic solver
+## Rank selection in the general identity-link solver
 
 For a fitted mean M_s in each sample, `algorithm="classic"` searches for
 nonnegative channel loadings and nonnegative, log-concave profiles that
@@ -1327,7 +1341,7 @@ parameterizations. The compound-count criterion, local log-concave
 fusion and their integration with L0glm’s grouped initialization are
 developments of this package.
 
-## Parallel disk-backed updates in the classic solver
+## Parallel disk-backed updates in the general identity-link solver
 
 With common spectra P fixed, sample-specific factors are conditionally
 independent. The simultaneous criterion is

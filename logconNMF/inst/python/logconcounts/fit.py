@@ -19,6 +19,7 @@ from .engine import (
 )
 from .kernels import curve_error, face, log_shape
 from .local_spectra import local_spectra
+from .overlap_refit import refine_overlaps
 from .objective import means, score
 from .residual_pair import residual_pair
 
@@ -141,6 +142,7 @@ def fit(parts, groups, price, cycles=12, exchanges=2, trace=False, ncores=1, ava
                     polished=True,
                 )
                 moves += pairs
+                moves += refine_overlaps(data, H, P, price)
         else:
             before, moves = state[1]["objective"], []
         H, P, bands = trim(H, P, bands)

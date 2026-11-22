@@ -220,9 +220,12 @@ sampleNMF(object, sample = 1L)
 - algorithm:
 
   Solver for count data. `"conditional"` alternates hard log-concave
-  profiles and sparse spectra on the original ion counts. `"classic"`
-  uses the general identity-link solver. `"auto"` uses the conditional
-  solver for supported inputs when its Python runtime is available.
+  profiles and sparse spectra on the original ion counts. Multisample
+  fits can reassign mixed spectra to recurring components. A local refit
+  must improve the same original-channel information criterion.
+  `"classic"` uses the general identity-link solver. `"auto"` uses the
+  conditional solver for supported inputs when its Python runtime is
+  available.
 
 - time:
 

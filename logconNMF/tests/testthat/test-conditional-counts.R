@@ -59,3 +59,12 @@ test_that("shared spectra reconstruct each measured grid and trace the scored mo
   }
   expect_error(logconNMF(samples,algorithm="conditional",family=gaussian()),"requires")
 })
+
+test_that("a mixed spectrum can return area to three independent spectra", {
+  skip_if_not(conditionalSolverAvailable())
+  script <- test_path("fixtures", "mixed-spectrum.py")
+  modules <- system.file("python", package="logconNMF", mustWork=TRUE)
+  log <- system2(conditional_python(), shQuote(c(script, modules, tempdir())),
+                 stdout=TRUE, stderr=TRUE)
+  expect_true(is.null(attr(log, "status")), info=paste(log, collapse="\n"))
+})
