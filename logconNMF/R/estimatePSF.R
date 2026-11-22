@@ -24,6 +24,8 @@
 #'   `"standard"` uses calibration alone, treating `y` as the standard when
 #'   `standard=NULL`. `"blind"` estimates directly from the overlapping sample.
 #'   A supplied `control$kernel_est` takes precedence over automatic calibration.
+#'   `"transfer"` evaluates a previously fitted PSF supplied in `standard` on
+#'   the native time grid. Its kernel offsets retain their original time units.
 #' @param nwindows Number of PSF anchors across the sample. `1L` gives a constant
 #'   PSF. Multiple anchors are smoothly interpolated on the log-profile scale.
 #' @param precluster `FALSE` retains the original channels, `1L` sums all
@@ -124,7 +126,7 @@
 #' @export
 estimatePSF <- function(y, family=quasipoisson("identity"), time=NULL,
                          standard=attr(y,"alkanes_TIC"),
-                         method=c("auto","standard","blind"), nwindows=1L,
+                         method=c("auto","standard","blind","transfer"), nwindows=1L,
                          precluster=1L, dispersion=NULL, theta=NULL,
                          weights=NULL, offset=NULL, ncores=NULL,
                          control=list(), verbose=FALSE) {
@@ -143,6 +145,24 @@ estimatePSF <- function(y, family=quasipoisson("identity"), time=NULL,
   if(is.list(family)&&!is.null(family$scalar)&&!"censor"%in%names(control))
     defaults$censor<-family$scalar$censor
   control<-utils::modifyList(defaults,control,keep.null=TRUE)
+  if (method == "transfer") {
+    if (!is.list(standard) || !is.matrix(standard$psf_kernels) ||
+        length(standard$psf_timepoints) != nrow(standard$psf_kernels) ||
+        length(standard$psf_offsets) != ncol(standard$psf_kernels))
+      stop("Supply a fitted PSF in standard for transfer.")
+    kernel <- standard$psf_kernels
+    X <- .psf_build_sparse_matrix(time,standard$psf_timepoints,standard$psf_offsets,
+      kernel,log_floor=0,drop_tol=1e-12,normalize=TRUE,smooth=TRUE)
+    standard$X <- standard$X_spikes <- slcn_project_design_cpp(as(X,"dgCMatrix"),as.integer(ncores))
+    probes <- unique(round(seq(1,n,length.out=min(21L,n))))
+    standard$width_scans <- median(vapply(probes,function(j) {
+      h <- standard$X[,j]; sum(h >= max(h)/2)
+    },0L))
+    standard$time <- time
+    standard$method <- method
+    standard$seconds <- proc.time()[["elapsed"]]-begun
+    return(standard)
+  }
   L0glm_deco_length(control$maxiter,"maxiter",0L)
   if(!is.numeric(control$tol)||length(control$tol)!=1L||!is.finite(control$tol)||control$tol<0)
     stop("tol must be finite and nonnegative.",call.=FALSE)

@@ -6,6 +6,8 @@
 #' original scan grids and estimating a separate profile and area for each
 #' occurrence.
 #'
+#' @name logconNMF
+#' @order 1
 #' @param y A numeric scans-by-channels matrix or vector for one sample, or a
 #'   list of at least two sample descriptions for a simultaneous fit. Each
 #'   description contains `y` and increasing `time`, with optional `X`,
@@ -19,7 +21,7 @@
 #'   description or let the simultaneous initializer estimate it.
 #' @param lambda An information criterion (`"gic"`, `"aic"`, `"bic"`,
 #'   `"ebic"` or `"mbic"`) or a nonnegative numeric penalty per selection
-#'   degree of freedom, before any temporal information adjustment. With
+#'   degree of freedom, before any temporal information adjustment. With the classic solver and
 #'   \eqn{m} channels, a single component incurs \eqn{m\lambda}; in a
 #'   simultaneous fit a shared spectrum incurs \eqn{(m-1)\lambda} and an
 #'   occurrence incurs \eqn{\lambda}.
@@ -30,8 +32,9 @@
 #' @param correlation Lag-one working information adjustment. `NULL` uses the
 #'   fitter's default (`"auto"` for one sample and `"none"` for simultaneous fits),
 #'   or `control$correlation` if supplied for a simultaneous fit.
-#' @param control Named controls. See [splogconNMF()] for one matrix. For a
-#'   simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
+#' @param control Named controls. See [splogconNMF()] for one matrix. The conditional count solver uses up to
+#'   12 initial sweeps, stopping at a relative improvement of 0.001. For a
+#'   classic simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
 #'   `rounds=3L` sets the number of grouping rounds, and `q=64L` sets the
 #'   initial profile update resolution. After a cross-sample match, each
 #'   local profile is refined on all original channels using the hard shape
@@ -45,7 +48,8 @@
 #'   the independent initial fits and defaults to
 #'   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
 #'   grouped-support initialization. `workers` limits concurrent samples
-#'   within `ncores`. The cache retains aggregated observations and at most
+#'   within `ncores`. Conditional grouped regressions use a memory-aware worker cap.
+#'   For the classic solver the cache retains aggregated observations and at most
 #'   one original count matrix up to 64 MiB plus its likelihood normalizers per
 #'   worker. `cache=FALSE` disables persistent input caches and temporary
 #'   whole-sample profile caches, retaining local-window disk reads.
@@ -87,7 +91,13 @@
 #' with the PSF dictionary width and number of scans for a single matrix.
 #' For a sample list the preset uses \eqn{p=n=\sum_s n_s}.
 #'
-#' For one matrix with \eqn{m} channels and \eqn{K} components,
+#' For the conditional count solver the complexity is the sum of the number of
+#' positive ions minus one per normalized spectrum and the dimension of every
+#' positive log-profile face (two endpoints plus interior slope changes).
+#' \code{fit$conditional_objective} reports quasi-deviance and both dimensions.
+#' An absent occurrence has zero cost. Finite support proposals and alternating
+#' conditional updates give a local optimum candidate. For the classic solver,
+#' for one matrix with \eqn{m} channels and \eqn{K} components,
 #' \eqn{d=mK}. For a simultaneous model, \eqn{d=(m-1)G+L}, where \eqn{G} is
 #' the number of shared unit-sum spectra and \eqn{L} counts the detected
 #' sample–component occurrences. Each spectrum contributes \eqn{m-1}
@@ -145,7 +155,9 @@
 #' NB2 `theta` allows bounded, likelihood-improving shape updates.
 #'
 #' The common channel map is learned from samples aggregated on common time
-#' bins. The fitter retains only the aggregated observations in its shared
+#' bins. The conditional solver holds original counts and means in memory for
+#' joint updates and releases the initial PSF workers before this stage.
+#' The classic solver retains only the aggregated observations in its shared
 #' cache. Spectral, background and score passes stream original-channel blocks.
 #' Poisson/quasipoisson workers may additionally retain one original sample
 #' up to 64 MiB and an equally sized log-factorial cache. Larger samples use
@@ -191,13 +203,27 @@
 #' second_fit$compound_id
 #' coef(second_fit)
 #' @md
+#' @param algorithm Solver for count data. `"conditional"` alternates hard
+#'   log-concave profiles and sparse spectra on the original ion counts.
+#'   `"classic"` uses the general identity-link solver. `"auto"` uses the
+#'   conditional solver for supported inputs when its Python runtime is available.
+#' @param time Increasing scan coordinates for a single sample. Defaults to scan
+#'   index. Supply native time in each descriptor for a simultaneous fit.
+#' @param objective.trace Record the penalized quasi-deviance after each
+#'   conditional block. The default avoids the cost of those measurements.
 #' @export
 logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
                       background = NULL, dispersion = NULL, theta = NULL,
                       precluster = "auto", weights = NULL, offset = NULL,
                       correlation = NULL, ncores = NULL, control = list(),
                       start = NULL, path = NULL, align = TRUE,
-                      method = c("cosine", "hellinger"), verbose = FALSE) {
+                      method = c("cosine", "hellinger"), verbose = FALSE,
+                      algorithm = c("auto", "conditional", "classic"), time = NULL,
+                      objective.trace = FALSE) {
+  algorithm <- match.arg(algorithm)
+  if (!is.logical(objective.trace) || length(objective.trace) != 1L || is.na(objective.trace))
+    stop("objective.trace must be TRUE or FALSE.")
+  begun <- proc.time()[["elapsed"]]
   if (is.numeric(lambda) && (length(lambda) != 1L || is.complex(lambda) ||
       !is.finite(lambda) || lambda < 0)) {
     stop("Use one finite, nonnegative penalty or an information criterion.", call. = FALSE)
@@ -206,6 +232,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
   simultaneous <- is.list(y) && !is.data.frame(y)
   if (identical(precluster, "auto")) precluster <- if (simultaneous) 32L else NULL
   if (simultaneous) {
+    if (!is.null(time)) stop("Supply time in each sample description.")
     if (length(y) < 2L) stop("Supply a matrix for one sample or at least two sample descriptions.", call. = FALSE)
     if (!is.null(X) || !is.null(background) || !is.null(weights) ||
         !is.null(offset) || !is.null(start)) {
@@ -225,22 +252,36 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     })
     if (!is.null(correlation)) control$correlation <- correlation
     if (is.null(path)) path <- tempfile("logconNMF_")
+    classic_controls <- intersect(names(control), c("rounds", "initial_cycles", "ridge", "q"))
+    if (length(classic_controls) && algorithm == "conditional")
+      stop("These controls are specific to the classic solver: ", paste(classic_controls, collapse = ", "))
+    conditional <- !length(classic_controls) && conditional_route(algorithm, family, dispersion, theta, samples)
     fit <- simultaneousNMF(samples, family = family, lambda = lambda, path = path,
       precluster = precluster, dispersion = dispersion, theta = theta,
       method = match.arg(method), align = align, ncores = ncores, control = control,
-      verbose = verbose)
+      verbose = verbose, conditional = conditional, trace = objective.trace)
   } else {
     if (is.null(X)) stop("Supply X for a single-sample fit.", call. = FALSE)
     if (!is.null(path) || !missing(align) || !missing(method)) {
       stop("path, align and method apply to simultaneous fits.", call. = FALSE)
     }
+    scalar <- lambda
+    conditional <- conditional_route(algorithm, family, dispersion, theta, list(list(weights=weights, offset=offset)))
     if (is.numeric(lambda)) lambda <- lambda * NCOL(y)
     if (is.null(correlation)) correlation <- "auto"
     fit <- splogconNMF(X, y, family = family, background = background, lambda = lambda,
       dispersion = dispersion, theta = theta, precluster = precluster, weights = weights,
-      offset = offset, correlation = correlation, ncores = ncores, control = control,
+      offset = if (conditional && is.null(background)) 1e-8 else offset,
+      correlation = correlation, ncores = ncores, control = control,
       start = start, verbose = verbose)
+    if (conditional) {
+      price <- fit$spec$information_factor * if (is.numeric(scalar)) scalar else
+        presetLambda(scalar, p = fit$p, n = fit$n)
+      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace)
+      fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
+    }
   }
+  if (is.null(fit$algorithm)) fit$algorithm <- "classic"
   class(fit) <- c("logconNMF_fit", class(fit))
   fit
 }

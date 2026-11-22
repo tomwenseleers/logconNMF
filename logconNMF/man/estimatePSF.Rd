@@ -9,7 +9,7 @@ estimatePSF(
   family = quasipoisson("identity"),
   time = NULL,
   standard = attr(y, "alkanes_TIC"),
-  method = c("auto", "standard", "blind"),
+  method = c("auto", "standard", "blind", "transfer"),
   nwindows = 1L,
   precluster = 1L,
   dispersion = NULL,
@@ -44,7 +44,9 @@ directly, constructing a sparse design on the requested sample grid.}
 on the sample; without a standard it uses blind sample estimation.
 \code{"standard"} uses calibration alone, treating \code{y} as the standard when
 \code{standard=NULL}. \code{"blind"} estimates directly from the overlapping sample.
-A supplied \code{control$kernel_est} takes precedence over automatic calibration.}
+A supplied \code{control$kernel_est} takes precedence over automatic calibration.
+\code{"transfer"} evaluates a previously fitted PSF supplied in \code{standard} on
+the native time grid. Its kernel offsets retain their original time units.}
 
 \item{nwindows}{Number of PSF anchors across the sample. \code{1L} gives a constant
 PSF. Multiple anchors are smoothly interpolated on the log-profile scale.}

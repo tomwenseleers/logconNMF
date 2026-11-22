@@ -63,19 +63,19 @@ graphics::lines(
   grid, interval[, "fit"],
   col = "black", lwd = 3
 )
-graphics::abline(
-  0, 1, col = "black", lty = 2, lwd = 2
-)
 graphics::points(
   area$data$log_true, area$data$log_estimated,
   pch = 16, cex = 0.95,
   col = grDevices::adjustcolor(steelblue, alpha.f = 0.5)
 )
+graphics::abline(
+  0, 1, col = "black", lty = 2, lwd = 2
+)
 graphics::title("Peak-area accuracy of the simultaneous logconNMF fit",
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(
   sprintf(
-    "Robust adjusted R-squared %.3f | median absolute area error %.2f%% | %d matched occurrences",
+    "Robust adjusted R-squared %.6f | median absolute area-factor error %.2f%% | %d matched occurrences",
     area$adjusted_R2, 100 * summary$area_median_error_factor, nrow(area$data)
   ),
   side = 3, line = 1.0, col = muted, cex = 0.96
@@ -239,7 +239,7 @@ for (kind in c("Regular", "Acid")) {
   graphics::grid(col = grid_colour, lty = 1)
   draw_curves(fitted, 1, 1.8)
   draw_curves(known, 2, 1.35)
-  graphics::mtext(sprintf("Mean profile cosine %.3f | %d/%d occurrences recovered",
+  graphics::mtext(sprintf("Mean profile cosine %.6f | %d/%d occurrences recovered",
     q$mean_profile_cosine, q$recovered, q$present),
     side = 3, line = 0.55, cex = 0.88, col = muted)
 }

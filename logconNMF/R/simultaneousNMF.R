@@ -2,7 +2,7 @@
 simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
                        path=tempfile("simultaneousNMF_"), precluster=32L,
                        dispersion=NULL, theta=NULL, method=c("cosine","hellinger"),
-                       align=TRUE, ncores=NULL, control=list(), verbose=FALSE) {
+                       align=TRUE, ncores=NULL, control=list(), verbose=FALSE, conditional=FALSE, trace=FALSE) {
   begun<-proc.time()[["elapsed"]];method<-match.arg(method)
   if(!is.list(samples)||length(samples)<2L)stop("Supply at least two sample descriptions.")
   if(!is.logical(align)||length(align)!=1L||is.na(align))stop("align must be TRUE or FALSE.")
@@ -13,6 +13,13 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if(!is.list(control)||length(control)&&(is.null(names(control))||anyDuplicated(names(control))||
       length(setdiff(names(control),names(defaults)))))stop("Use named simultaneous controls.")
   ctl<-utils::modifyList(defaults,control)
+  ctl$conditional <- conditional
+  if (conditional && is.null(control$cycles)) ctl$cycles <- 12L
+  if (conditional) {
+    N <- sum(vapply(samples, function(x) length(x$time), 0L))
+    ctl$dictionary_lambda <- if (is.numeric(lambda)) lambda else presetLambda(lambda, p=N, n=N)
+    if (is.null(ctl$workers)) ctl$workers <- conditional_workers(samples,ncores)
+  }
   if(is.list(family)&&!is.null(family$scalar)&&!"censor"%in%names(control))ctl$censor<-family$scalar$censor
   for(nm in c("cycles","initial_cycles","rounds","q")) {
     v<-ctl[[nm]];if(length(v)!=1L||!is.finite(v)||v<(if(nm=="q")3 else 0)||v!=floor(v))stop("Invalid ",nm)
@@ -23,8 +30,14 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   dir.create(path,recursive=TRUE);path<-normalizePath(path,winslash="/",mustWork=TRUE)
   if(!is.logical(ctl$cache)||length(ctl$cache)!=1L||is.na(ctl$cache))stop("cache must be TRUE or FALSE.")
   runtime<-sinmf_runtime(ncores,length(samples),ctl$workers,cache=ctl$cache)
-  on.exit(sinmf_close_runtime(runtime),add=TRUE)
+  closed <- FALSE
+  on.exit(if(!closed) sinmf_close_runtime(runtime),add=TRUE)
   initial<-slcn_time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
+  if (conditional) {
+    sinmf_close_runtime(runtime)
+    closed <- TRUE
+    return(conditional_batch(store,method,align,ncores,lambda,ctl,trace,initial,begun,runtime$budget))
+  }
   state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
   state$runtime<-runtime;state$parallel<-runtime$budget
   state<-sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)
@@ -104,13 +117,19 @@ sinmf_prepare_sample <- function(task) {
     if(is.null(f)) {
       X<-x$X
       if(is.null(X))X<-estimatePSF(pmax(Y,0),time=time,family=family,nwindows=1L,precluster=1L,ncores=ncores)$X
-      f<-splogconNMF(X,Y,family=family,background=B*E,
+      if (isTRUE(ctl$conditional)) {
+        phi <- if(is.null(x$dispersion)) dispersion else x$dispersion
+        spec <- x$noise_spec
+        if (is.null(spec)) spec <- estimateSignalNoise(Y,family,dispersion=phi,correlation=ctl$correlation,ncores=ncores)$spec
+        f <- conditional_dictionary(X,Y,B,spec,precluster,ctl$dictionary_lambda*spec$information_factor,ncores,ctl$initial)
+      } else f<-splogconNMF(X,Y,family=family,background=B*E,
         lambda=if(is.numeric(task$lambda))task$lambda*m else task$lambda,precluster=precluster,
         dispersion=if(is.null(x$dispersion))dispersion else x$dispersion,
         theta=if(is.null(x$theta))theta else x$theta,weights=W,offset=O,
         correlation=ctl$correlation,ncores=ncores,control=ctl$initial,verbose=verbose)
     }
-    if(nrow(f$H)!=n||ncol(f$S)!=m||ncol(f$H)!=nrow(f$S)||any(!is.finite(f$S)|f$S<0)||
+    expected <- if(isTRUE(ctl$conditional) && is.null(x$fit) && !is.null(precluster)) precluster$k else m
+    if(nrow(f$H)!=n||ncol(f$S)!=expected||ncol(f$H)!=nrow(f$S)||any(!is.finite(f$S)|f$S<0)||
         any(!is.finite(f$H@x)|f$H@x<0))stop("Invalid initial factors.")
     if(is.null(f$spec))stop("Initial fits must contain resolved noise settings in spec.")
     if(f$spec$kind!=0L&&any(Y<0))stop("Nonnegative observations are required by this family.")
@@ -124,7 +143,7 @@ sinmf_prepare_sample <- function(task) {
     if(is.null(small))small<-2*sqrt(2*log(100))*1.6*median(diff(time))
     if(length(small)!=1L||!is.finite(small)||small<=0)stop("small_width must be positive.")
     # Compact initial factors; observed means and reduced-space fits are released.
-    f<-f[c("H","S","background","alpha","spec")]
+    f<-f[intersect(c("H","S","background","alpha","spec","grouped_dictionary"),names(f))]
     if(is.null(f$background))f$background<-B*E
     initial<-sinmf_checkpoint_sample(f,d,"initial")
     wfile<-if(length(W)>1L)file.path(d,"weights.rds")else NULL
@@ -136,7 +155,7 @@ sinmf_prepare_sample <- function(task) {
       initial=initial,weights=if(is.null(wfile))W else wfile,
       offset=if(is.null(ofile))O else ofile,censor=ctl$censor)
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
-    aggregate<-if(is.null(precluster))NULL else aggregateChannels(Y,precluster,mass)
+    aggregate<-if(is.null(precluster) || isTRUE(ctl$conditional))NULL else aggregateChannels(Y,precluster,mass)
     if(!is.null(aggregate)) {
       meta$aggregateChannels<-ncol(aggregate)
       sinmf_write_matrix_file(aggregate,file.path(d,"aggregate.bin"))
@@ -298,10 +317,18 @@ sampleNMF <- function(object,sample=1L) {
   model$nuisance_df<-as.integer(f$spec$dispersion_estimated)+as.integer(f$spec$theta_estimated)
   model$ic_df<-ncol(S)*nrow(S)+model$nuisance_df
   model$lambda<-object$lambda*ncol(S);model$objective<- -2*model$loglik+model$lambda*model$rank
+  if (identical(object$algorithm, "conditional")) {
+    model$algorithm <- "conditional"
+    model$conditional_objective <- list(spectral_df=sum(S>0)-nrow(S), shape_df=sum(f$shape_df))
+    model$ic_df <- model$conditional_objective$spectral_df + model$conditional_objective$shape_df + model$nuisance_df
+    model$lambda <- object$lambda
+    model$objective <- -2*model$loglik + model$lambda*model$ic_df
+  }
   model<-slcn_temporal_order(model)
   # slcn_temporal_order orders H/S; carry the global IDs through the same ordering.
   apex<-vapply(seq_len(ncol(f$H)),function(k)which.max(f$H[,k]*f$exposure),0L)
   order<-order(apex);model$compound_id<-ids[order];model$integrated_area<-model$integrated_area[order]
+  if (!is.null(f$shape_df)) model$shape_df <- f$shape_df[order]
   class(model)<-"splogconNMF"
   model
 }

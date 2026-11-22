@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fit a log-concave factorization with automatic rank selection</h1>
-      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/R/logconNMF.R" class="external-link"><code>R/logconNMF.R</code></a>, <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/R/simultaneousNMF.R" class="external-link"><code>R/simultaneousNMF.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/R/logconNMF.R" class="external-link"><code>R/logconNMF.R</code></a>, <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/R/conditional_counts.R" class="external-link"><code>R/conditional_counts.R</code></a>, <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/R/simultaneousNMF.R" class="external-link"><code>R/simultaneousNMF.R</code></a></small>
       <div class="d-none name"><code>logconNMF.Rd</code></div>
     </div>
 
@@ -76,8 +76,13 @@ occurrence.</p>
 <span>  path <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  align <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cosine"</span>, <span class="st">"hellinger"</span><span class="op">)</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"conditional"</span>, <span class="st">"classic"</span><span class="op">)</span>,</span>
+<span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  objective.trace <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">conditionalSolverAvailable</span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'logconNMF_fit'</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">object</span>, sample <span class="op">=</span> <span class="cn">NULL</span>, normalize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"none"</span>, <span class="st">"l1"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -130,7 +135,7 @@ may be negative; their fitted latent signals remain nonnegative.</p></dd>
 <dt id="arg-lambda">lambda<a class="anchor" aria-label="anchor" href="#arg-lambda"></a></dt>
 <dd><p>An information criterion (<code>"gic"</code>, <code>"aic"</code>, <code>"bic"</code>,
 <code>"ebic"</code> or <code>"mbic"</code>) or a nonnegative numeric penalty per selection
-degree of freedom, before any temporal information adjustment. With
+degree of freedom, before any temporal information adjustment. With the classic solver and
 \(m\) channels, a single component incurs \(m\lambda\); in a
 simultaneous fit a shared spectrum incurs \((m-1)\lambda\) and an
 occurrence incurs \(\lambda\).</p></dd>
@@ -188,10 +193,15 @@ between sample workers and their native threads, with one BLAS thread per worker
 
 
 <dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
-<dd><p>Named controls. See <code><a href="splogconNMF.html">splogconNMF()</a></code> for one matrix. For a
-simultaneous fit, <code>cycles=10L</code> and <code>initial_cycles=5L</code> set refinement limits,
+<dd><p>Named controls. See <code><a href="splogconNMF.html">splogconNMF()</a></code> for one matrix. The conditional count solver uses up to
+12 initial sweeps, stopping at a relative improvement of 0.001. For a
+classic simultaneous fit, <code>cycles=10L</code> and <code>initial_cycles=5L</code> set refinement limits,
 <code>rounds=3L</code> sets the number of grouping rounds, and <code>q=64L</code> sets the
-local profile update resolution. The default <code>rt_tolerance=NULL</code> and
+initial profile update resolution. After a cross-sample match, each
+local profile is refined on all original channels using the hard shape
+constraint of <code><a href="fitLogConcaveProfile.html">fitLogConcaveProfile()</a></code>. Its window extends two local
+PSF full widths at half maximum on either side of the initial support.
+The default <code>rt_tolerance=NULL</code> and
 <code>alignment_window=NULL</code> derive matching windows from the narrow-peak
 widths. <code>ridge=TRUE</code> checks the profile ridge across samples. The
 remaining defaults are <code>censor=0.5</code>, <code>correlation="none"</code>,
@@ -199,9 +209,16 @@ remaining defaults are <code>censor=0.5</code>, <code>correlation="none"</code>,
 the independent initial fits and defaults to
 <code>list(initial_relaxed=FALSE)</code>; single-sample fits default to a relaxed
 grouped-support initialization. <code>workers</code> limits concurrent samples
-within <code>ncores</code>. The cache retains aggregated observations and at most
+within <code>ncores</code>. Conditional grouped regressions use a memory-aware worker cap.
+For the classic solver the cache retains aggregated observations and at most
 one original count matrix up to 64 MiB plus its likelihood normalizers per
-worker. <code>cache=FALSE</code> disables persistent input caches.</p></dd>
+worker. <code>cache=FALSE</code> disables persistent input caches and temporary
+whole-sample profile caches, retaining local-window disk reads.
+For memory-limited series, <code>workers=1L, cache=FALSE</code> avoids concurrent
+sample workspaces and retained observation caches. Set
+<code>initial=list(initial_solver=list(solver="eigen", method=3L, precond=1L))</code>
+to request iterative component selection for every sample. The solver's
+<code>max.memory</code> budget covers Gram/factor workspace, not total process RAM.</p></dd>
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
@@ -229,6 +246,23 @@ simultaneous fit. <code>NULL</code> uses a temporary directory.</p></dd>
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
 <dd><p>Print stage timings, objective changes and compound counts.</p></dd>
+
+
+<dt id="arg-algorithm">algorithm<a class="anchor" aria-label="anchor" href="#arg-algorithm"></a></dt>
+<dd><p>Solver for count data. <code>"conditional"</code> alternates hard
+log-concave profiles and sparse spectra on the original ion counts.
+<code>"classic"</code> uses the general identity-link solver. <code>"auto"</code> uses the
+conditional solver for supported inputs when its Python runtime is available.</p></dd>
+
+
+<dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
+<dd><p>Increasing scan coordinates for a single sample. Defaults to scan
+index. Supply native time in each descriptor for a simultaneous fit.</p></dd>
+
+
+<dt id="arg-objective-trace">objective.trace<a class="anchor" aria-label="anchor" href="#arg-objective-trace"></a></dt>
+<dd><p>Record the penalized quasi-deviance after each
+conditional block. The default avoids the cost of those measurements.</p></dd>
 
 
 <dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>
@@ -284,7 +318,13 @@ equal to one under independence. A numeric <code>lambda</code> sets the penalty 
 selection degree of freedom. The GIC preset uses \(\log(p)\log\log(n)\),
 with the PSF dictionary width and number of scans for a single matrix.
 For a sample list the preset uses \(p=n=\sum_s n_s\).</p>
-<p>For one matrix with \(m\) channels and \(K\) components,
+<p>For the conditional count solver the complexity is the sum of the number of
+positive ions minus one per normalized spectrum and the dimension of every
+positive log-profile face (two endpoints plus interior slope changes).
+<code>fit$conditional_objective</code> reports quasi-deviance and both dimensions.
+An absent occurrence has zero cost. Finite support proposals and alternating
+conditional updates give a local optimum candidate. For the classic solver,
+for one matrix with \(m\) channels and \(K\) components,
 \(d=mK\). For a simultaneous model, \(d=(m-1)G+L\), where \(G\) is
 the number of shared unit-sum spectra and \(L\) counts the detected
 sample–component occurrences. Each spectrum contributes \(m-1\)
@@ -339,7 +379,9 @@ full original-channel likelihood. Undetected occurrences have <code>NA</code>
 areas. Noise scales are held fixed when comparing groupings. A negative
 NB2 <code>theta</code> allows bounded, likelihood-improving shape updates.</p>
 <p>The common channel map is learned from samples aggregated on common time
-bins. The fitter retains only the aggregated observations in its shared
+bins. The conditional solver holds original counts and means in memory for
+joint updates and releases the initial PSF workers before this stage.
+The classic solver retains only the aggregated observations in its shared
 cache. Spectral, background and score passes stream original-channel blocks.
 Poisson/quasipoisson workers may additionally retain one original sample
 up to 64 MiB and an equally sized log-factorial cache. Larger samples use
@@ -390,10 +432,10 @@ matrix.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> first        775       871</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> second      1163      1202</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">joint</span>, sample <span class="op">=</span> <span class="st">"second"</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, <span class="op">]</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      1 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 0 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1     2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 1e-08 1e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 1e-08 1e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] 1e-08 1e-08</span>
 <span class="r-in"><span><span class="va">second_fit</span> <span class="op">&lt;-</span> <span class="fu">sampleNMF</span><span class="op">(</span><span class="va">joint</span>, sample <span class="op">=</span> <span class="st">"second"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">second_fit</span><span class="op">$</span><span class="va">compound_id</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1 2</span>

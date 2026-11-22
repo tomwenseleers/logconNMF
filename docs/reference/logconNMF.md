@@ -27,8 +27,13 @@ logconNMF(
   path = NULL,
   align = TRUE,
   method = c("cosine", "hellinger"),
-  verbose = FALSE
+  verbose = FALSE,
+  algorithm = c("auto", "conditional", "classic"),
+  time = NULL,
+  objective.trace = FALSE
 )
+
+conditionalSolverAvailable()
 
 # S3 method for class 'logconNMF_fit'
 coef(object, sample = NULL, normalize = c("none", "l1"), ...)
@@ -87,10 +92,10 @@ sampleNMF(object, sample = 1L)
 
   An information criterion (`"gic"`, `"aic"`, `"bic"`, `"ebic"` or
   `"mbic"`) or a nonnegative numeric penalty per selection degree of
-  freedom, before any temporal information adjustment. With \\m\\
-  channels, a single component incurs \\m\lambda\\; in a simultaneous
-  fit a shared spectrum incurs \\(m-1)\lambda\\ and an occurrence incurs
-  \\\lambda\\.
+  freedom, before any temporal information adjustment. With the classic
+  solver and \\m\\ channels, a single component incurs \\m\lambda\\; in
+  a simultaneous fit a shared spectrum incurs \\(m-1)\lambda\\ and an
+  occurrence incurs \\\lambda\\.
 
 - background:
 
@@ -152,10 +157,16 @@ sampleNMF(object, sample = 1L)
 
   Named controls. See
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
-  for one matrix. For a simultaneous fit, `cycles=10L` and
-  `initial_cycles=5L` set refinement limits, `rounds=3L` sets the number
-  of grouping rounds, and `q=64L` sets the local profile update
-  resolution. The default `rt_tolerance=NULL` and
+  for one matrix. The conditional count solver uses up to 12 initial
+  sweeps, stopping at a relative improvement of 0.001. For a classic
+  simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement
+  limits, `rounds=3L` sets the number of grouping rounds, and `q=64L`
+  sets the initial profile update resolution. After a cross-sample
+  match, each local profile is refined on all original channels using
+  the hard shape constraint of
+  [`fitLogConcaveProfile()`](https://tomwenseleers.github.io/logconNMF/reference/fitLogConcaveProfile.md).
+  Its window extends two local PSF full widths at half maximum on either
+  side of the initial support. The default `rt_tolerance=NULL` and
   `alignment_window=NULL` derive matching windows from the narrow-peak
   widths. `ridge=TRUE` checks the profile ridge across samples. The
   remaining defaults are `censor=0.5`, `correlation="none"`,
@@ -163,9 +174,18 @@ sampleNMF(object, sample = 1L)
   independent initial fits and defaults to
   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
   grouped-support initialization. `workers` limits concurrent samples
-  within `ncores`. The cache retains aggregated observations and at most
-  one original count matrix up to 64 MiB plus its likelihood normalizers
-  per worker. `cache=FALSE` disables persistent input caches.
+  within `ncores`. Conditional grouped regressions use a memory-aware
+  worker cap. For the classic solver the cache retains aggregated
+  observations and at most one original count matrix up to 64 MiB plus
+  its likelihood normalizers per worker. `cache=FALSE` disables
+  persistent input caches and temporary whole-sample profile caches,
+  retaining local-window disk reads. For memory-limited series,
+  `workers=1L, cache=FALSE` avoids concurrent sample workspaces and
+  retained observation caches. Set
+  `initial=list(initial_solver=list(solver="eigen", method=3L, precond=1L))`
+  to request iterative component selection for every sample. The
+  solver's `max.memory` budget covers Gram/factor workspace, not total
+  process RAM.
 
 - start:
 
@@ -194,6 +214,23 @@ sampleNMF(object, sample = 1L)
 - verbose:
 
   Print stage timings, objective changes and compound counts.
+
+- algorithm:
+
+  Solver for count data. `"conditional"` alternates hard log-concave
+  profiles and sparse spectra on the original ion counts. `"classic"`
+  uses the general identity-link solver. `"auto"` uses the conditional
+  solver for supported inputs when its Python runtime is available.
+
+- time:
+
+  Increasing scan coordinates for a single sample. Defaults to scan
+  index. Supply native time in each descriptor for a simultaneous fit.
+
+- objective.trace:
+
+  Record the penalized quasi-deviance after each conditional block. The
+  default avoids the cost of those measurements.
 
 - object:
 
@@ -255,14 +292,20 @@ of freedom. The GIC preset uses \\\log(p)\log\log(n)\\, with the PSF
 dictionary width and number of scans for a single matrix. For a sample
 list the preset uses \\p=n=\sum_s n_s\\.
 
-For one matrix with \\m\\ channels and \\K\\ components, \\d=mK\\. For a
-simultaneous model, \\d=(m-1)G+L\\, where \\G\\ is the number of shared
-unit-sum spectra and \\L\\ counts the detected sample–component
-occurrences. Each spectrum contributes \\m-1\\ coordinates and each
-occurrence contributes one amplitude. Setting \\G=L=K\\ gives the
-single-sample count. Profiles have contiguous support and a concave
-logarithm on the positive interval. Profile shapes and smooth
-backgrounds carry no additional rank charge.
+For the conditional count solver the complexity is the sum of the number
+of positive ions minus one per normalized spectrum and the dimension of
+every positive log-profile face (two endpoints plus interior slope
+changes). `fit$conditional_objective` reports quasi-deviance and both
+dimensions. An absent occurrence has zero cost. Finite support proposals
+and alternating conditional updates give a local optimum candidate. For
+the classic solver, for one matrix with \\m\\ channels and \\K\\
+components, \\d=mK\\. For a simultaneous model, \\d=(m-1)G+L\\, where
+\\G\\ is the number of shared unit-sum spectra and \\L\\ counts the
+detected sample–component occurrences. Each spectrum contributes \\m-1\\
+coordinates and each occurrence contributes one amplitude. Setting
+\\G=L=K\\ gives the single-sample count. Profiles have contiguous
+support and a concave logarithm on the positive interval. Profile shapes
+and smooth backgrounds carry no additional rank charge.
 
 The simultaneous `objective` and reported information criteria such as
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
@@ -317,16 +360,18 @@ Noise scales are held fixed when comparing groupings. A negative NB2
 `theta` allows bounded, likelihood-improving shape updates.
 
 The common channel map is learned from samples aggregated on common time
-bins. The fitter retains only the aggregated observations in its shared
-cache. Spectral, background and score passes stream original-channel
-blocks. Poisson/quasipoisson workers may additionally retain one
-original sample up to 64 MiB and an equally sized log-factorial cache.
-Larger samples use local reads. These bounded caches are released with
-the runtime, including error exits; they do not grow with the number of
-samples. Absolute likelihoods retain their normalizers and local
-acceptance checks retain all original ions. Other profile passes load
-one assigned sample per active worker. Keep the store with the saved
-fitted object for reconstruction and plots.
+bins. The conditional solver holds original counts and means in memory
+for joint updates and releases the initial PSF workers before this
+stage. The classic solver retains only the aggregated observations in
+its shared cache. Spectral, background and score passes stream
+original-channel blocks. Poisson/quasipoisson workers may additionally
+retain one original sample up to 64 MiB and an equally sized
+log-factorial cache. Larger samples use local reads. These bounded
+caches are released with the runtime, including error exits; they do not
+grow with the number of samples. Absolute likelihoods retain their
+normalizers and local acceptance checks retain all original ions. Other
+profile passes load one assigned sample per active worker. Keep the
+store with the saved fitted object for reconstruction and plots.
 
 ## Extract one sample
 
@@ -369,10 +414,10 @@ joint$areas
 #> first        775       871
 #> second      1163      1202
 fitted(joint, sample = "second")[1:3, ]
-#>      1 2
-#> [1,] 0 0
-#> [2,] 0 0
-#> [3,] 0 0
+#>          1     2
+#> [1,] 1e-08 1e-08
+#> [2,] 1e-08 1e-08
+#> [3,] 1e-08 1e-08
 second_fit <- sampleNMF(joint, sample = "second")
 second_fit$compound_id
 #> [1] 1 2

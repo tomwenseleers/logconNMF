@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,7 +132,7 @@ to other ordered multichannel measurements.</p>
 <span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>kernel_est<span class="op">=</span><span class="va">g</span>, maxiter<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="va">psf</span><span class="op">$</span><span class="va">X</span></span>
 <span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span>, <span class="fl">1L</span><span class="op">)</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X<span class="op">=</span><span class="va">X</span>, background<span class="op">=</span><span class="va">B</span>,</span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, X<span class="op">=</span><span class="va">X</span>, time<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, background<span class="op">=</span><span class="va">B</span>,</span>
 <span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">7L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
 <span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial_relaxed<span class="op">=</span><span class="cn">FALSE</span>, fusion_passes<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
@@ -140,9 +140,9 @@ to other ordered multichannel measurements.</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="../reference/estimatePSF.html">estimatePSF()</a></code> applies the same boundary-aware,
-column-normalised PSF construction used by GCMSprime. Thus the settings
-above recover exactly the same profiles, spectra and background in both
-packages, and repeated fits are deterministic.</p>
+column-normalised PSF construction used by GCMSprime. Supplying the same
+observations, native times and settings reproduces the fit through
+either interface. A CDF round trip can change numerical precision.</p>
 <p>The constant background is supplied as a single column of ones. Use
 <a href="estimate-psf.html">PSF estimation</a> to build <code>X</code>
 when the initial response shape is unknown or varies with position.</p>
@@ -154,7 +154,7 @@ when the initial response shape is unknown or varies with position.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">H</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"l"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Profile"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/matplot.html" class="external-link">matplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, type<span class="op">=</span><span class="st">"h"</span>, lty<span class="op">=</span><span class="fl">1</span>, xlab<span class="op">=</span><span class="st">"Channel"</span>, ylab<span class="op">=</span><span class="st">"Loading"</span><span class="op">)</span></span>
 <span><span class="fu">L0glm</span><span class="fu">::</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/plotMat.html" class="external-link">plotMat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span>, xlab<span class="op">=</span><span class="st">"Scan"</span>, ylab<span class="op">=</span><span class="st">"Channel"</span><span class="op">)</span></span>
-<span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">patterns</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fitted_signal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">seconds</span></span></code></pre></div>
 <div class="float">
@@ -184,18 +184,19 @@ the smooth background:</p>
 <span>    maxiter<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">X2</span> <span class="op">&lt;-</span> <span class="va">psf2</span><span class="op">$</span><span class="va">X</span></span>
 <span><span class="va">B2</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">t2</span>, df<span class="op">=</span><span class="fl">6L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y2</span>, X<span class="op">=</span><span class="va">X2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y2</span>, X<span class="op">=</span><span class="va">X2</span>, time<span class="op">=</span><span class="va">t2</span>, background<span class="op">=</span><span class="va">B2</span>,</span>
 <span>  family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span>, correlation<span class="op">=</span><span class="st">"auto"</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
 <span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial_relaxed<span class="op">=</span><span class="cn">TRUE</span>, fusion_passes<span class="op">=</span><span class="fl">0L</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit2</span><span class="op">$</span><span class="va">rank</span></span>
-<span><span class="va">fit2</span><span class="op">$</span><span class="va">contained_fusion</span><span class="op">$</span><span class="va">broad</span></span></code></pre></div>
+<span><span class="va">fit2</span><span class="op">$</span><span class="va">conditional_objective</span></span></code></pre></div>
 <div class="float">
 <img src="../reference/figures/gcms-data2-profiles-spectra.png" alt="Log-concave profiles and full-channel spectra, including the broad component"><div class="figcaption">Log-concave profiles and full-channel spectra,
 including the broad component</div>
 </div>
 <p>The table reports one direct fit of each matrix with eight OpenMP
 threads and one BLAS thread on an Intel Core i9-11950H. Constructing the
-PSF dictionary and background basis is outside the timing.</p>
+PSF dictionary and background basis is outside the timing. These are
+single elapsed measurements.</p>
 <table class="table">
 <thead><tr class="header">
 <th align="left">Window</th>
@@ -211,16 +212,16 @@ PSF dictionary and background basis is outside the timing.</p>
 <td align="right">119</td>
 <td align="right">670</td>
 <td align="right">6</td>
-<td align="right">247,218</td>
-<td align="right">1.61</td>
+<td align="right">215,547</td>
+<td align="right">9.72</td>
 </tr>
 <tr class="even">
 <td align="left">Beer volatiles</td>
 <td align="right">1,764</td>
 <td align="right">518</td>
 <td align="right">36</td>
-<td align="right">1,466,362</td>
-<td align="right">32.12</td>
+<td align="right">1,010,157</td>
+<td align="right">42.66</td>
 </tr>
 </tbody>
 </table>
@@ -231,31 +232,15 @@ provides diagnostic plots and downloadable spectra.</p>
 <div class="section level2">
 <h2 id="automatic-best-rank-tuning">Automatic best rank tuning<a class="anchor" aria-label="anchor" href="#automatic-best-rank-tuning"></a>
 </h2>
-<p>The initialization keeps a permissive pool of components while native
-constrained likelihood updates refine their profiles and spectra. Final
-rank selection applies the requested temporal information adjustment.
-Small fragments contained within a broad profile are compared with an
-equally refined unmerged local model on all original channels.</p>
-<p>The default <code>lambda="gic"</code> compares complete fits by
-likelihood and component count. After dividing the likelihood by the
-original channel count, each retained component incurs one rank charge.
-On the unscaled likelihood the charge is <span class="math inline">m\lambda_{\mathrm{IC}}</span>, with an optional
-temporal information adjustment. Profile complexity and background
-coefficients have no extra rank penalty.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">objective</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">history</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"stage"</span>, <span class="st">"delta"</span>, <span class="st">"accepted"</span>, <span class="st">"compounds"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">cleanup</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">initialization</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">contained_fusion</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>AIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, BIC<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, GIC<span class="op">=</span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>Reported criteria count <span class="math inline">mK</span>, where
-<span class="math inline">K</span> is the fitted rank, plus estimated
-shared noise parameters. Other presets are <code>"aic"</code>,
-<code>"bic"</code>, <code>"ebic"</code> and <code>"mbic"</code>. A
-nonnegative numeric <code>lambda</code> supplies the penalty per
-selection degree of freedom. Each retained component incurs <span class="math inline">m\lambda</span> before temporal adjustment. The <a href="algorithm.html#rank-selection">rank objective</a> gives the full
-convention.</p>
+<p>The grouped PSF fit supplies candidate spectra. The conditional count
+solver compares original-ion fits under one penalty for positive
+spectral coordinates and the effective dimensions of the fitted
+log-concave profiles. The fixed background basis stays unpenalized. For
+a per-block trace, pass <code>objective.trace=TRUE</code> in the
+original call. Inspect <code>fit$conditional_objective</code> for the
+final breakdown or call <code>GIC(fit)</code> for the likelihood-based
+criterion. The <a href="algorithm.html#conditional-count-objective">derivation</a> gives
+the single- and multisample conventions.</p>
 </div>
 <div class="section level2">
 <h2 id="choose-a-noise-model">Choose a noise model<a class="anchor" aria-label="anchor" href="#choose-a-noise-model"></a>
@@ -340,7 +325,7 @@ The original channel count sets the rank charge in both workflows; final
 scoring uses the original observations and specified noise model.</p>
 <p>For a longer signal, replace the constant background with a
 low-dimensional nonnegative spline basis:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Background coefficients are fitted conditionally on the component
 signal and remain unpenalized in rank selection. Known additive signals

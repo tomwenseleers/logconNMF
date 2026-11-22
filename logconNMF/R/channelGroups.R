@@ -7,6 +7,8 @@
 #' @param k Maximum number of channel groups.
 #' @param channels Unique channel identifiers, normally m/z values.
 #' @param normalize Give every input row unit total, useful for spectral libraries.
+#' @param reserve_unknown Reserve one group for channels absent from the
+#'   training axis. Set to FALSE when fitting on a fixed, shared channel axis.
 #' @param ncores Native thread count, defaulting to physical cores.
 #' @param groups A map returned by `channelGroups()`.
 #' @return `channelGroups()` returns a compact reusable map accepted as
@@ -20,7 +22,7 @@
 #' stopifnot(sum(y) == sum(z))
 #' @md
 #' @export
-channelGroups <- function(y,k=32L,channels=colnames(y),normalize=FALSE,ncores=NULL) {
+channelGroups <- function(y,k=32L,channels=colnames(y),normalize=FALSE,ncores=NULL,reserve_unknown=TRUE) {
   Y<-as.matrix(y);m<-ncol(Y)
   if(is.null(channels))channels<-as.character(seq_len(m))
   if(!is.numeric(Y)||!m||!nrow(Y)||any(!is.finite(Y)|Y<0)||
@@ -29,15 +31,16 @@ channelGroups <- function(y,k=32L,channels=colnames(y),normalize=FALSE,ncores=NU
   if(!is.logical(normalize)||length(normalize)!=1L||is.na(normalize))stop("normalize must be TRUE or FALSE.")
   if(normalize)Y<-Y/pmax(rowSums(Y),1e-30)
   k<-min(as.integer(k),m);live<-colSums(Y)>0
+  if(!is.logical(reserve_unknown)||length(reserve_unknown)!=1L||is.na(reserve_unknown))stop("reserve_unknown must be TRUE or FALSE.")
   group<-rep.int(k,m)
   if(k==1L)group[]<-1L else if(any(live)) {
-    count<-min(k-1L,sum(live))
+    count<-min(k-as.integer(reserve_unknown),sum(live))
     group[live]<-if(count==1L)1L else glmCluster(Y[,live,drop=FALSE],
       family=poisson("identity"),method="poissondist",size_fac=colSums(Y[,live,drop=FALSE]),
       k=count,nthreads=sinmf_core_count(ncores))$clusterids
   }
   structure(list(channels=as.character(channels),group=as.integer(group),k=k,
-    unknown_group=k,normalize=normalize,method="size-adjusted Poisson Ward",version=1L),
+    unknown_group=if(reserve_unknown) k else NA_integer_,normalize=normalize,method="size-adjusted Poisson Ward",version=1L),
     class="nmf_channel_groups")
 }
 
@@ -47,6 +50,7 @@ sinmf_channel_index <- function(groups,channels) {
     stop("Use a channelGroups() map.")
   z<-groups$group[match(as.character(channels),groups$channels)]
   z[is.na(z)]<-groups$unknown_group
+  if(anyNA(z))stop("This fixed channel partition does not include every requested channel.")
   z
 }
 

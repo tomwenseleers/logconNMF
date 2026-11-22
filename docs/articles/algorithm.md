@@ -21,12 +21,104 @@ factorization](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-n
 It specifies the actual objectives, coordinate conventions,
 initialization and acceptance rules.
 
-## Common rank-selection objective
+## Sparse spectra and log-concave profiles for count data
 
-For a fitted mean M_s in each sample,
-[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
-searches for nonnegative channel loadings and nonnegative, log-concave
-profiles that approximately minimize
+For a count matrix with time in rows and ions in columns, write the
+expected signal in sample s as \mu\_{sij} = \epsilon + (B_s A_s)\_{ij} +
+\sum\_{k=1}^K h\_{sik}p\_{kj}, \qquad p\_{kj}\ge0,\quad \sum_j p\_{kj}=1
+. An absent compound has h\_{s\cdot k}=0. Otherwise its positive support
+is a contiguous interval. For successive positive observations the
+slopes (\log h\_{s,i+1,k}-\log h\_{sik})/(t\_{s,i+1}-t\_{si}) are
+nonincreasing. This permits asymmetric peaks, including an abrupt change
+of slope at the apex. Each h\_{sik} is the compound’s expected total ion
+count in that scan. Two samples can have different peak shapes, widths,
+areas and acquisition times.
+
+With \operatorname{Var}(Y\_{sij})=\phi_s\mu\_{sij}, the conditional
+updates minimize J =
+2\sum\_{sij}\frac{y\_{sij}\log(y\_{sij}/\mu\_{sij})-y\_{sij}+\mu\_{sij}}{\phi_s} +
+\lambda\_{\rm eff} \left\[\sum\_{k=1}^{K}(\lVert
+p_k\rVert_0-1)+\sum\_{sk}d(h\_{s\cdot k})\right\]. Use 0\log 0=0. A
+spectrum with u positive ions contributes u-1 free proportions. A
+positive log profile on two or more scans contributes two endpoint
+ordinates plus one dimension per interior strict decrease in log slope.
+A single-scan support contributes one dimension and an absent profile
+contributes zero. This is the dimension of the fitted face of the
+log-concavity cone, conditional on support and knots. Searching over
+their locations adds selection uncertainty. The working GIC uses
+\lambda\_{\rm eff}=\kappa\log(p)\log\log(n). For a joint fit use
+p=n=\sum_s n_s. The temporal information factor \kappa equals one for
+independent residuals. Backgrounds are estimated on a fixed basis and
+remain unpenalized. The fitted noise parameters add a constant charge to
+the reported information criterion for that dataset.
+
+1.  **Form a spectral dictionary.** Calibrate the PSF, form its banded
+    design and fit a nonnegative grouped L0 regression across channels.
+    For a single sample the independent log-concave fit supplies local
+    starts. Repeated acquisitions can share a PSF estimated from pooled,
+    count-conserving total-ion traces. Channel aggregation accelerates
+    the initial regression. Lift its spectra back to original channels
+    with a nonnegative fit.
+2.  **Locate candidate occurrences.** With several samples, spectral
+    anchors estimate monotone time maps. On that shared clock, propose
+    local spectral directions that overlapping candidates cannot already
+    explain by a nonnegative mixture. Retain native time coordinates for
+    testing peak shape. With one sample the time map is the identity.
+3.  **Alternate two conditional updates.** Visit components in
+    decreasing total abundance. To update one profile, put all other
+    components and background in the offset. Compute per-scan
+    conditional count estimates, project their logarithms onto the
+    concavity cone with information weights, optimize the amplitude, and
+    compare with keeping or removing the old profile using original-ion
+    J. A curve reaching a window boundary can expand. For fixed
+    profiles, refit a common spectrum from all occurrences. Compare each
+    ion with zero using the same penalty and transfer the spectrum’s
+    normalization into the profiles. Update the background.
+4.  **Check ambiguous overlaps.** Test proposed local support exchanges
+    and joint refits against the same original-channel objective. The
+    default allows 12 initial sweeps and up to two exchange rounds, with
+    at most ten refit sweeps after an accepted exchange. Relative
+    objective improvement below 10^{-3} ends a round. These bounded
+    searches return a local solution. Supplied ground truth need not
+    minimize a penalized criterion on one realization of noisy data.
+
+For simulated data a truth-based comparison has a precise
+interpretation. Write \mu^\star=E(Y) and fix dispersion and weights. The
+expected difference in Poisson deviances between any fixed \mu and
+\mu^\star is 2\sum\[\mu^\star\log(\mu^\star/\mu)+\mu-\mu^\star\]/\phi,
+which is nonnegative. On a single noisy dataset this inequality need not
+hold. Adding a dimension penalty can also favor a simpler approximation
+in expectation. A true-profile initialization consequently provides a
+reference value for this dataset. A certificate of global optimality
+would require a lower bound over all admissible factorizations. In a
+grouped Poisson regression, starting the fitted mean at HS+BA gives the
+correct first Fisher weights. The support penalty and the sample score
+can still move the coefficients away from their generating values.
+
+Use `objective.trace=TRUE` to record original-channel deviance, the two
+dimension counts, rank, occurrences and J after each block. The values
+in `conditional_objective` use the saturated model as the deviance
+reference. The
+[`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
+extractor includes the data-dependent likelihood constant and estimated
+noise dimensions. Comparisons on the same observations and noise
+specification give the same objective differences.
+
+The conditional solver supports identity-link Poisson and quasipoisson
+data with unit observation weights and exposure. It uses NumPy, SciPy,
+Numba and threadpoolctl in a separate Python process. Choose the
+interpreter with `options(logconNMF.python = "/path/to/python")` and
+check it with
+[`logconNMF::conditionalSolverAvailable()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md).
+A first run compiles numerical kernels into the user’s cache. The
+general solver supplies the other identity-link families, observation
+weights, offsets and exposures.
+
+## Rank selection in the classic solver
+
+For a fitted mean M_s in each sample, `algorithm="classic"` searches for
+nonnegative channel loadings and nonnegative, log-concave profiles that
+approximately minimize
 
 \begin{aligned} \mathcal J &=
 -2\sum_s\ell\_{\nu_s}(M_s;Y_s)+\kappa\lambda d\_{\mathrm{sel}},\\
@@ -1250,14 +1342,23 @@ counts or supplied as a saved
 object. Only this map-learning step uses a common time grid. The fitting
 grids, bin exposures and sparse PSF matrices X_s remain sample specific.
 
-For Poisson and common-scale quasipoisson observations with shared scan
-weights, channel sums provide inexpensive profile proposals. Each
-proposal is checked on all original channels in its affected time
-window. Other families retain their original-channel profile objective.
+Before matching, Poisson and common-scale quasipoisson observations with
+shared scan weights use channel sums for profile proposals and all
+original channels for acceptance. Once spectra are shared, every family
+uses the native kernel of
+[`fitLogConcaveProfile()`](https://tomwenseleers.github.io/logconNMF/reference/fitLogConcaveProfile.md)
+on the original observations. For the focal component, the background
+and overlapping neighbours form a fixed offset. A weighted projection of
+the log rate onto the cone of nonincreasing slopes gives a scoring
+direction on the aligned scan grid. A line search checks the resulting
+mean against the family’s original-scale likelihood. The local window
+extends two nominal narrow-peak FWHMs past each end of the initial
+support and stays fixed across sweeps. Channels with zero focal loading
+contribute a constant to this conditional objective and can be skipped.
 Spectral, background and likelihood passes read at most 32 original
 channels per block through a native binary-matrix reader. Thus
-aggregation accelerates the proposal and matching steps while the target
-criterion continues to use the original observations.
+aggregation accelerates the initial proposal and matching steps while
+the target criterion continues to use the original observations.
 
 The execution order is:
 

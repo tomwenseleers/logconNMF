@@ -56,7 +56,7 @@ psf <- estimatePSF(Y, time=as.numeric(rownames(Y)), standard=NULL,
   control=list(kernel_est=g, maxiter=0L))
 X <- psf$X
 B <- matrix(1, nrow(Y), 1L)
-fit <- logconNMF(Y, X=X, background=B,
+fit <- logconNMF(Y, X=X, time=as.numeric(rownames(Y)), background=B,
   family=quasipoisson("identity"), precluster=7L, correlation="auto", ncores=8L,
   control=list(initial_relaxed=FALSE, fusion_passes=0L))
 fit$rank
@@ -66,9 +66,7 @@ GIC(fit)
 ```
 
 `estimatePSF()` applies the same boundary-aware, column-normalised PSF
-construction used by GCMSprime. Thus the settings above recover exactly the
-same profiles, spectra and background in both packages, and repeated fits are
-deterministic.
+construction used by GCMSprime. Supplying the same observations, native times and settings reproduces the fit through either interface. A CDF round trip can change numerical precision.
 
 The constant background is supplied as a single column of ones. Use
 [PSF estimation](estimate-psf.html) to build `X` when the initial response
@@ -110,23 +108,23 @@ psf2 <- estimatePSF(Y2, family=quasipoisson("identity"), time=t2,
     maxiter=0L))
 X2 <- psf2$X
 B2 <- splines::bs(t2, df=6L, intercept=TRUE)
-fit2 <- logconNMF(Y2, X=X2, background=B2,
+fit2 <- logconNMF(Y2, X=X2, time=t2, background=B2,
   family=quasipoisson("identity"), precluster=32L, correlation="auto", ncores=8L,
   control=list(initial_relaxed=TRUE, fusion_passes=0L))
 fit2$rank
-fit2$contained_fusion$broad
+fit2$conditional_objective
 ```
 
 ![Log-concave profiles and full-channel spectra, including the broad component](../reference/figures/gcms-data2-profiles-spectra.png)
 
 The table reports one direct fit of each matrix with eight OpenMP threads
 and one BLAS thread on an Intel Core i9-11950H. Constructing the PSF dictionary
-and background basis is outside the timing.
+and background basis is outside the timing. These are single elapsed measurements.
 
 | Window | Scans | Channels | Components | Quasi-GIC | Seconds |
 |:--|--:|--:|--:|--:|--:|
-| Hydrocarbon window | 119 | 670 | 6 | 247,218 | 1.61 |
-| Beer volatiles | 1,764 | 518 | 36 | 1,466,362 | 32.12 |
+| Hydrocarbon window | 119 | 670 | 6 | 215,547 | 9.72 |
+| Beer volatiles | 1,764 | 518 | 36 | 1,010,157 | 42.66 |
 
 The [GCMSprime tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)
 times the complete CDF-to-MSP workflow separately and provides diagnostic
@@ -134,30 +132,14 @@ plots and downloadable spectra.
 
 ## Automatic best rank tuning
 
-The initialization keeps a permissive pool of components while native constrained likelihood updates refine their profiles and spectra. Final rank selection applies the requested temporal information adjustment. Small fragments contained within a broad profile are compared with an equally refined unmerged local model on all original channels.
-
-The default `lambda="gic"` compares complete fits by likelihood and component
-count. After dividing the likelihood by the original channel count, each
-retained component incurs one rank charge. On the unscaled likelihood the
-charge is \(m\lambda_{\mathrm{IC}}\), with an optional temporal information
-adjustment.
-Profile complexity and background coefficients have no extra rank penalty.
-
-```r
-fit$objective
-fit$history[, c("stage", "delta", "accepted", "compounds")]
-fit$cleanup
-fit$initialization
-fit$contained_fusion
-c(AIC=AIC(fit), BIC=BIC(fit), GIC=GIC(fit))
-```
-
-Reported criteria count \(mK\), where \(K\) is the fitted rank, plus estimated
-shared noise parameters.
-Other presets are `"aic"`, `"bic"`, `"ebic"` and `"mbic"`. A nonnegative
-numeric `lambda` supplies the penalty per selection degree of freedom.
-Each retained component incurs \(m\lambda\) before temporal adjustment.
-The [rank objective](algorithm.html#rank-selection) gives the full convention.
+The grouped PSF fit supplies candidate spectra. The conditional count solver
+compares original-ion fits under one penalty for positive spectral coordinates
+and the effective dimensions of the fitted log-concave profiles. The fixed
+background basis stays unpenalized. For a per-block trace, pass
+`objective.trace=TRUE` in the original call. Inspect `fit$conditional_objective`
+for the final breakdown or call `GIC(fit)` for the likelihood-based criterion.
+The [derivation](algorithm.html#conditional-count-objective) gives the single-
+and multisample conventions.
 
 ## Choose a noise model
 

@@ -1,3 +1,8 @@
+# logconNMF 0.1.0.9004
+
+* The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. `objective.trace=TRUE` records the accepted objective values. `algorithm="classic"` selects the general-family implementation. See the mathematical article for installation of the optional Python numerical backend.
+* Grouped PSF regressions in large batches cap their worker count using available memory. The conditional solver releases the worker pool before refining the factors.
+
 # logconNMF 0.1.0.9003
 
 * Expose component-initialization solver controls via `control$initial_solver`.

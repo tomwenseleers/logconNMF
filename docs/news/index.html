@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,19 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0.9004" id="logconnmf-0109004">logconNMF 0.1.0.9004<a class="anchor" aria-label="anchor" href="#logconnmf-0109004"></a></h2>
+<ul><li>The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. <code>objective.trace=TRUE</code> records the accepted objective values. <code>algorithm="classic"</code> selects the general-family implementation. See the mathematical article for installation of the optional Python numerical backend.</li>
+<li>Grouped PSF regressions in large batches cap their worker count using available memory. The conditional solver releases the worker pool before refining the factors.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0.9003" id="logconnmf-0109003">logconNMF 0.1.0.9003<a class="anchor" aria-label="anchor" href="#logconnmf-0109003"></a></h2>
+<ul><li>
+<code><a href="../reference/splogconNMF.html">splogconNMF()</a></code> and single-sample <code><a href="../reference/logconNMF.html">logconNMF()</a></code> accept <code>control$initial_solver</code>, a named list of <code><a href="https://tomwenseleers.github.io/L0glm/reference/controlSolverGen.html" class="external-link">L0glm::controlSolverGen()</a></code> arguments for component selection.</li>
+<li>Cholesky workspace-budget failures during initialization automatically retry with diagonally preconditioned Eigen CG and report the switch. The retry preserves the workspace budget, data and selection settings. Unrelated errors propagate; <code>control$initial_fallback=FALSE</code> disables the retry.</li>
+<li>
+<code>cache=FALSE</code> also disables temporary whole-sample observation caches in coupled profile refinement, retaining local-window disk reads.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0.9002" id="logconnmf-0109002">logconNMF 0.1.0.9002<a class="anchor" aria-label="anchor" href="#logconnmf-0109002"></a></h2>
 <ul><li>Bundled <code>gcmsData1</code> channels use nominal m/z 30:699; experimental mass axes are checked against the source data.</li>
 </ul><div class="section level3">
@@ -65,7 +78,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="simultaneous-multisample-models-0-1-0-9002">Simultaneous multisample models<a class="anchor" aria-label="anchor" href="#simultaneous-multisample-models-0-1-0-9002"></a></h3>
-<ul><li><p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> with a sample list shares spectra across samples with sample-specific profiles, areas and backgrounds, allowing compounds to be absent from individual samples.</p></li>
+<ul><li><p><code><a href="../reference/fitLogConcaveProfile.html">fitLogConcaveProfile()</a></code> estimates a rate profile for a fixed spectrum, background and exposure under any of the seven identity-link noise models. After cross-sample matching, coupled fits use this update on the original channels and evaluate shared spectra with the joint information criterion.</p></li>
+<li><p><code><a href="../reference/logconNMF.html">logconNMF()</a></code> with a sample list shares spectra across samples with sample-specific profiles, areas and backgrounds, allowing compounds to be absent from individual samples.</p></li>
 <li><p>Monotone alignment, area-ordered profile compatibility and exposure-aware likelihoods retain each sample’s original irregular scan grid.</p></li>
 <li><p>Disk-backed observations, batched native spectral scores, shared row inputs, sparse profiles and OpenMP support efficient fitting.</p></li>
 <li><p>A total logical-core budget schedules independent fits and simultaneous sample updates concurrently, with deterministic spectral reductions and restored BLAS settings. Automatic sample-list budgets use logical cores, while single samples use physical cores. Native block reads retain bounded original-channel buffers.</p></li>

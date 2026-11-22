@@ -13,7 +13,7 @@ estimatePSF(
   family = quasipoisson("identity"),
   time = NULL,
   standard = attr(y, "alkanes_TIC"),
-  method = c("auto", "standard", "blind"),
+  method = c("auto", "standard", "blind", "transfer"),
   nwindows = 1L,
   precluster = 1L,
   dispersion = NULL,
@@ -71,7 +71,9 @@ estimatePSF(
   `"standard"` uses calibration alone, treating `y` as the standard when
   `standard=NULL`. `"blind"` estimates directly from the overlapping
   sample. A supplied `control$kernel_est` takes precedence over
-  automatic calibration.
+  automatic calibration. `"transfer"` evaluates a previously fitted PSF
+  supplied in `standard` on the native time grid. Its kernel offsets
+  retain their original time units.
 
 - nwindows:
 

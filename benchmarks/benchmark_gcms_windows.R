@@ -13,7 +13,7 @@ for (name in c("gcmsData1", "gcmsData2")) {
       list(sigma=if(first)9 else 6)),maxiter=0L))
   B <- if(first) matrix(1,nrow(Y),1L) else
     splines::bs(time,df=6L,intercept=TRUE)
-  seconds <- system.time(fit <- logconNMF(Y,X=psf$X,background=B,
+  seconds <- system.time(fit <- logconNMF(Y,X=psf$X,background=B,time=time,
     family=quasipoisson("identity"),precluster=if(first)7L else 32L,
     correlation="auto",ncores=8L,
     control=list(initial_relaxed=!first,fusion_passes=0L)),gcFirst=FALSE)[["elapsed"]]

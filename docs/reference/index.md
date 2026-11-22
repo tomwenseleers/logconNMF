@@ -21,6 +21,7 @@
 ## Sparse and simultaneous factorization
 
 - [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  [`conditionalSolverAvailable()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`coef(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`fitted(`*`<logconNMF_fit>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`plot(`*`<simultaneousNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
@@ -47,6 +48,8 @@
 
 - [`estimateSignalNoise()`](https://tomwenseleers.github.io/logconNMF/reference/estimateSignalNoise.md)
   : Estimate a shared noise model for ordered multichannel signals
+- [`fitLogConcaveProfile()`](https://tomwenseleers.github.io/logconNMF/reference/fitLogConcaveProfile.md)
+  : Fit a log-concave rate profile to an ordered multichannel signal
 - [`logConcSmooth()`](https://tomwenseleers.github.io/logconNMF/reference/logConcSmooth.md)
   : Log-concave spline smoothing of a discrete convolution kernel
   estimate

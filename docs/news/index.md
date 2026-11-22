@@ -1,5 +1,35 @@
 # Changelog
 
+## logconNMF 0.1.0.9004
+
+- The default Poisson and quasi-Poisson count fit alternates
+  original-ion updates of hard log-concave profiles and sparse spectra.
+  The GIC counts fitted profile and spectrum dimensions. A single matrix
+  and registered sample lists use the same criterion.
+  `objective.trace=TRUE` records the accepted objective values.
+  `algorithm="classic"` selects the general-family implementation. See
+  the mathematical article for installation of the optional Python
+  numerical backend.
+- Grouped PSF regressions in large batches cap their worker count using
+  available memory. The conditional solver releases the worker pool
+  before refining the factors.
+
+## logconNMF 0.1.0.9003
+
+- [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
+  and single-sample
+  [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  accept `control$initial_solver`, a named list of
+  [`L0glm::controlSolverGen()`](https://tomwenseleers.github.io/L0glm/reference/controlSolverGen.html)
+  arguments for component selection.
+- Cholesky workspace-budget failures during initialization automatically
+  retry with diagonally preconditioned Eigen CG and report the switch.
+  The retry preserves the workspace budget, data and selection settings.
+  Unrelated errors propagate; `control$initial_fallback=FALSE` disables
+  the retry.
+- `cache=FALSE` also disables temporary whole-sample observation caches
+  in coupled profile refinement, retaining local-window disk reads.
+
 ## logconNMF 0.1.0.9002
 
 - Bundled `gcmsData1` channels use nominal m/z 30:699; experimental mass
@@ -53,6 +83,12 @@
   fits; ordinary R memory management remains active.
 
 ### Simultaneous multisample models
+
+- [`fitLogConcaveProfile()`](https://tomwenseleers.github.io/logconNMF/reference/fitLogConcaveProfile.md)
+  estimates a rate profile for a fixed spectrum, background and exposure
+  under any of the seven identity-link noise models. After cross-sample
+  matching, coupled fits use this update on the original channels and
+  evaluate shared spectra with the joint information criterion.
 
 - [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   with a sample list shares spectra across samples with sample-specific

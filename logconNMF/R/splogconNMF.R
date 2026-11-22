@@ -54,10 +54,25 @@ slcn_initial_solver <- function(settings = list()) {
     control.solver = do.call(controlSolverGen, settings))
 }
 
+slcn_dictionary_fit <- function(arguments, settings=list(), fallback=TRUE) {
+  solver <- slcn_initial_solver(settings)
+  arguments[names(solver)] <- solver
+  tryCatch(do.call(l0glmFit, arguments), error = function(error) {
+    if (!isTRUE(fallback) || !identical(solver$solver, "eigen") ||
+        !solver$method %in% 1:2 || !grepl("exceeds the Gram/factor workspace budget",
+          conditionMessage(error), fixed = TRUE)) stop(error)
+    message("Initial component selection exceeded the Cholesky workspace budget; ",
+      "retrying with Eigen CG and diagonal preconditioning.")
+    retry <- utils::modifyList(settings,
+      list(solver = "eigen", method = 3L, precond = 1L), keep.null = TRUE)
+    arguments[names(solver)] <- slcn_initial_solver(retry)
+    do.call(l0glmFit, arguments)
+  })
+}
+
 slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores,
                          screen_factor = 1, relaxed = TRUE,
                          initial_solver = list(), initial_fallback = TRUE) {
-  solver <- slcn_initial_solver(initial_solver)
   p <- ncol(X);q <- ncol(B);pilot <- slcn_pilot(Y)
   variance <- switch(spec$name, gaussian = matrix(rep(rep_len(spec$dispersion, ncol(Y)), each = nrow(Y)), nrow(Y), ncol(Y)),
     poisson = pilot, quasipoisson = sweep(pilot, 2, rep_len(spec$dispersion, ncol(Y)), "*"),
@@ -71,23 +86,12 @@ slcn_initial <- function(X, Y, B, spec, W, offset, scalar, ncores,
     weights = working_weights, offset = offset, lambda = scalar * screen_factor,
     nonnegative = TRUE, intercept = FALSE, always.include = p + seq_len(q),
     grouped = TRUE, group.maxit = if (spec$kind == 1L) 6L else 2L,
-    normalize = "none", ncores = ncores, solver = solver$solver,
-    method = solver$method, control.solver = solver$control.solver)
+    normalize = "none", ncores = ncores)
   if (relaxed) {
     arguments$relaxed <- TRUE
     arguments$local.search <- FALSE
   }
-  fit <- tryCatch(do.call(l0glmFit, arguments), error = function(error) {
-    if (!isTRUE(initial_fallback) || !identical(solver$solver, "eigen") ||
-        !solver$method %in% 1:2 || !grepl("exceeds the Gram/factor workspace budget",
-          conditionMessage(error), fixed = TRUE)) stop(error)
-    message("Initial component selection exceeded the Cholesky workspace budget; ",
-      "retrying with Eigen CG and diagonal preconditioning.")
-    retry <- utils::modifyList(initial_solver,
-      list(solver = "eigen", method = 3L, precond = 1L), keep.null = TRUE)
-    arguments[names(solver)] <- slcn_initial_solver(retry)
-    do.call(l0glmFit, arguments)
-  })
+  fit <- slcn_dictionary_fit(arguments, initial_solver, initial_fallback)
   beta <- as.matrix(coef(fit));keep <- which(rowSums(beta[seq_len(p), , drop = FALSE]) > 0)
   H <- X[, keep, drop = FALSE];S <- beta[keep, , drop = FALSE]
   alpha <- beta[p + seq_len(q), , drop = FALSE]
@@ -730,7 +734,7 @@ nobs.splogconNMF <- function(object, ...) object$n
 #' @rdname splogconNMF
 #' @export
 coef.splogconNMF <- function(object, ...) object$S
-slcn_df <- function(object) ncol(object$S)*ncol(object$H) +
+slcn_df <- function(object) if (!is.null(object$conditional_objective)) object$ic_df else ncol(object$S)*ncol(object$H) +
   as.integer(object$spec$dispersion_estimated) + as.integer(object$spec$theta_estimated)
 #' @rdname splogconNMF
 #' @export

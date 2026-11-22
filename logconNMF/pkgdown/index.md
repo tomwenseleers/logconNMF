@@ -161,30 +161,21 @@ nonnegative, single-peaked components.
 
 ### Rank-selection objective
 
-The single- and multisample algorithms approximately minimize the same
-original-channel, shape-constrained penalized likelihood:
+For ordinary identity-link count data, the original-ion objective is
 
-\[
-\mathcal J=-2\sum_s\ell_{\nu_s}(M_s;Y_s)
-+\kappa\lambda_{\mathrm{IC}}\{(m-1)G+L+d_\nu\}.
-\]
+$$
+J = \sum_s D_{\rm Pois}(Y_s,\mu_s)/\phi_s +
+\lambda_{\rm eff}\left[\sum_k(\|p_k\|_0-1)+\sum_{s,k}d(h_{sk})\right].
+$$
 
-Here \(m\) is the original channel count, \(G\) counts shared
-unit-sum spectra, and \(L\) counts detected sample-component occurrences.
-Each shared spectrum contributes \(m-1\) spectral coordinates and each
-occurrence contributes one amplitude. For a single sample,
-\(G=L=K\) gives the same \(mK\) compound charge. Estimated
-noise parameters contribute \(d_\nu\); this count is constant during
-rank comparisons. Profile complexity and smooth background coefficients
-receive no separate rank penalty.
-
-The likelihood follows the chosen noise family; quasi-Poisson uses its
-dispersion-scaled Poisson kernel. `lambda="gic"` supplies the default
-information-criterion weight, and \(\kappa\) is the optional temporal
-information adjustment. Completed rank and fusion candidates are checked
-against the criterion on the original channels. This is an approximate search, rather
-than a guarantee of the global optimum. The [mathematical description](articles/algorithm.html#common-rank-objective)
-specifies the noise models, penalty units and acceptance rules.
+Each shared unit-sum spectrum contributes one fewer degree of freedom than
+its number of positive ions. Each sample-specific log profile contributes the
+dimension of its fitted piecewise-linear shape. Absent profiles contribute
+zero. The same criterion checks changes in peak shape, ion support and
+component count for one or several samples. The fixed background basis stays
+unpenalized. Coordinate updates and local support exchanges can reach a local
+minimum. The [mathematical description](articles/algorithm.html#conditional-count-objective) gives the acceptance rules
+and the criterion used for other noise families.
 
 ## Installation
 
@@ -195,6 +186,18 @@ remotes::install_github(c(
   "tomwenseleers/logconNMF/logconNMF"
 ))
 ```
+
+For the conditional Poisson and quasi-Poisson solver, install NumPy, SciPy,
+Numba and threadpoolctl in one Python environment:
+
+```sh
+python -m pip install numpy scipy numba threadpoolctl
+```
+
+Set `options(logconNMF.python = "/path/to/python")` if needed.
+`logconNMF::conditionalSolverAvailable()` checks the interpreter. The first use
+compiles and caches numerical kernels. `algorithm="auto"` selects a compatible
+solver. Use `algorithm="conditional"` to require this backend explicitly.
 
 ## Log-concave NMF for single samples
 
@@ -220,7 +223,7 @@ psf <- estimatePSF(Y, time = as.numeric(rownames(Y)), standard = NULL,
   nwindows = 1L, precluster = 1L,
   control = list(kernel_est = g, maxiter = 0L))
 X <- psf$X
-fit <- logconNMF(Y, X = X, background = matrix(1, nrow(Y), 1L),
+fit <- logconNMF(Y, X = X, time = as.numeric(rownames(Y)), background = matrix(1, nrow(Y), 1L),
   family = quasipoisson("identity"), precluster = 7L,
   control = list(initial_relaxed = FALSE, fusion_passes = 0L))
 
@@ -289,62 +292,42 @@ of samples. This shares chemical
 information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
-The simultaneous implementation likewise scales to large experiments comprising
-hundreds or even thousands of samples. Parallel sample-level operations and
-blockwise, disk-backed refinement keep memory and computation manageable as
-the experiment grows. With `ncores=NULL`, sample lists use the available logical
-cores; one matrix uses physical cores. The common observation cache for 16
-samples with 10,000 scans and 32 groups occupies 40.96 MB. Active-worker
-buffers, matching structures and sparse PSFs require additional memory.
-Coupled count-model workers can retain one original matrix up to 64 MiB plus
-an equally sized likelihood-normalizer cache; larger samples use local reads. See the
-[multisample tutorial](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html)
-for measured full-size resource use. A separate large-scale validation with 16 samples, 10,000 scans and 550 recorded
-channels per sample recovers 7,864 of 7,917 true
-occurrences (F1 0.988), with a measured peak private memory of
-22.78 GiB and total wall time **2534.14 s (42.24 min)**, including
-**1530.20 s (25.50 min)** of alignment and simultaneous refinement.
-The linked tutorial compares this run with the small-scale benchmark below
-and gives the distinct settings, timing boundaries and reproduction code.
+The grouped PSF regressions run in parallel within the `ncores` budget.
+The count solver limits automatic worker concurrency using the scan count and
+available memory, including Windows commit headroom. Each worker releases its
+design before joint refinement. The conditional updates hold original-ion
+observations and fitted means in memory and use the native time grid of each
+sample. The classic solver can stream original-channel blocks from disk.
+The full-size fit recovered **7,917 of 7,917 occurrences** with **16 false calls**
+in **22.67 min** across 16 chromatograms of 10,000 scans and 550 channels.
+See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
 
 As an example, we provide a simulated
 [small-scale 16-sample GC/MS benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
-with 100 reference compounds, 1,200 scans and 258 channels per sample. Its 769
-true sample–compound occurrences include absent compounds,
-concentration-dependent broadening, retention drift, a shark-fin-shaped acid,
+with 100 reference compounds, 1,200 scans and 258 channels per sample.
+Across the 16 samples, 769 of the 1,600 possible occurrences are present.
+The simulation includes concentration-dependent broadening, retention drift, a shark-fin-shaped acid,
 a smooth experimental background and quasi-Poisson noise. The plots below
-summarise the simultaneous logconNMF result. On this benchmark, its recovery and
-reconstruction metrics are exceptionally strong: among the purpose-built
-workflows tested, it achieves the highest sensitivity, peak-level F1,
-ion-support F1, spectral cosine, profile cosine and peak-area agreement.
-Taken together, these results are nothing short of spectacular in comparison
-with the performance obtained by the competing software MS-DIAL, mzmine GC-EI,
-eRah, AMDIS, xcms + CAMERA or MSHub, see the
-[full GCMSprime benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
-report.
+summarise the simultaneous logconNMF result. The [seven-method comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html) reports recovery, false calls and integration accuracy for every workflow.
 
 <div class="l0-benchmark-summary">
-<div><strong>750 / 769</strong><span>true occurrences recovered</span></div>
-<div><strong>0.903</strong><span>peak-level F1</span></div>
-<div><strong>0.9992</strong><span>robust adjusted log-area R²</span></div>
-<div><strong>0.999983</strong><span>median spectral cosine</span></div>
+<div><strong>767 / 769</strong><span>true occurrences recovered</span></div>
+<div><strong>0.972</strong><span>peak-level F1</span></div>
+<div><strong>0.999995</strong><span>robust adjusted log-area R²</span></div>
+<div><strong>0.9999991</strong><span>median spectral cosine</span></div>
 </div>
 
-This small fit took **146.50 s (2.44 min)**, including **22.87 s** for
-alignment and simultaneous refinement, with an explicit three-cycle coupled
-budget. The separate large-scale benchmark above uses 35 cycles. The
-[two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales)
-gives the differing PSF settings and short reproduction recipes.
+The complete small fit took **124.70 s**. Of this, 103.90 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (142 in this benchmark). Ion-support F1 applies the same
+false-positive counts (42 in this benchmark). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 <div class="l0-benchmark-grid">
-<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a><figcaption>Peak-area accuracy: robust adjusted R² 0.9992 and median absolute area error 1.38% over 750 matched occurrences.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.999983 for 750 correctly matched true spectra.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.972 under the shared 0.1% cutoff.</figcaption></figure>
+<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with robust regression and prediction band"></a><figcaption>Peak-area accuracy: robust adjusted R² 0.999995 and median absolute area error 0.10% over 767 matched occurrences.</figcaption></figure>
+<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.9999991 for 767 correctly matched true spectra.</figcaption></figure>
+<figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.995 under the shared 0.1% cutoff.</figcaption></figure>
 <figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a><figcaption>Small-scale 16-sample benchmark (100 reference compounds, 1,200 scans): the same profiles as the GCMSprime software comparison. The regular compound occurs in 11 samples and the acid in seven. All 16 samples are drawn; absent true profiles lie at zero. Solid: inferred; dashed: truth; colours rank all 16 true areas.</figcaption></figure>
 </div>
 

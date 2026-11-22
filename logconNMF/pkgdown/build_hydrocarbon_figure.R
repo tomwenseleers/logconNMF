@@ -48,7 +48,7 @@ X <- psf$X
 B <- matrix(1, nrow(Y), 1L)
 fit <- logconNMF(
   Y,
-  X = X,
+  X = X, time = time,
   background = B,
   family = family,
   precluster = 7L,
@@ -105,8 +105,7 @@ graphics::matplot(
   ylab = "Intensity",
   ylim = sqrt(c(0, top_max * 1.05)),
   yaxt = "n",
-  main = paste("gcmsData1 | square-root display | six-component",
-    "log-concave NMF | base-peak-scaled profiles")
+  main = sprintf("gcmsData1 | square-root display | %d fitted compounds", fit$rank)
 )
 graphics::axis(2, at = sqrt(raw_ticks), labels = format(raw_ticks, scientific = TRUE), las = 1)
 graphics::abline(h = 0, col = "grey70", lty = 3)

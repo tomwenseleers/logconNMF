@@ -12,7 +12,8 @@ channelGroups(
   k = 32L,
   channels = colnames(y),
   normalize = FALSE,
-  ncores = NULL
+  ncores = NULL,
+  reserve_unknown = TRUE
 )
 
 aggregateChannels(y, groups, channels = colnames(y))
@@ -39,6 +40,11 @@ aggregateChannels(y, groups, channels = colnames(y))
 - ncores:
 
   Native thread count, defaulting to physical cores.
+
+- reserve_unknown:
+
+  Reserve one group for channels absent from the training axis. Set to
+  FALSE when fitting on a fixed, shared channel axis.
 
 - groups:
 

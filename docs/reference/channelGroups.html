@@ -11,7 +11,7 @@ reference spectra supplied as rows with normalize=TRUE."><meta property="og:imag
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,8 @@ reference spectra supplied as rows with <code>normalize=TRUE</code>.</p>
 <span>  k <span class="op">=</span> <span class="fl">32L</span>,</span>
 <span>  channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span>,</span>
 <span>  normalize <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  ncores <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  ncores <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  reserve_unknown <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">aggregateChannels</span><span class="op">(</span><span class="va">y</span>, <span class="va">groups</span>, channels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -85,6 +86,11 @@ reference spectra supplied as rows with <code>normalize=TRUE</code>.</p>
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
 <dd><p>Native thread count, defaulting to physical cores.</p></dd>
+
+
+<dt id="arg-reserve-unknown">reserve_unknown<a class="anchor" aria-label="anchor" href="#arg-reserve-unknown"></a></dt>
+<dd><p>Reserve one group for channels absent from the
+training axis. Set to FALSE when fitting on a fixed, shared channel axis.</p></dd>
 
 
 <dt id="arg-groups">groups<a class="anchor" aria-label="anchor" href="#arg-groups"></a></dt>
