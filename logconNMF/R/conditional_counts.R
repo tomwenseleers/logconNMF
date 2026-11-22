@@ -1,32 +1,6 @@
-# Counts are fitted on native scan coordinates. The Python process shares no
-# library state with R and the interchange directory belongs to this call.
-.conditional_runtime <- new.env(parent = emptyenv())
-
 #' @rdname logconNMF
 #' @export
-conditionalSolverAvailable <- function() !is.null(conditional_python())
-
-conditional_python <- function() {
-  requested <- getOption("logconNMF.python")
-  key <- if (is.null(requested)) "auto" else requested
-  if (identical(key, .conditional_runtime$key)) return(.conditional_runtime$python)
-  conda <- unname(Sys.which("conda"))
-  conda_bin <- if (nzchar(conda)) file.path(dirname(dirname(conda)),
-    if (.Platform$OS.type == "windows") "python.exe" else "bin/python")
-  choices <- if (is.null(requested)) unique(c(conda_bin, unname(Sys.which(c("python3", "python"))))) else requested
-  check <- system.file("python", "conditional.py", package = "logconNMF", mustWork = TRUE)
-  for (bin in choices) {
-    if (!nzchar(bin) || !file.exists(bin) || grepl("Microsoft[/\\\\]WindowsApps", bin, ignore.case = TRUE)) next
-    status <- suppressWarnings(tryCatch(system2(bin, c(shQuote(check), "--check"),
-      stdout = FALSE, stderr = FALSE), error = function(e) 1L))
-    if (identical(status, 0L)) {
-      .conditional_runtime$key <- key
-      .conditional_runtime$python <- bin
-      return(bin)
-    }
-  }
-  NULL
-}
+conditionalSolverAvailable <- function() is.loaded("_logconNMF_cc_profile_sweep", PACKAGE="logconNMF")
 
 conditional_route <- function(algorithm, family, dispersion, theta, samples) {
   if (algorithm == "classic") return(FALSE)
@@ -43,27 +17,10 @@ conditional_route <- function(algorithm, family, dispersion, theta, samples) {
     all(vapply(samples, supported, logical(1)))
   if (!valid && algorithm == "conditional")
     stop("The conditional solver requires identity-link Poisson or quasipoisson counts, unit weights and exposure, and zero observation offset.")
-  if (!valid) return(FALSE)
-  if (!is.null(conditional_python())) return(TRUE)
-  why <- "The conditional count solver requires Python with numpy, scipy, numba and threadpoolctl. Select it with options(logconNMF.python = '/path/to/python')."
-  if (algorithm == "conditional") stop(why, call. = FALSE)
-  if (!isTRUE(.conditional_runtime$announced)) {
-    message(why, " Using the classic solver.")
-    .conditional_runtime$announced <- TRUE
-  }
-  FALSE
+  valid
 }
 
-conditional_windows <- function(h) {
-  result <- matrix(0L, ncol(h), 3L)
-  for (j in seq_len(ncol(h))) {
-    at <- seq.int(h@p[j] + 1L, h@p[j + 1L])
-    v <- h@x[at]
-    row <- h@i[at] + 1L
-    result[j, ] <- c(range(row[v >= .01 * max(v)]), row[which.max(v)])
-  }
-  result
-}
+conditional_windows <- function(h) sinmf_landmarks(h, seq_len(nrow(h)))$windows
 
 conditional_dictionary <- function(X, Y, B, spec, groups, lambda, ncores, control=list()) {
   if (!is.null(groups)) Y <- aggregateChannels(Y, groups)
@@ -88,62 +45,7 @@ conditional_dictionary <- function(X, Y, B, spec, groups, lambda, ncores, contro
 }
 
 conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, exchanges = 2L, ncores = 1L) {
-  tmp <- tempfile("logcon-counts-")
-  dir.create(tmp)
-  on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
-  cache <- getOption("logconNMF.cache", tools::R_user_dir("logconNMF", "cache"))
-  dir.create(cache, recursive = TRUE, showWarnings = FALSE)
-  cache <- normalizePath(cache, winslash = "/", mustWork = TRUE)
-  writeBin(as.integer(group), file.path(tmp, "groups"), endian = "little")
-  m <- length(group)
-  rows <- lapply(seq_along(parts), function(i) {
-    a <- parts[[i]]
-    d <- file.path(tmp, i)
-    dir.create(d)
-    put <- function(name, values) writeBin(values, file.path(d, name), endian = "little")
-    y <- a$observed
-    if (!is.character(y)) {
-      y <- file.path(d, "y")
-      sinmf_write_matrix_file(a$observed, y)
-    }
-    h <- a$H
-    put("hp", h@p)
-    put("hi", h@i)
-    put("hx", h@x)
-    put("windows", as.integer(conditional_windows(h)))
-    put("B", as.double(a$background))
-    put("A", as.double(a$alpha))
-    put("S", as.double(a$S))
-    put("t", as.double(a$time))
-    put("warp", as.double(a$aligned))
-    data.frame(n = nrow(h), m = m, b = ncol(a$background), k = ncol(h), q = ncol(a$S),
-      phi = a$spec$dispersion, observed = normalizePath(y, winslash = "/", mustWork = TRUE),
-      price = price, cycles = cycles, exchanges = exchanges, trace = trace, ncores=sinmf_core_count(ncores), grouped=isTRUE(a$grouped_dictionary))
-  })
-  utils::write.csv(do.call(rbind, rows), file.path(tmp, "samples.csv"), row.names = FALSE)
-  script <- system.file("python", "conditional.py", package = "logconNMF", mustWork = TRUE)
-  log <- file.path(tmp, "solver.log")
-  status <- system2(conditional_python(), shQuote(c(script, tmp, cache)), stdout = log, stderr = log)
-  if (status != 0L) stop(paste(c("Conditional factorization failed.", readLines(log, warn = FALSE)), collapse = "\n"), call. = FALSE)
-  objective <- utils::read.csv(file.path(tmp, "objective.csv"))
-  read_values <- function(file, integer = FALSE) {
-    size <- if (integer) 4L else 8L
-    bytes <- file.size(file)
-    if (is.na(bytes) || bytes %% size != 0) stop("Incomplete conditional solver output.")
-    readBin(file, if (integer) "integer" else "double", n = bytes/size, size = size, endian = "little")
-  }
-  K <- objective$rank
-  P <- matrix(read_values(file.path(tmp, "spectra")), K, m)
-  factors <- lapply(seq_along(parts), function(s) {
-    d <- file.path(tmp, s)
-    h <- Matrix::sparseMatrix(i = read_values(file.path(d, "fi"), TRUE),
-      p = read_values(file.path(d, "fp"), TRUE), x = read_values(file.path(d, "fx")),
-      index1 = FALSE, dims = c(nrow(parts[[s]]$H), K))
-    list(H = h, alpha = matrix(read_values(file.path(d, "fa")), ncol(parts[[s]]$background), m),
-         shape_df = read_values(file.path(d, "df"), TRUE))
-  })
-  list(P = P, factors = factors, objective = objective,
-    trace = if (trace) utils::read.csv(file.path(tmp, "trace.csv")) else NULL)
+  conditional_native(parts, group, price, trace, cycles, exchanges, sinmf_core_count(ncores))
 }
 
 conditional_single <- function(fit, y, time, price, trace) {

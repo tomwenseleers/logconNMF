@@ -1,5 +1,16 @@
 # Changelog
 
+## logconNMF 0.1.0.9007
+
+- The conditional count solver runs within R using compiled C++ and
+  OpenMP. It uses the same penalized original-ion objective for profile,
+  spectral and local support updates. The general identity-link solver
+  supports the other noise families, weights, offsets and exposures.
+- Sparse retention profiles provide the interpolated 1%-height onsets
+  for alignment. Reciprocal spectral comparisons use the retention
+  window directly. Original-ion spectral regression, local offsets and
+  support changes are evaluated in compiled code.
+
 ## logconNMF 0.1.0.9006
 
 - Multisample count fits can resolve a mixed spectrum into several
@@ -22,9 +33,7 @@
   The GIC counts fitted profile and spectrum dimensions. A single matrix
   and registered sample lists use the same criterion.
   `objective.trace=TRUE` records the accepted objective values.
-  `algorithm="classic"` selects the general-family implementation. See
-  the mathematical article for installation of the optional Python
-  numerical backend.
+  `algorithm="classic"` selects the general-family implementation.
 - Grouped PSF regressions in large batches cap their worker count using
   available memory. The conditional solver releases the worker pool
   before refining the factors.

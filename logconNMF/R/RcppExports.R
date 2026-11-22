@@ -13,6 +13,66 @@ nuisance_gaussian_cpp <- function(B, Y, Signal, Prior, Start, constrained, nthre
     .Call(`_logconNMF_nuisance_gaussian_cpp`, B, Y, Signal, Prior, Start, constrained, nthreads)
 }
 
+cc_log_shape <- function(time, h) {
+    .Call(`_logconNMF_cc_log_shape`, time, h)
+}
+
+cc_faces <- function(time, h, validate = FALSE) {
+    .Call(`_logconNMF_cc_faces`, time, h, validate)
+}
+
+cc_local_profile <- function(t, y, o, p, h, phi, price, scale_only = FALSE) {
+    .Call(`_logconNMF_cc_local_profile`, t, y, o, p, h, phi, price, scale_only)
+}
+
+cc_local_spectrum <- function(y, o, h, old, price, threads = 1L) {
+    .Call(`_logconNMF_cc_local_spectrum`, y, o, h, old, price, threads)
+}
+
+cc_profile_sweep <- function(data, spectra, order, bands, price, birth, threads) {
+    .Call(`_logconNMF_cc_profile_sweep`, data, spectra, order, bands, price, birth, threads)
+}
+
+cc_spectrum_sweep <- function(data, spectra, order, price, track, threads) {
+    .Call(`_logconNMF_cc_spectrum_sweep`, data, spectra, order, price, track, threads)
+}
+
+cc_deviance <- function(y, mu, phi) {
+    .Call(`_logconNMF_cc_deviance`, y, mu, phi)
+}
+
+cc_diff <- function(y, mu, old, phi) {
+    .Call(`_logconNMF_cc_diff`, y, mu, old, phi)
+}
+
+cc_local_window <- function(sample, spectra, components, ions, si, floor_background) {
+    .Call(`_logconNMF_cc_local_window`, sample, spectra, components, ions, si, floor_background)
+}
+
+cc_support_sweep <- function(data, spectra, order, price) {
+    .Call(`_logconNMF_cc_support_sweep`, data, spectra, order, price)
+}
+
+cc_write_block <- function(dest, rows, columns, block) {
+    invisible(.Call(`_logconNMF_cc_write_block`, dest, rows, columns, block))
+}
+
+cc_cone <- function(design, y) {
+    .Call(`_logconNMF_cc_cone`, design, y)
+}
+
+cc_scan_unmix <- function(y, offset, p, start, eligible, phi, exact = FALSE) {
+    .Call(`_logconNMF_cc_scan_unmix`, y, offset, p, start, eligible, phi, exact)
+}
+
+cc_gram_nnls <- function(gram, score, start) {
+    .Call(`_logconNMF_cc_gram_nnls`, gram, score, start)
+}
+
+cc_available_memory <- function() {
+    .Call(`_logconNMF_cc_available_memory`)
+}
+
 slcn_log_profile <- function(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first = 0L, maxit = 4L, censor = .5, q = 128L, nthreads = 1L, apex_lo = -1L, apex_hi = -1L, mode = 2L, time = NULL, exposure = NULL) {
     .Call(`_logconNMF_slcn_log_profile`, y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, q, nthreads, apex_lo, apex_hi, mode, time, exposure)
 }
@@ -27,6 +87,14 @@ logconc_quadratic_cpp <- function(target, weights, smooth = 0, maxit = 2000L, to
 
 logconc_profile_cpp <- function(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first = 0L, maxit = 12L, censor = .5, ridge = as.numeric( c(0)), prior = as.numeric( c(0))) {
     .Call(`_logconNMF_logconc_profile_cpp`, y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, ridge, prior)
+}
+
+slcn_profile_landmarks <- function(H, time) {
+    .Call(`_logconNMF_slcn_profile_landmarks`, H, time)
+}
+
+slcn_anchor_matches <- function(s, ref, t, rt, window, hellinger) {
+    .Call(`_logconNMF_slcn_anchor_matches`, s, ref, t, rt, window, hellinger)
 }
 
 slcn_read_block <- function(path, n, channels, rows) {

@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9006</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -135,15 +135,17 @@ its banded design and fit a nonnegative grouped L0 regression across
 channels. For a single sample the independent log-concave fit supplies
 local starts. Repeated acquisitions can share a PSF estimated from
 pooled, count-conserving total-ion traces. Channel aggregation
-accelerates the initial regression. Lift its spectra back to original
-channels with a nonnegative fit.</li>
+accelerates the initial regression. Estimate the original-ion
+intensities by nonnegative least squares. The sparse Gram matrix records
+which initial profiles overlap.</li>
 <li>
 <strong>Locate candidate occurrences.</strong> With several samples,
-spectral anchors estimate monotone time maps. On that shared clock,
-propose local spectral directions that overlapping candidates cannot
-already explain by a nonnegative mixture. Retain native time coordinates
-for testing peak shape. With one sample the time map is the
-identity.</li>
+interpolate each peak’s 1%-height onset on its native scan grid.
+Reciprocal spectral matches within the retention window provide the
+anchors for monotone time maps. On that shared clock, propose local
+spectral directions that overlapping candidates cannot already explain
+by a nonnegative mixture. Retain native time coordinates for testing
+peak shape. With one sample the time map is the identity.</li>
 <li>
 <strong>Alternate two conditional updates.</strong> Visit components
 in decreasing total abundance. To update one profile, put all other
@@ -207,14 +209,11 @@ data-dependent likelihood constant and estimated noise dimensions.
 Comparisons on the same observations and noise specification give the
 same objective differences.</p>
 <p>The conditional solver supports identity-link Poisson and
-quasipoisson data with unit observation weights and exposure. It uses
-NumPy, SciPy, Numba and threadpoolctl in a separate Python process.
-Choose the interpreter with
-<code>options(logconNMF.python = "/path/to/python")</code> and check it
-with <code><a href="../reference/logconNMF.html">logconNMF::conditionalSolverAvailable()</a></code>. A first run
-compiles numerical kernels into the user’s cache. The general solver
-supplies the other identity-link families, observation weights, offsets
-and exposures.</p>
+quasipoisson data with unit observation weights and exposure. Its C++
+kernels update sample profiles and independent ion columns with OpenMP.
+Fits use the arrays held by R. For on-disk inputs, the solver reads the
+stored counts for each sample. The general solver supplies the other
+identity-link families, observation weights, offsets and exposures.</p>
 </div>
 <div class="section level2">
 <h2 id="common-rank-objective">Rank selection in the general identity-link solver<a class="anchor" aria-label="anchor" href="#common-rank-objective"></a>

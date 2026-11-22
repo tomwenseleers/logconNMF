@@ -271,18 +271,10 @@ remotes::install_github(c(
 ))
 ```
 
-For the conditional Poisson and quasi-Poisson solver, install NumPy,
-SciPy, Numba and threadpoolctl in one Python environment:
-
-``` sh
-python -m pip install numpy scipy numba threadpoolctl
-```
-
-Set `options(logconNMF.python = "/path/to/python")` if needed.
-[`logconNMF::conditionalSolverAvailable()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
-checks the interpreter. The first use compiles and caches numerical
-kernels. `algorithm="auto"` selects a compatible solver. Use
-`algorithm="conditional"` to require this backend explicitly.
+The R package includes the conditional Poisson and quasi-Poisson solver.
+It fits the original ion counts with compiled C++ kernels and uses
+OpenMP when available. `algorithm="auto"` selects the solver for
+compatible count data.
 
 ## Log-concave NMF for single samples
 
@@ -393,13 +385,13 @@ Grouped PSF regressions divide the core budget between independent
 samples and native threads. The scheduler estimates how many regressions
 fit in available memory, including Windows commit headroom. After those
 workers exit, a single process shares the original ion counts and fitted
-means. It updates profiles and backgrounds across samples and fits
-disjoint ion columns of the shared spectra concurrently. Peak merges and
-exchanges retain their original order. The general identity-link solver
-can stream original-channel blocks from disk. The full-size fit
-recovered **7,917 of 7,917 occurrences** with **only 13 false
-positives** in **9.21 min** across 16 chromatograms of 10,000 scans and
-550 channels. See the [two 16-sample
+means. OpenMP updates elution profiles across samples. It fits each
+ion’s shared spectrum and sample-specific background coefficients
+independently, keeping a fixed component order within each ion. The
+general identity-link solver can stream original-channel blocks from
+disk. The full-size fit recovered **7,917 of 7,917 occurrences** with
+**only 13 false positives** in **8.90 min** across 16 chromatograms of
+10,000 scans and 550 channels. See the [two 16-sample
 experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales)
 for full CDF-to-results timings, memory use and recovery.
 
@@ -425,7 +417,7 @@ workflow.
 
 Across all four true-area quartiles, **every occurrence was recovered**,
 including all 193 peaks in the smallest quarter. The complete small fit
-took **54.94 s**. Of this, 39.45 s covered the grouped regressions,
+took **52.37 s**. Of this, 37.87 s covered the grouped regressions,
 alignment and original-channel factor updates. The [two-benchmark
 overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales)
 gives both acquisition sizes and reproduction code.

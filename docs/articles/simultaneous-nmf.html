@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9006</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -250,16 +250,16 @@ compounds.</p>
 </tr>
 <tr class="even">
 <td align="left">Complete 16-sample analysis</td>
-<td align="right"><strong>54.94 s (0.92 min)</strong></td>
-<td align="right"><strong>552.69 s (9.21 min)</strong></td>
+<td align="right"><strong>52.37 s (0.87 min)</strong></td>
+<td align="right"><strong>533.88 s (8.90 min)</strong></td>
 </tr>
 </tbody>
 </table>
-<p>Both runs used GCMSprime and logconNMF 0.1.0.9006. Timings cover the
+<p>Both runs used GCMSprime and logconNMF 0.1.0.9007. Timings cover the
 complete batch from CDF input through export. In the small experiment,
-CDF preparation, calibration and grouping took 11.34 s, grouped
-initialization and joint refinement took 39.45 s, and result
-construction and export took 3.91 s. The benchmark wrapper added 0.24 s.
+CDF preparation, calibration and grouping took 10.31 s, grouped
+initialization and joint refinement took 37.87 s, and result
+construction and export took 3.98 s. The benchmark wrapper added 0.21 s.
 The large experiment is documented below.</p>
 </div>
 <div class="section level2">
@@ -280,7 +280,7 @@ the fitted median is 829.55.</p>
 CDF workflow</a>, built on logconNMF, recovers <strong>all 769 true
 occurrences with only 26 false positives</strong> (peak F1
 <strong>0.983</strong>), including the acid in all seven samples where
-it occurs. It takes <strong>54.94 s</strong> with four two-thread PSF
+it occurs. It takes <strong>52.37 s</strong> with four two-thread PSF
 workers and eight threads available for joint refinement on an HP ZBook
 Fury G8 with an Intel Core i9-11950H, eight physical cores and 16
 logical threads. The common 32-group map accelerates initialization;
@@ -388,34 +388,34 @@ uses RI-constrained reciprocal hits.</p>
 <tr class="odd">
 <td align="left">Reading data, preparing sample PSFs and
 initialization</td>
-<td align="right">139.60</td>
+<td align="right">144.35</td>
 </tr>
 <tr class="even">
 <td align="left">Grouped PSF regression, alignment and joint
 original-channel refinement</td>
-<td align="right">383.22</td>
+<td align="right">357.67</td>
 </tr>
 <tr class="odd">
 <td align="left">Constructing and exporting results</td>
-<td align="right">29.87</td>
+<td align="right">31.86</td>
 </tr>
 <tr class="even">
 <td align="left"><strong>Complete fit and exports</strong></td>
-<td align="right"><strong>552.69</strong></td>
+<td align="right"><strong>533.88</strong></td>
 </tr>
 </tbody>
 </table>
-<p>Within the 383.22 s coupled stage, grouped PSF regression took 119.65
-s and alignment and joint refinement took 263.33 s. Simulation, separate
+<p>Within the 357.67 s coupled stage, grouped PSF regression took 108.75
+s and alignment and joint refinement took 248.67 s. Simulation, separate
 standard calibration and scoring against truth are outside the timed
 fit.</p>
 <p>On the HP ZBook Fury G8 (Core i9-11950H, eight physical cores, 16
 logical cores and 64 GB RAM), the memory-aware scheduler used <strong>6
 PSF workers with 2 threads each</strong>. The joint solver could use all
 16 threads. Across the measured workflow the process tree averaged
-<strong>5.61 logical-core equivalents</strong> and peaked at
-<strong>6.12 GiB working set</strong> and <strong>5.78 GiB private
-memory</strong>. At least 28.57 GiB of physical memory stayed
+<strong>4.59 logical-core equivalents</strong> and peaked at
+<strong>6.96 GiB working set</strong> and <strong>7.23 GiB private
+memory</strong>. At least 29.46 GiB of physical memory stayed
 available.</p>
 <div class="float">
 <img src="../reference/figures/fullsize-16-resources.png" alt="Measured process-tree memory and CPU use for sixteen full-sized chromatograms"><div class="figcaption">Measured process-tree memory and CPU use for
@@ -506,12 +506,12 @@ preserves integrated occurrence areas.</p>
 samples and native threads. The scheduler estimates how many regressions
 fit in available memory, including Windows commit headroom. After those
 workers exit, a single process shares the original ion counts and fitted
-means. It updates profiles and backgrounds across samples and fits
-disjoint ion columns of the shared spectra concurrently. Peak merges and
-exchanges retain their original order. The general identity-link solver
-can stream original-channel blocks from disk. Use
-<code>control=list(workers=4L)</code> for an explicit sample-worker cap.
-Keep the fitted store alongside saved objects.</p>
+means. OpenMP updates elution profiles across samples. It fits each
+ion’s shared spectrum and sample-specific background coefficients
+independently, keeping a fixed component order within each ion. The
+general identity-link solver can stream original-channel blocks from
+disk. Use <code>control=list(workers=4L)</code> for an explicit
+sample-worker cap. Keep the fitted store alongside saved objects.</p>
 <p>For sample-group directories, acquisition ordering, alkane standards
 and Excel/MSP reports, use the workflow in <a href="https://tomwenseleers.github.io/GCMSprime/articles/multisample.html" class="external-link">GCMSprime</a>.</p>
 </div>

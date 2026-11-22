@@ -74,7 +74,7 @@ may be negative; their fitted latent signals remain nonnegative.}
 
 \item{lambda}{An information criterion (\code{"gic"}, \code{"aic"}, \code{"bic"},
 \code{"ebic"} or \code{"mbic"}) or a nonnegative numeric penalty per selection
-degree of freedom, before any temporal information adjustment. With the classic solver and
+degree of freedom, before any temporal information adjustment. With the general solver and
 \eqn{m} channels, a single component incurs \eqn{m\lambda}; in a
 simultaneous fit a shared spectrum incurs \eqn{(m-1)\lambda} and an
 occurrence incurs \eqn{\lambda}.}
@@ -119,7 +119,7 @@ ion columns of the shared spectra, with one BLAS thread per worker. Set
 
 \item{control}{Named controls. See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. The conditional count solver uses up to
 12 initial sweeps, stopping at a relative improvement of 0.001. For a
-classic simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
+general simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
 \code{rounds=3L} sets the number of grouping rounds, and \code{q=64L} sets the
 initial profile update resolution. After a cross-sample match, each
 local profile is refined on all original channels using the hard shape
@@ -134,7 +134,7 @@ the independent initial fits and defaults to
 \code{list(initial_relaxed=FALSE)}; single-sample fits default to a relaxed
 grouped-support initialization. \code{workers} limits concurrent samples
 within \code{ncores}. Conditional grouped regressions use a memory-aware worker cap.
-For the classic solver the cache retains aggregated observations and at most
+For the general solver the cache retains aggregated observations and at most
 one original count matrix up to 64 MiB plus its likelihood normalizers per
 worker. \code{cache=FALSE} disables persistent input caches and temporary
 whole-sample profile caches, retaining local-window disk reads.
@@ -166,7 +166,7 @@ log-concave profiles and sparse spectra on the original ion counts.
 Multisample fits can reassign mixed spectra to recurring components. A local
 refit must improve the same original-channel information criterion.
 \code{"classic"} uses the general identity-link solver. \code{"auto"} uses the
-conditional solver for supported inputs when its Python runtime is available.}
+built-in conditional solver for supported inputs.}
 
 \item{time}{Increasing scan coordinates for a single sample. Defaults to scan
 index. Supply native time in each descriptor for a simultaneous fit.}
@@ -224,7 +224,7 @@ positive ions minus one per normalized spectrum and the dimension of every
 positive log-profile face (two endpoints plus interior slope changes).
 \code{fit$conditional_objective} reports quasi-deviance and both dimensions.
 An absent occurrence has zero cost. Finite support proposals and alternating
-conditional updates give a local optimum candidate. For the classic solver,
+conditional updates give a local optimum candidate. For the general solver,
 for one matrix with \eqn{m} channels and \eqn{K} components,
 \eqn{d=mK}. For a simultaneous model, \eqn{d=(m-1)G+L}, where \eqn{G} is
 the number of shared unit-sum spectra and \eqn{L} counts the detected
@@ -286,7 +286,7 @@ NB2 \code{theta} allows bounded, likelihood-improving shape updates.
 The common channel map is learned from samples aggregated on common time
 bins. The conditional solver holds original counts and means in memory for
 joint updates and releases the initial PSF workers before this stage.
-The classic solver retains only the aggregated observations in its shared
+the general solver retains only the aggregated observations in its shared
 cache. Spectral, background and score passes stream original-channel blocks.
 Poisson/quasipoisson workers may additionally retain one original sample
 up to 64 MiB and an equally sized log-factorial cache. Larger samples use

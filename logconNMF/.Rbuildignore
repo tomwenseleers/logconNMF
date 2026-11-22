@@ -7,4 +7,3 @@
 ^data-raw$
 ^src/.*[.](o|so|dll|rds)$
 ^\.Rprofile$
-^inst/python/(.*/)?__pycache__(/|$)

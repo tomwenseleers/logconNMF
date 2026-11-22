@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9006</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9007</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,11 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0.9007" id="logconnmf-0109007">logconNMF 0.1.0.9007<a class="anchor" aria-label="anchor" href="#logconnmf-0109007"></a></h2>
+<ul><li>The conditional count solver runs within R using compiled C++ and OpenMP. It uses the same penalized original-ion objective for profile, spectral and local support updates. The general identity-link solver supports the other noise families, weights, offsets and exposures.</li>
+<li>Sparse retention profiles provide the interpolated 1%-height onsets for alignment. Reciprocal spectral comparisons use the retention window directly. Original-ion spectral regression, local offsets and support changes are evaluated in compiled code.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0.9006" id="logconnmf-0109006">logconNMF 0.1.0.9006<a class="anchor" aria-label="anchor" href="#logconnmf-0109006"></a></h2>
 <ul><li>Multisample count fits can resolve a mixed spectrum into several independently observed spectra. Overlapping profiles are refitted on original channels, with each change checked against the same penalized objective.</li>
 </ul></div>
@@ -49,7 +54,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.0.9004" id="logconnmf-0109004">logconNMF 0.1.0.9004<a class="anchor" aria-label="anchor" href="#logconnmf-0109004"></a></h2>
-<ul><li>The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. <code>objective.trace=TRUE</code> records the accepted objective values. <code>algorithm="classic"</code> selects the general-family implementation. See the mathematical article for installation of the optional Python numerical backend.</li>
+<ul><li>The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. <code>objective.trace=TRUE</code> records the accepted objective values. <code>algorithm="classic"</code> selects the general-family implementation.</li>
 <li>Grouped PSF regressions in large batches cap their worker count using available memory. The conditional solver releases the worker pool before refining the factors.</li>
 </ul></div>
     <div class="section level2">

@@ -32,3 +32,29 @@ test_that("multisample simulations support absence and every signal family", {
     expect_equal(rowSums(z$areas==0),rowSums(!z$present))
   }
 })
+
+test_that("dense and sparse profiles give the same retention landmarks on irregular grids", {
+  time <- c(0, 1, 3, 6, 10, 14)
+  H <- cbind(c(0, 1, 100, 100, 1, 0), c(100, 2, 1, 0, 0, 0))
+  for (profiles in list(H, methods::as(H, "dgCMatrix"))) {
+    landmarks <- sinmf_landmarks(profiles, time)
+    expect_identical(landmarks$windows, cbind(c(2L, 1L), c(5L, 3L), c(3L, 1L)))
+    expect_equal(landmarks$start, c(1, 0))
+    expect_equal(landmarks$apex, c(3, 0))
+    expect_equal(landmarks$width, c(3, 1))
+  }
+})
+
+test_that("reciprocal registration respects retention boundaries and original-order ties", {
+  sample <- rbind(c(1, 0), c(1, 0), c(0, 1))
+  reference <- rbind(c(0, 1), c(1, 0), c(1, 0))
+  for (hellinger in c(TRUE, FALSE)) {
+    matches <- slcn_anchor_matches(sample, reference, c(10, 10, 30), c(30.5, 10, 10),
+                                    .5, hellinger)
+    expect_identical(matches$sample, c(1L, 3L))
+    expect_identical(matches$reference, c(2L, 1L))
+    expect_equal(matches$distance, c(0, 0))
+    empty <- slcn_anchor_matches(sample, reference, 1:3, 11:13, 0, hellinger)
+    expect_length(empty$distance, 0L)
+  }
+})

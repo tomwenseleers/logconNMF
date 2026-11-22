@@ -21,7 +21,7 @@
 #'   description or let the simultaneous initializer estimate it.
 #' @param lambda An information criterion (`"gic"`, `"aic"`, `"bic"`,
 #'   `"ebic"` or `"mbic"`) or a nonnegative numeric penalty per selection
-#'   degree of freedom, before any temporal information adjustment. With the classic solver and
+#'   degree of freedom, before any temporal information adjustment. With the general solver and
 #'   \eqn{m} channels, a single component incurs \eqn{m\lambda}; in a
 #'   simultaneous fit a shared spectrum incurs \eqn{(m-1)\lambda} and an
 #'   occurrence incurs \eqn{\lambda}.
@@ -34,7 +34,7 @@
 #'   or `control$correlation` if supplied for a simultaneous fit.
 #' @param control Named controls. See [splogconNMF()] for one matrix. The conditional count solver uses up to
 #'   12 initial sweeps, stopping at a relative improvement of 0.001. For a
-#'   classic simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
+#'   general simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
 #'   `rounds=3L` sets the number of grouping rounds, and `q=64L` sets the
 #'   initial profile update resolution. After a cross-sample match, each
 #'   local profile is refined on all original channels using the hard shape
@@ -49,7 +49,7 @@
 #'   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
 #'   grouped-support initialization. `workers` limits concurrent samples
 #'   within `ncores`. Conditional grouped regressions use a memory-aware worker cap.
-#'   For the classic solver the cache retains aggregated observations and at most
+#'   For the general solver the cache retains aggregated observations and at most
 #'   one original count matrix up to 64 MiB plus its likelihood normalizers per
 #'   worker. `cache=FALSE` disables persistent input caches and temporary
 #'   whole-sample profile caches, retaining local-window disk reads.
@@ -99,7 +99,7 @@
 #' positive log-profile face (two endpoints plus interior slope changes).
 #' \code{fit$conditional_objective} reports quasi-deviance and both dimensions.
 #' An absent occurrence has zero cost. Finite support proposals and alternating
-#' conditional updates give a local optimum candidate. For the classic solver,
+#' conditional updates give a local optimum candidate. For the general solver,
 #' for one matrix with \eqn{m} channels and \eqn{K} components,
 #' \eqn{d=mK}. For a simultaneous model, \eqn{d=(m-1)G+L}, where \eqn{G} is
 #' the number of shared unit-sum spectra and \eqn{L} counts the detected
@@ -160,7 +160,7 @@
 #' The common channel map is learned from samples aggregated on common time
 #' bins. The conditional solver holds original counts and means in memory for
 #' joint updates and releases the initial PSF workers before this stage.
-#' The classic solver retains only the aggregated observations in its shared
+#' the general solver retains only the aggregated observations in its shared
 #' cache. Spectral, background and score passes stream original-channel blocks.
 #' Poisson/quasipoisson workers may additionally retain one original sample
 #' up to 64 MiB and an equally sized log-factorial cache. Larger samples use
@@ -211,7 +211,7 @@
 #'   Multisample fits can reassign mixed spectra to recurring components. A local
 #'   refit must improve the same original-channel information criterion.
 #'   `"classic"` uses the general identity-link solver. `"auto"` uses the
-#'   conditional solver for supported inputs when its Python runtime is available.
+#'   built-in conditional solver for supported inputs.
 #' @param time Increasing scan coordinates for a single sample. Defaults to scan
 #'   index. Supply native time in each descriptor for a simultaneous fit.
 #' @param objective.trace Record the penalized quasi-deviance after each
@@ -259,7 +259,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     if (is.null(path)) path <- tempfile("logconNMF_")
     classic_controls <- intersect(names(control), c("rounds", "initial_cycles", "ridge", "q"))
     if (length(classic_controls) && algorithm == "conditional")
-      stop("These controls are specific to the classic solver: ", paste(classic_controls, collapse = ", "))
+      stop("These controls are specific to the general solver: ", paste(classic_controls, collapse = ", "))
     conditional <- !length(classic_controls) && conditional_route(algorithm, family, dispersion, theta, samples)
     fit <- simultaneousNMF(samples, family = family, lambda = lambda, path = path,
       precluster = precluster, dispersion = dispersion, theta = theta,

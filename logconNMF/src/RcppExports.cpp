@@ -64,6 +64,220 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cc_log_shape
+NumericVector cc_log_shape(NumericVector time, NumericVector h);
+RcppExport SEXP _logconNMF_cc_log_shape(SEXP timeSEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_log_shape(time, h));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_faces
+IntegerVector cc_faces(NumericVector time, NumericMatrix h, bool validate);
+RcppExport SEXP _logconNMF_cc_faces(SEXP timeSEXP, SEXP hSEXP, SEXP validateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type h(hSEXP);
+    Rcpp::traits::input_parameter< bool >::type validate(validateSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_faces(time, h, validate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_local_profile
+NumericVector cc_local_profile(NumericVector t, NumericMatrix y, NumericMatrix o, NumericVector p, NumericVector h, double phi, double price, bool scale_only);
+RcppExport SEXP _logconNMF_cc_local_profile(SEXP tSEXP, SEXP ySEXP, SEXP oSEXP, SEXP pSEXP, SEXP hSEXP, SEXP phiSEXP, SEXP priceSEXP, SEXP scale_onlySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type o(oSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< double >::type price(priceSEXP);
+    Rcpp::traits::input_parameter< bool >::type scale_only(scale_onlySEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_local_profile(t, y, o, p, h, phi, price, scale_only));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_local_spectrum
+NumericVector cc_local_spectrum(NumericMatrix y, NumericMatrix o, NumericVector h, NumericVector old, double price, int threads);
+RcppExport SEXP _logconNMF_cc_local_spectrum(SEXP ySEXP, SEXP oSEXP, SEXP hSEXP, SEXP oldSEXP, SEXP priceSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type o(oSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type h(hSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type old(oldSEXP);
+    Rcpp::traits::input_parameter< double >::type price(priceSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_local_spectrum(y, o, h, old, price, threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_profile_sweep
+double cc_profile_sweep(List data, NumericMatrix spectra, IntegerVector order, NumericMatrix bands, double price, bool birth, int threads);
+RcppExport SEXP _logconNMF_cc_profile_sweep(SEXP dataSEXP, SEXP spectraSEXP, SEXP orderSEXP, SEXP bandsSEXP, SEXP priceSEXP, SEXP birthSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type spectra(spectraSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type bands(bandsSEXP);
+    Rcpp::traits::input_parameter< double >::type price(priceSEXP);
+    Rcpp::traits::input_parameter< bool >::type birth(birthSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_profile_sweep(data, spectra, order, bands, price, birth, threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_spectrum_sweep
+double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, double price, bool track, int threads);
+RcppExport SEXP _logconNMF_cc_spectrum_sweep(SEXP dataSEXP, SEXP spectraSEXP, SEXP orderSEXP, SEXP priceSEXP, SEXP trackSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type spectra(spectraSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< double >::type price(priceSEXP);
+    Rcpp::traits::input_parameter< bool >::type track(trackSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_spectrum_sweep(data, spectra, order, price, track, threads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_deviance
+double cc_deviance(NumericMatrix y, NumericMatrix mu, double phi);
+RcppExport SEXP _logconNMF_cc_deviance(SEXP ySEXP, SEXP muSEXP, SEXP phiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_deviance(y, mu, phi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_diff
+double cc_diff(NumericMatrix y, NumericMatrix mu, NumericMatrix old, double phi);
+RcppExport SEXP _logconNMF_cc_diff(SEXP ySEXP, SEXP muSEXP, SEXP oldSEXP, SEXP phiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type old(oldSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_diff(y, mu, old, phi));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_local_window
+SEXP cc_local_window(Environment sample, NumericMatrix spectra, IntegerVector components, IntegerVector ions, int si, bool floor_background);
+RcppExport SEXP _logconNMF_cc_local_window(SEXP sampleSEXP, SEXP spectraSEXP, SEXP componentsSEXP, SEXP ionsSEXP, SEXP siSEXP, SEXP floor_backgroundSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Environment >::type sample(sampleSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type spectra(spectraSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type components(componentsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ions(ionsSEXP);
+    Rcpp::traits::input_parameter< int >::type si(siSEXP);
+    Rcpp::traits::input_parameter< bool >::type floor_background(floor_backgroundSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_local_window(sample, spectra, components, ions, si, floor_background));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_support_sweep
+double cc_support_sweep(List data, NumericMatrix spectra, IntegerVector order, double price);
+RcppExport SEXP _logconNMF_cc_support_sweep(SEXP dataSEXP, SEXP spectraSEXP, SEXP orderSEXP, SEXP priceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type spectra(spectraSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type order(orderSEXP);
+    Rcpp::traits::input_parameter< double >::type price(priceSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_support_sweep(data, spectra, order, price));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_write_block
+void cc_write_block(NumericMatrix dest, IntegerVector rows, IntegerVector columns, NumericMatrix block);
+RcppExport SEXP _logconNMF_cc_write_block(SEXP destSEXP, SEXP rowsSEXP, SEXP columnsSEXP, SEXP blockSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type dest(destSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type rows(rowsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type columns(columnsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type block(blockSEXP);
+    cc_write_block(dest, rows, columns, block);
+    return R_NilValue;
+END_RCPP
+}
+// cc_cone
+NumericVector cc_cone(const Eigen::Map<Eigen::MatrixXd>& design, const Eigen::Map<Eigen::VectorXd>& y);
+RcppExport SEXP _logconNMF_cc_cone(SEXP designSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type design(designSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::VectorXd>& >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_cone(design, y));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_scan_unmix
+NumericMatrix cc_scan_unmix(const Eigen::Map<Eigen::MatrixXd>& y, const Eigen::Map<Eigen::MatrixXd>& offset, const Eigen::Map<Eigen::MatrixXd>& p, NumericMatrix start, LogicalMatrix eligible, double phi, bool exact);
+RcppExport SEXP _logconNMF_cc_scan_unmix(SEXP ySEXP, SEXP offsetSEXP, SEXP pSEXP, SEXP startSEXP, SEXP eligibleSEXP, SEXP phiSEXP, SEXP exactSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type offset(offsetSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type start(startSEXP);
+    Rcpp::traits::input_parameter< LogicalMatrix >::type eligible(eligibleSEXP);
+    Rcpp::traits::input_parameter< double >::type phi(phiSEXP);
+    Rcpp::traits::input_parameter< bool >::type exact(exactSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_scan_unmix(y, offset, p, start, eligible, phi, exact));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_gram_nnls
+Eigen::MatrixXd cc_gram_nnls(const Eigen::MappedSparseMatrix<double>& gram, const Eigen::Map<Eigen::MatrixXd>& score, const Eigen::Map<Eigen::MatrixXd>& start);
+RcppExport SEXP _logconNMF_cc_gram_nnls(SEXP gramSEXP, SEXP scoreSEXP, SEXP startSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Eigen::MappedSparseMatrix<double>& >::type gram(gramSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type score(scoreSEXP);
+    Rcpp::traits::input_parameter< const Eigen::Map<Eigen::MatrixXd>& >::type start(startSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_gram_nnls(gram, score, start));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cc_available_memory
+double cc_available_memory();
+RcppExport SEXP _logconNMF_cc_available_memory() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(cc_available_memory());
+    return rcpp_result_gen;
+END_RCPP
+}
 // slcn_log_profile
 List slcn_log_profile(NumericMatrix y, NumericMatrix mean, NumericVector profile, NumericVector spectrum, int family, NumericVector phi, NumericVector theta, NumericVector weights, int full_n, int first, int maxit, double censor, int q, int nthreads, int apex_lo, int apex_hi, int mode, Nullable<NumericVector> time, Nullable<NumericVector> exposure);
 RcppExport SEXP _logconNMF_slcn_log_profile(SEXP ySEXP, SEXP meanSEXP, SEXP profileSEXP, SEXP spectrumSEXP, SEXP familySEXP, SEXP phiSEXP, SEXP thetaSEXP, SEXP weightsSEXP, SEXP full_nSEXP, SEXP firstSEXP, SEXP maxitSEXP, SEXP censorSEXP, SEXP qSEXP, SEXP nthreadsSEXP, SEXP apex_loSEXP, SEXP apex_hiSEXP, SEXP modeSEXP, SEXP timeSEXP, SEXP exposureSEXP) {
@@ -155,6 +369,34 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericVector >::type ridge(ridgeSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type prior(priorSEXP);
     rcpp_result_gen = Rcpp::wrap(logconc_profile_cpp(y, mean, profile, spectrum, family, phi, theta, weights, full_n, first, maxit, censor, ridge, prior));
+    return rcpp_result_gen;
+END_RCPP
+}
+// slcn_profile_landmarks
+List slcn_profile_landmarks(SEXP H, NumericVector time);
+RcppExport SEXP _logconNMF_slcn_profile_landmarks(SEXP HSEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type H(HSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_profile_landmarks(H, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// slcn_anchor_matches
+List slcn_anchor_matches(NumericMatrix s, NumericMatrix ref, NumericVector t, NumericVector rt, double window, bool hellinger);
+RcppExport SEXP _logconNMF_slcn_anchor_matches(SEXP sSEXP, SEXP refSEXP, SEXP tSEXP, SEXP rtSEXP, SEXP windowSEXP, SEXP hellingerSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type s(sSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type ref(refSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type rt(rtSEXP);
+    Rcpp::traits::input_parameter< double >::type window(windowSEXP);
+    Rcpp::traits::input_parameter< bool >::type hellinger(hellingerSEXP);
+    rcpp_result_gen = Rcpp::wrap(slcn_anchor_matches(s, ref, t, rt, window, hellinger));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -460,10 +702,27 @@ static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_nuisance_poisson_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_cpp, 8},
     {"_logconNMF_nuisance_poisson_checked_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_checked_cpp, 8},
     {"_logconNMF_nuisance_gaussian_cpp", (DL_FUNC) &_logconNMF_nuisance_gaussian_cpp, 7},
+    {"_logconNMF_cc_log_shape", (DL_FUNC) &_logconNMF_cc_log_shape, 2},
+    {"_logconNMF_cc_faces", (DL_FUNC) &_logconNMF_cc_faces, 3},
+    {"_logconNMF_cc_local_profile", (DL_FUNC) &_logconNMF_cc_local_profile, 8},
+    {"_logconNMF_cc_local_spectrum", (DL_FUNC) &_logconNMF_cc_local_spectrum, 6},
+    {"_logconNMF_cc_profile_sweep", (DL_FUNC) &_logconNMF_cc_profile_sweep, 7},
+    {"_logconNMF_cc_spectrum_sweep", (DL_FUNC) &_logconNMF_cc_spectrum_sweep, 6},
+    {"_logconNMF_cc_deviance", (DL_FUNC) &_logconNMF_cc_deviance, 3},
+    {"_logconNMF_cc_diff", (DL_FUNC) &_logconNMF_cc_diff, 4},
+    {"_logconNMF_cc_local_window", (DL_FUNC) &_logconNMF_cc_local_window, 6},
+    {"_logconNMF_cc_support_sweep", (DL_FUNC) &_logconNMF_cc_support_sweep, 4},
+    {"_logconNMF_cc_write_block", (DL_FUNC) &_logconNMF_cc_write_block, 4},
+    {"_logconNMF_cc_cone", (DL_FUNC) &_logconNMF_cc_cone, 2},
+    {"_logconNMF_cc_scan_unmix", (DL_FUNC) &_logconNMF_cc_scan_unmix, 7},
+    {"_logconNMF_cc_gram_nnls", (DL_FUNC) &_logconNMF_cc_gram_nnls, 3},
+    {"_logconNMF_cc_available_memory", (DL_FUNC) &_logconNMF_cc_available_memory, 0},
     {"_logconNMF_slcn_log_profile", (DL_FUNC) &_logconNMF_slcn_log_profile, 19},
     {"_logconNMF_slcn_fit_profile", (DL_FUNC) &_logconNMF_slcn_fit_profile, 16},
     {"_logconNMF_logconc_quadratic_cpp", (DL_FUNC) &_logconNMF_logconc_quadratic_cpp, 5},
     {"_logconNMF_logconc_profile_cpp", (DL_FUNC) &_logconNMF_logconc_profile_cpp, 14},
+    {"_logconNMF_slcn_profile_landmarks", (DL_FUNC) &_logconNMF_slcn_profile_landmarks, 2},
+    {"_logconNMF_slcn_anchor_matches", (DL_FUNC) &_logconNMF_slcn_anchor_matches, 6},
     {"_logconNMF_slcn_read_block", (DL_FUNC) &_logconNMF_slcn_read_block, 4},
     {"_logconNMF_slcn_pooled_terms", (DL_FUNC) &_logconNMF_slcn_pooled_terms, 9},
     {"_logconNMF_slcn_pooled_spectra", (DL_FUNC) &_logconNMF_slcn_pooled_spectra, 11},

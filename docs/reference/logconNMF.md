@@ -92,7 +92,7 @@ sampleNMF(object, sample = 1L)
 
   An information criterion (`"gic"`, `"aic"`, `"bic"`, `"ebic"` or
   `"mbic"`) or a nonnegative numeric penalty per selection degree of
-  freedom, before any temporal information adjustment. With the classic
+  freedom, before any temporal information adjustment. With the general
   solver and \\m\\ channels, a single component incurs \\m\lambda\\; in
   a simultaneous fit a shared spectrum incurs \\(m-1)\lambda\\ and an
   occurrence incurs \\\lambda\\.
@@ -160,7 +160,7 @@ sampleNMF(object, sample = 1L)
   Named controls. See
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   for one matrix. The conditional count solver uses up to 12 initial
-  sweeps, stopping at a relative improvement of 0.001. For a classic
+  sweeps, stopping at a relative improvement of 0.001. For a general
   simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement
   limits, `rounds=3L` sets the number of grouping rounds, and `q=64L`
   sets the initial profile update resolution. After a cross-sample
@@ -177,7 +177,7 @@ sampleNMF(object, sample = 1L)
   `list(initial_relaxed=FALSE)`; single-sample fits default to a relaxed
   grouped-support initialization. `workers` limits concurrent samples
   within `ncores`. Conditional grouped regressions use a memory-aware
-  worker cap. For the classic solver the cache retains aggregated
+  worker cap. For the general solver the cache retains aggregated
   observations and at most one original count matrix up to 64 MiB plus
   its likelihood normalizers per worker. `cache=FALSE` disables
   persistent input caches and temporary whole-sample profile caches,
@@ -224,8 +224,7 @@ sampleNMF(object, sample = 1L)
   fits can reassign mixed spectra to recurring components. A local refit
   must improve the same original-channel information criterion.
   `"classic"` uses the general identity-link solver. `"auto"` uses the
-  conditional solver for supported inputs when its Python runtime is
-  available.
+  built-in conditional solver for supported inputs.
 
 - time:
 
@@ -303,7 +302,7 @@ every positive log-profile face (two endpoints plus interior slope
 changes). `fit$conditional_objective` reports quasi-deviance and both
 dimensions. An absent occurrence has zero cost. Finite support proposals
 and alternating conditional updates give a local optimum candidate. For
-the classic solver, for one matrix with \\m\\ channels and \\K\\
+the general solver, for one matrix with \\m\\ channels and \\K\\
 components, \\d=mK\\. For a simultaneous model, \\d=(m-1)G+L\\, where
 \\G\\ is the number of shared unit-sum spectra and \\L\\ counts the
 detected sample–component occurrences. Each spectrum contributes \\m-1\\
@@ -367,7 +366,7 @@ Noise scales are held fixed when comparing groupings. A negative NB2
 The common channel map is learned from samples aggregated on common time
 bins. The conditional solver holds original counts and means in memory
 for joint updates and releases the initial PSF workers before this
-stage. The classic solver retains only the aggregated observations in
+stage. the general solver retains only the aggregated observations in
 its shared cache. Spectral, background and score passes stream
 original-channel blocks. Poisson/quasipoisson workers may additionally
 retain one original sample up to 64 MiB and an equally sized

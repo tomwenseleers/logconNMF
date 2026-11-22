@@ -111,13 +111,13 @@ compounds.
 | True occurrences | 769 | 7,917 |
 | Samples containing the acid | 7 | 8 |
 | PSF calibration | Blind, two windows | Standard-assisted, ten windows |
-| Complete 16-sample analysis | **54.94 s (0.92 min)** | **552.69 s (9.21 min)** |
+| Complete 16-sample analysis | **52.37 s (0.87 min)** | **533.88 s (8.90 min)** |
 
-Both runs used GCMSprime and logconNMF 0.1.0.9006. Timings cover the
+Both runs used GCMSprime and logconNMF 0.1.0.9007. Timings cover the
 complete batch from CDF input through export. In the small experiment,
-CDF preparation, calibration and grouping took 11.34 s, grouped
-initialization and joint refinement took 39.45 s, and result
-construction and export took 3.91 s. The benchmark wrapper added 0.24 s.
+CDF preparation, calibration and grouping took 10.31 s, grouped
+initialization and joint refinement took 37.87 s, and result
+construction and export took 3.98 s. The benchmark wrapper added 0.21 s.
 The large experiment is documented below.
 
 ## Small-scale 16-sample software comparison
@@ -139,7 +139,7 @@ The [GCMSprime CDF
 workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
 built on logconNMF, recovers **all 769 true occurrences with only 26
 false positives** (peak F1 **0.983**), including the acid in all seven
-samples where it occurs. It takes **54.94 s** with four two-thread PSF
+samples where it occurs. It takes **52.37 s** with four two-thread PSF
 workers and eight threads available for joint refinement on an HP ZBook
 Fury G8 with an Intel Core i9-11950H, eight physical cores and 16
 logical threads. The common 32-group map accelerates initialization;
@@ -208,22 +208,22 @@ uses RI-constrained reciprocal hits.
 
 | CDF workflow stage | Seconds |
 |:---|---:|
-| Reading data, preparing sample PSFs and initialization | 139.60 |
-| Grouped PSF regression, alignment and joint original-channel refinement | 383.22 |
-| Constructing and exporting results | 29.87 |
-| **Complete fit and exports** | **552.69** |
+| Reading data, preparing sample PSFs and initialization | 144.35 |
+| Grouped PSF regression, alignment and joint original-channel refinement | 357.67 |
+| Constructing and exporting results | 31.86 |
+| **Complete fit and exports** | **533.88** |
 
-Within the 383.22 s coupled stage, grouped PSF regression took 119.65 s
-and alignment and joint refinement took 263.33 s. Simulation, separate
+Within the 357.67 s coupled stage, grouped PSF regression took 108.75 s
+and alignment and joint refinement took 248.67 s. Simulation, separate
 standard calibration and scoring against truth are outside the timed
 fit.
 
 On the HP ZBook Fury G8 (Core i9-11950H, eight physical cores, 16
 logical cores and 64 GB RAM), the memory-aware scheduler used **6 PSF
 workers with 2 threads each**. The joint solver could use all 16
-threads. Across the measured workflow the process tree averaged **5.61
-logical-core equivalents** and peaked at **6.12 GiB working set** and
-**5.78 GiB private memory**. At least 28.57 GiB of physical memory
+threads. Across the measured workflow the process tree averaged **4.59
+logical-core equivalents** and peaked at **6.96 GiB working set** and
+**7.23 GiB private memory**. At least 29.46 GiB of physical memory
 stayed available.
 
 ![Measured process-tree memory and CPU use for sixteen full-sized
@@ -329,12 +329,12 @@ Grouped PSF regressions divide the core budget between independent
 samples and native threads. The scheduler estimates how many regressions
 fit in available memory, including Windows commit headroom. After those
 workers exit, a single process shares the original ion counts and fitted
-means. It updates profiles and backgrounds across samples and fits
-disjoint ion columns of the shared spectra concurrently. Peak merges and
-exchanges retain their original order. The general identity-link solver
-can stream original-channel blocks from disk. Use
-`control=list(workers=4L)` for an explicit sample-worker cap. Keep the
-fitted store alongside saved objects.
+means. OpenMP updates elution profiles across samples. It fits each
+ion’s shared spectrum and sample-specific background coefficients
+independently, keeping a fixed component order within each ion. The
+general identity-link solver can stream original-channel blocks from
+disk. Use `control=list(workers=4L)` for an explicit sample-worker cap.
+Keep the fitted store alongside saved objects.
 
 For sample-group directories, acquisition ordering, alkane standards and
 Excel/MSP reports, use the workflow in

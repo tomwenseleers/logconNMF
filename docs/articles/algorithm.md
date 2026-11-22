@@ -57,13 +57,16 @@ the reported information criterion for that dataset.
     For a single sample the independent log-concave fit supplies local
     starts. Repeated acquisitions can share a PSF estimated from pooled,
     count-conserving total-ion traces. Channel aggregation accelerates
-    the initial regression. Lift its spectra back to original channels
-    with a nonnegative fit.
-2.  **Locate candidate occurrences.** With several samples, spectral
-    anchors estimate monotone time maps. On that shared clock, propose
-    local spectral directions that overlapping candidates cannot already
-    explain by a nonnegative mixture. Retain native time coordinates for
-    testing peak shape. With one sample the time map is the identity.
+    the initial regression. Estimate the original-ion intensities by
+    nonnegative least squares. The sparse Gram matrix records which
+    initial profiles overlap.
+2.  **Locate candidate occurrences.** With several samples, interpolate
+    each peak’s 1%-height onset on its native scan grid. Reciprocal
+    spectral matches within the retention window provide the anchors for
+    monotone time maps. On that shared clock, propose local spectral
+    directions that overlapping candidates cannot already explain by a
+    nonnegative mixture. Retain native time coordinates for testing peak
+    shape. With one sample the time map is the identity.
 3.  **Alternate two conditional updates.** Visit components in
     decreasing total abundance. To update one profile, put all other
     components and background in the offset. Compute per-scan
@@ -128,14 +131,11 @@ noise dimensions. Comparisons on the same observations and noise
 specification give the same objective differences.
 
 The conditional solver supports identity-link Poisson and quasipoisson
-data with unit observation weights and exposure. It uses NumPy, SciPy,
-Numba and threadpoolctl in a separate Python process. Choose the
-interpreter with `options(logconNMF.python = "/path/to/python")` and
-check it with
-[`logconNMF::conditionalSolverAvailable()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md).
-A first run compiles numerical kernels into the user’s cache. The
-general solver supplies the other identity-link families, observation
-weights, offsets and exposures.
+data with unit observation weights and exposure. Its C++ kernels update
+sample profiles and independent ion columns with OpenMP. Fits use the
+arrays held by R. For on-disk inputs, the solver reads the stored counts
+for each sample. The general solver supplies the other identity-link
+families, observation weights, offsets and exposures.
 
 ## Rank selection in the general identity-link solver
 

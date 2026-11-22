@@ -197,17 +197,15 @@ sinmf_compact <- function(state) {
   state
 }
 
-sinmf_profile_anchors <- function(H,S,time,small_width) {
-  K<-ncol(H);out<-data.frame(component=seq_len(K),area=rowSums(S),start=numeric(K),apex=numeric(K),width=numeric(K),anchor=numeric(K))
-  for(k in seq_len(K)) {
-    h<-as.numeric(H[,k]);at<-which(h>max(h)*.01);peak<-which.max(h)
-    # Linear interpolation of the 1%-height crossing on the measured grid.
-    first<-min(at);left<-if(first>1L) first-1L else first
-    out$start[k]<-if(left<first)time[left]+(time[first]-time[left])*(.01*max(h)-h[left])/(h[first]-h[left]) else time[first]
-    out$apex[k]<-time[peak];out$width[k]<-diff(range(time[at]))
-    out$anchor[k]<-out$start[k]+rep_len(small_width,K)[k]/2
-  }
-  out
+sinmf_landmarks <- function(H, time) {
+  if (inherits(H, "Matrix") && !inherits(H, "dgCMatrix")) H <- as(H, "dgCMatrix")
+  slcn_profile_landmarks(H, time)
+}
+sinmf_profile_anchors <- function(H, S, time, small_width, landmarks=sinmf_landmarks(H, time)) {
+  k <- ncol(H)
+  data.frame(component=seq_len(k), area=rowSums(S), start=landmarks$start,
+    apex=landmarks$apex, width=landmarks$width,
+    anchor=landmarks$start + rep_len(small_width, k)/2)
 }
 sinmf_spectral_distance <- function(A,B,method=c("cosine","hellinger")) {
   method<-match.arg(method)
@@ -250,17 +248,21 @@ sinmf_estimate_alignment <- function(fits,metadata,method="cosine",small_width=N
     if(!nrow(fits[[s]]$S)||!nrow(fits[[ref]]$S)) {
       maps[[s]]<-sinmf_monotone_map(numeric(),numeric(),numeric(),range(metadata[[s]]$edges));next
     }
-    d<-sinmf_spectral_distance(fits[[s]]$S,fits[[ref]]$S,method)
-    gap<-abs(outer(geom[[s]]$anchor,geom[[ref]]$anchor,"-"))
-    d[gap>alignment_window]<-Inf
-    j<-apply(d,1L,which.min);i<-apply(d,2L,which.min)
-    good<-which(i[j]==seq_len(nrow(d)) & d[cbind(seq_len(nrow(d)),j)] < if(method=="cosine") .025 else .16)
-    x<-geom[[s]]$anchor[good];y<-geom[[ref]]$anchor[j[good]]
-    w<-sqrt(pmin(geom[[s]]$area[good],geom[[ref]]$area[j[good]]))
+    hellinger <- identical(method, "hellinger")
+    hits <- slcn_anchor_matches(as.matrix(fits[[s]]$S), as.matrix(fits[[ref]]$S),
+      geom[[s]]$anchor, geom[[ref]]$anchor, alignment_window, hellinger)
+    keep <- hits$distance < if (hellinger) .16 else .025
+    good <- hits$sample[keep]
+    target <- hits$reference[keep]
+    sample_names <- rownames(fits[[s]]$S)
+    if (!is.null(sample_names)) names(good) <- sample_names[good]
+    x <- geom[[s]]$anchor[good]
+    y <- geom[[ref]]$anchor[target]
+    w<-sqrt(pmin(geom[[s]]$area[good],geom[[ref]]$area[target]))
     if(length(w))w<-pmin(w/median(w),4)
-    ratio<-log(geom[[s]]$area[good]/geom[[ref]]$area[j[good]])
+    ratio<-log(geom[[s]]$area[good]/geom[[ref]]$area[target])
     maps[[s]]<-sinmf_area_adjusted_map(x,y,w,ratio,range(metadata[[s]]$edges))
-    anchors[[s]]<-data.frame(sample=good,reference=j[good],x,y)
+    anchors[[s]]<-data.frame(sample=good,reference=target,x,y)
   }
   list(maps=maps,anchors=anchors,geometry=geom,reference=ref,method=method)
 }

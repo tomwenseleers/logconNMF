@@ -6,9 +6,7 @@ conditional_workers <- function(samples, ncores) {
   columns <- max(vapply(candidates, function(s)
     as.double(if(is.null(s$X)) length(s$time) else ncol(s$X)) + NCOL(s$background), 0))
   per_worker <- 384*1024^2 + 24*columns^2
-  script <- system.file("python", "conditional.py", package="logconNMF", mustWork=TRUE)
-  available <- suppressWarnings(as.numeric(system2(conditional_python(),
-    c(shQuote(script),"--available-memory"),stdout=TRUE)))
+  available <- cc_available_memory()
   limit <- min(ncores, length(samples))
   if(length(available)==1L && is.finite(available) && available>0)
     limit <- min(limit,max(1,floor(.75*available/per_worker)))
@@ -23,9 +21,10 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
     a <- readRDS(x$initial)
     a$time <- x$time
     a$observed <- file.path(dirs[i], "observed.bin")
-    w <- conditional_windows(a$H)
+    landmarks <- sinmf_landmarks(a$H, x$time)
+    w <- a$windows <- landmarks$windows
     width <- pmax(stats::median(diff(x$time)), x$time[w[, 2L]] - x$time[w[, 1L]])
-    a$anchors <- sinmf_profile_anchors(a$H, a$S, x$time, width)
+    a$anchors <- sinmf_profile_anchors(a$H, a$S, x$time, width, landmarks)
     a
   })
   if (is.null(ctl$alignment_window)) {
