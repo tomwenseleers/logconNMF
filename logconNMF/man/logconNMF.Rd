@@ -111,8 +111,11 @@ fitter's default (\code{"auto"} for one sample and \code{"none"} for simultaneou
 or \code{control$correlation} if supplied for a simultaneous fit.}
 
 \item{ncores}{Total core budget. \code{NULL} uses physical cores for one sample
-and logical cores for simultaneous fits. Simultaneous fits divide the budget
-between sample workers and their native threads, with one BLAS thread per worker.}
+and logical cores for simultaneous fits. Grouped PSF regressions divide this
+budget between samples and native threads. The conditional count solver then
+reuses it for sample-specific profile and background updates and disjoint
+ion columns of the shared spectra, with one BLAS thread per worker. Set
+\code{ncores=1L} for a serial fit.}
 
 \item{control}{Named controls. See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. The conditional count solver uses up to
 12 initial sweeps, stopping at a relative improvement of 0.001. For a

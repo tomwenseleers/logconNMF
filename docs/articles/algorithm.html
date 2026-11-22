@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -164,6 +164,14 @@ Relative objective improvement below <span class="math inline">10^{-3}</span> en
 return a local solution. Supplied ground truth need not minimize a
 penalized criterion on one realization of noisy data.</li>
 </ol>
+<p>With the spectra fixed, profiles in different samples have separate
+likelihood contributions. With profiles fixed, the spectral likelihood
+and ion inclusion penalty separate by ion. Workers therefore update
+different samples or ion columns while preserving the component order
+within each. The spectral sweep transfers the unit-sum normalization
+into each profile after all ions have finished. Accepting a merge
+changes the offsets of its neighbours, so merge decisions remain
+sequential.</p>
 <p>For simulated data a truth-based comparison has a precise
 interpretation. Write <span class="math inline">\mu^\star=E(Y)</span>
 and fix dispersion and weights. The expected difference in Poisson
@@ -1060,7 +1068,7 @@ variance-matched Poisson working weights</p>
 w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 </span></p>
-<p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> on the PSF design
+<p>It fits grouped nonnegative <code>l0glmFit()</code> on the PSF design
 with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
 original-channel polish use <span class="math display">
 J_0=-2\ell_\nu+m\lambda_{\rm IC}K.
@@ -1521,7 +1529,7 @@ fusion and their integration with L0glm’s grouped initialization are
 developments of this package.</p>
 </div>
 <div class="section level2">
-<h2 id="parallel-samples-and-bounded-memory-updates">Parallel samples and bounded-memory updates<a class="anchor" aria-label="anchor" href="#parallel-samples-and-bounded-memory-updates"></a>
+<h2 id="parallel-samples-and-bounded-memory-updates">Parallel disk-backed updates in the classic solver<a class="anchor" aria-label="anchor" href="#parallel-samples-and-bounded-memory-updates"></a>
 </h2>
 <p>With common spectra <span class="math inline">P</span> fixed,
 sample-specific factors are conditionally independent. The simultaneous

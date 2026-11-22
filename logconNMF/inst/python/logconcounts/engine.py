@@ -1,7 +1,9 @@
 from types import SimpleNamespace
 import numpy as np
 from scipy import sparse
-from .kernels import face, log_shape, nnls_gram, update_h, solve_p
+from .blocks import profile_sample, update_spectra
+from .kernels import face, log_shape, nnls_gram, solve_p
+from .workers import ordered_map
 from .objective import means, objective_terms, score
 from .support import contract, support_block
 from .exchange import exchange
@@ -83,14 +85,15 @@ def group_dictionary(data, A):
 
 
 def update_background(data, mu, track=False):
-    gain = 0.0
-    for s, m in zip(data, mu):
+    def one(args):
+        s, m = args
+        gain = 0.0
         for j, h in enumerate(s.Z.T):
             ix = np.flatnonzero(h > 0)
             hs = h[ix]
             old = s.alpha[j].copy()
             o = np.maximum(1e-8, m[ix] - hs[:, None] * old)
-            q, g = solve_p(s.y[ix] / s.phi, o / s.phi, hs / s.phi, old, 0.0, track)
+            q, g = solve_p(np.asfortranarray(s.y[ix] / s.phi), np.asfortranarray(o / s.phi), hs / s.phi, old, 0.0, track)
             gain += g
             delta = hs[:, None] * (q - old)
             m[ix] += delta
@@ -98,10 +101,14 @@ def update_background(data, mu, track=False):
             s.alpha[j] = q
         np.maximum(s.bg, 1e-8, out=s.bg)
         np.maximum(m, 1e-8, out=m)
-    return gain
+        return gain
+
+    return sum(ordered_map(one, zip(data, mu)))
 
 
 def spectral_block(data, H, P, mu, price, track=False):
+    if len(data) > 1 and len(P):
+        return update_spectra(data, H, P, mu, price, track) + update_background(data, mu, track)
     gain = 0.0
     mass = np.sum([h.sum(0) for h in H], axis=0)
     for k in np.argsort(-mass):
@@ -135,51 +142,16 @@ def spectral_block(data, H, P, mu, price, track=False):
 
 
 def profile_block(data, H, P, mu, bands, price, allow_birth):
-    gain = 0.0
-    weight = np.sum([h.sum(0) for h in H], axis=0)
-    for k in np.argsort(-weight):
-        p = P[k]
-        ion = np.flatnonzero(p > 0)
-        if not len(ion):
-            continue
-        for s, h, m in zip(data, H, mu):
-            old = h[:, k]
-            present = np.flatnonzero(old > 0)
-            if not len(present) and not allow_birth:
-                continue
-            # Twice the empirical local PSF width leaves room for tails. The
-            # window expands when the accepted curve meets a boundary.
-            atom_width = (
-                np.median(s.warp[s.grid[:, 1]] - s.warp[s.grid[:, 0]])
-                if len(s.grid)
-                else 0.0
-            )
-            width = max(atom_width, 3 * np.median(np.diff(s.warp)))
-            a, b = np.searchsorted(s.warp, [bands[k, 0] - width, bands[k, 1] + width])
-            if len(present):
-                a = min(a, present[0])
-                b = max(b, present[-1] + 1)
-            while b > a:
-                ix = np.arange(a, b)
-                sel = np.ix_(ix, ion)
-                prev = old[ix].copy()
-                pc = p[ion]
-                off = np.maximum(1e-8, m[sel] - prev[:, None] * pc)
-                y = s.y[sel]
-                v, g = update_h(s.t[ix], y, off, pc, prev, s.phi, price)
-                if v.max() <= 0:
-                    break
-                extension = max(3, (b - a) // 2)
-                lo = max(0, a - extension) if v[0] > 0.01 * v.max() else a
-                hi = min(len(old), b + extension) if v[-1] > 0.01 * v.max() else b
-                if (a, b) == (lo, hi):
-                    break
-                a, b = lo, hi
-            if b > a:
-                gain += g + price * (face(s.t[ix], v) - face(s.t[ix], prev))
-                old[ix] = v
-                m[sel] = off + v[:, None] * pc
-    return gain
+    order = np.argsort(-np.sum([h.sum(0) for h in H], axis=0))
+
+    def one(args):
+        s, h, m = args
+        psf_width = np.median(s.warp[s.grid[:,1]] - s.warp[s.grid[:,0]]) if len(s.grid) else 0.
+        width = max(psf_width, 3*np.median(np.diff(s.warp)))
+        return profile_sample(s.t, s.warp, s.y, s.phi, h, m, P, order, bands, width, price, allow_birth)
+
+    gains = ordered_map(one, zip(data, H, mu))
+    return np.array(gains).T[order].sum()
 
 
 def lift(data, H, P, g):

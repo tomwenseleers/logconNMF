@@ -43,8 +43,15 @@ test_that("shared spectra reconstruct each measured grid and trace the scored mo
     expect_identical(ans$algorithm,"conditional")
     expect_equal(rowSums(unname(ans$P)),rep(1,ans$rank))
     expect_equal(ans$L,ans$conditional_objective$calls)
+    parallel_fit <- logconNMF(z,algorithm="conditional",precluster=FALSE,ncores=2L,
+      control=list(workers=1L),family=quasipoisson("identity"),dispersion=2,
+      objective.trace=TRUE)
+    expect_equal(parallel_fit$P,ans$P,tolerance=1e-10)
+    expect_equal(parallel_fit$areas,ans$areas,tolerance=1e-10)
+    expect_equal(parallel_fit$objective_trace,ans$objective_trace,tolerance=1e-8)
     for (i in seq_along(z)) {
       fit <- sampleNMF(ans,i)
+      expect_equal(sampleNMF(parallel_fit,i)$H,fit$H,tolerance=1e-10)
       expect_equal(unname(fitted(fit)),unname(fitted(ans,sample=i)),tolerance=1e-8)
       expect_lt(sum((fitted(fit)-z[[i]]$y)^2)/sum(z[[i]]$y^2),.035)
     }

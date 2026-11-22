@@ -1,5 +1,13 @@
 # Changelog
 
+## logconNMF 0.1.0.9005
+
+- The joint count solver uses the requested core budget for independent
+  sample profiles and background updates, and for ion columns of each
+  shared spectrum. Spectral coordinates retain their update order within
+  each ion. Original-channel GIC and log-concavity checks also apply to
+  threaded fits.
+
 ## logconNMF 0.1.0.9004
 
 - The default Poisson and quasi-Poisson count fit alternates

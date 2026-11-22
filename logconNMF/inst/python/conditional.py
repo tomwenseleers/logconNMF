@@ -78,6 +78,7 @@ def main(directory, cache):
         int(settings["cycles"]),
         int(settings["exchanges"]),
         settings["trace"] == "TRUE",
+        ncores=int(settings.get("ncores", 1)), available_bytes=available_memory(),
     )
     ans["P"].T.astype("<f8").tofile(directory / "spectra")
     for i, (h, a, df) in enumerate(zip(ans["H"], ans["alpha"], ans["shape_df"])):

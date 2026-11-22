@@ -87,7 +87,7 @@ conditional_dictionary <- function(X, Y, B, spec, groups, lambda, ncores, contro
        background = B, spec = spec, grouped_dictionary = !is.null(groups))
 }
 
-conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, exchanges = 2L) {
+conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, exchanges = 2L, ncores = 1L) {
   tmp <- tempfile("logcon-counts-")
   dir.create(tmp)
   on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
@@ -118,7 +118,7 @@ conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, ex
     put("warp", as.double(a$aligned))
     data.frame(n = nrow(h), m = m, b = ncol(a$background), k = ncol(h), q = ncol(a$S),
       phi = a$spec$dispersion, observed = normalizePath(y, winslash = "/", mustWork = TRUE),
-      price = price, cycles = cycles, exchanges = exchanges, trace = trace, grouped=isTRUE(a$grouped_dictionary))
+      price = price, cycles = cycles, exchanges = exchanges, trace = trace, ncores=sinmf_core_count(ncores), grouped=isTRUE(a$grouped_dictionary))
   })
   utils::write.csv(do.call(rbind, rows), file.path(tmp, "samples.csv"), row.names = FALSE)
   script <- system.file("python", "conditional.py", package = "logconNMF", mustWork = TRUE)
@@ -153,7 +153,7 @@ conditional_single <- function(fit, y, time, price, trace) {
   part <- fit[c("H", "S", "alpha", "background", "spec")]
   part$observed <- y
   part$time <- part$aligned <- time
-  result <- conditional_run(list(part), seq_len(ncol(y)), price, trace)
+  result <- conditional_run(list(part), seq_len(ncol(y)), price, trace, ncores=fit$ncores)
   f <- result$factors[[1L]]
   counts <- as.numeric(Matrix::colSums(f$H))
   fit$H <- if (length(counts)) as(f$H %*% Matrix::Diagonal(x = 1/counts), "dgCMatrix") else f$H

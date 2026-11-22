@@ -82,6 +82,15 @@ the reported information criterion for that dataset.
     searches return a local solution. Supplied ground truth need not
     minimize a penalized criterion on one realization of noisy data.
 
+With the spectra fixed, profiles in different samples have separate
+likelihood contributions. With profiles fixed, the spectral likelihood
+and ion inclusion penalty separate by ion. Workers therefore update
+different samples or ion columns while preserving the component order
+within each. The spectral sweep transfers the unit-sum normalization
+into each profile after all ions have finished. Accepting a merge
+changes the offsets of its neighbours, so merge decisions remain
+sequential.
+
 For simulated data a truth-based comparison has a precise
 interpretation. Write \mu^\star=E(Y) and fix dispersion and weights. The
 expected difference in Poisson deviances between any fixed \mu and
@@ -871,10 +880,9 @@ variance-matched Poisson working weights
 w^{\rm pilot}\_{ij}=w\_{ij}\\
 \frac{\widetilde\mu\_{ij}}{\operatorname{Var}(Y\_{ij}\mid\widetilde\mu\_{ij},\nu)}.
 
-It fits grouped nonnegative
-[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
-on the PSF design with compulsory background, using the unadjusted
-\lambda\_{\rm IC}. The starting search and original-channel polish use
+It fits grouped nonnegative `l0glmFit()` on the PSF design with
+compulsory background, using the unadjusted \lambda\_{\rm IC}. The
+starting search and original-channel polish use
 J_0=-2\ell\_\nu+m\lambda\_{\rm IC}K. This permissive initialization
 preserves candidates while the profiles are refined. Final rank
 comparisons use J=-2\ell\_\nu+m\kappa\lambda\_{\rm IC}K. When \kappa=1,
@@ -1319,7 +1327,7 @@ parameterizations. The compound-count criterion, local log-concave
 fusion and their integration with L0glm’s grouped initialization are
 developments of this package.
 
-## Parallel samples and bounded-memory updates
+## Parallel disk-backed updates in the classic solver
 
 With common spectra P fixed, sample-specific factors are conditionally
 independent. The simultaneous criterion is

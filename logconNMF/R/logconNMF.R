@@ -59,8 +59,11 @@
 #'   to request iterative component selection for every sample. The solver's
 #'   `max.memory` budget covers Gram/factor workspace, not total process RAM.
 #' @param ncores Total core budget. `NULL` uses physical cores for one sample
-#'   and logical cores for simultaneous fits. Simultaneous fits divide the budget
-#'   between sample workers and their native threads, with one BLAS thread per worker.
+#'   and logical cores for simultaneous fits. Grouped PSF regressions divide this
+#'   budget between samples and native threads. The conditional count solver then
+#'   reuses it for sample-specific profile and background updates and disjoint
+#'   ion columns of the shared spectra, with one BLAS thread per worker. Set
+#'   `ncores=1L` for a serial fit.
 #' @param path New directory for the sample store and fitted factors in a
 #'   simultaneous fit. `NULL` uses a temporary directory.
 #' @param align Estimate monotone time warps for a simultaneous fit.

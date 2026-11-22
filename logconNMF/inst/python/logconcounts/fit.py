@@ -6,6 +6,7 @@ import numpy as np
 from scipy import sparse
 from threadpoolctl import threadpool_limits
 
+from .workers import worker_pool, initialize_samples
 from .anchors import anchor_dictionary
 from .engine import (
     atoms,
@@ -76,12 +77,12 @@ def _sample(part, groups, price):
     return s
 
 
-def fit(parts, groups, price, cycles=12, exchanges=2, trace=False):
+def fit(parts, groups, price, cycles=12, exchanges=2, trace=False, ncores=1, available_bytes=None):
     """Return total-ion profiles, unit-sum spectra and the scored factor dimensions."""
     groups = np.asarray(groups, dtype=np.int64).reshape(-1) - 1
     price = float(price)
-    with threadpool_limits(1):
-        data = [_sample(x, groups, price) for x in parts]
+    with threadpool_limits(1), worker_pool(ncores):
+        data = initialize_samples(lambda part: _sample(part, groups, price), parts, available_bytes)
         candidates = atoms(data)
         if not len(candidates.p):
             P = np.zeros((0, len(groups)))

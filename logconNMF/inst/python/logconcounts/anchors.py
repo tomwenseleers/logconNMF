@@ -4,9 +4,10 @@ import numpy as np
 from numba import njit
 from scipy.optimize import nnls
 from .kernels import log_shape, update_p
+from .workers import ordered_map
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def scan_unmix(Y, B, P, h, eligible, phi):
     for t in range(len(Y)):
         ix = np.flatnonzero(eligible[t])
@@ -104,8 +105,9 @@ def anchor_dictionary(data, A, price, partial=False):
 
 def unmix_profiles(data, A, P, bands, extracted=None):
     unit = P / np.maximum(np.linalg.norm(P, axis=1)[:, None], 1e-60)
-    H = []
-    for si, s in enumerate(data):
+
+    def one(si):
+        s = data[si]
         if extracted is None:
             coef = np.zeros((len(s.S), len(P)))
             for ii in np.flatnonzero(A.sample == si):
@@ -153,5 +155,5 @@ def unmix_profiles(data, A, P, bands, extracted=None):
             sl = slice(nz[0], nz[-1] + 1)
             v = log_shape(s.t[sl], old[sl])
             old[sl] = v * (old.sum() / max(v.sum(), 1e-30))
-        H.append(h)
-    return H
+        return h
+    return ordered_map(one, range(len(data)))

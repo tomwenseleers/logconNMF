@@ -51,7 +51,7 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
   N <- sum(store$manifest$n)
   infl <- max(vapply(parts, function(a) a$spec$information_factor, 0))
   price <- infl * if (is.character(lambda)) L0glm::presetLambda(lambda, p = N, n = N) else lambda
-  result <- conditional_run(parts, group, price, trace, ctl$cycles)
+  result <- conditional_run(parts, group, price, trace, ctl$cycles, ncores=ncores)
   P <- result$P
   colnames(P) <- axis
   obs <- result$objective

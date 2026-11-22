@@ -136,8 +136,8 @@ single elapsed measurements.
 
 | Window             | Scans | Channels | Components | Quasi-GIC | Seconds |
 |:-------------------|------:|---------:|-----------:|----------:|--------:|
-| Hydrocarbon window |   119 |      670 |          6 |   215,547 |    9.72 |
-| Beer volatiles     | 1,764 |      518 |         36 | 1,010,157 |   42.66 |
+| Hydrocarbon window |   119 |      670 |          6 |   215,547 |    4.53 |
+| Beer volatiles     | 1,764 |      518 |         36 | 1,010,157 |   36.70 |
 
 The [GCMSprime
 tutorial](https://tomwenseleers.github.io/GCMSprime/articles/gcms-deconvolution.html)

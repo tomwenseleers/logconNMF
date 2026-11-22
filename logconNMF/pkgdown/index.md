@@ -292,14 +292,9 @@ of samples. This shares chemical
 information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
-The grouped PSF regressions run in parallel within the `ncores` budget.
-The count solver limits automatic worker concurrency using the scan count and
-available memory, including Windows commit headroom. Each worker releases its
-design before joint refinement. The conditional updates hold original-ion
-observations and fitted means in memory and use the native time grid of each
-sample. The classic solver can stream original-channel blocks from disk.
+Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. It updates profiles and backgrounds across samples and fits disjoint ion columns of the shared spectra concurrently. Peak merges and exchanges retain their original order. The classic solver can stream original-channel blocks from disk.
 The full-size fit recovered **7,917 of 7,917 occurrences** with **16 false calls**
-in **22.67 min** across 16 chromatograms of 10,000 scans and 550 channels.
+in **11.24 min** across 16 chromatograms of 10,000 scans and 550 channels.
 See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
 
 As an example, we provide a simulated
@@ -317,7 +312,7 @@ summarise the simultaneous logconNMF result. The [seven-method comparison](https
 <div><strong>0.9999991</strong><span>median spectral cosine</span></div>
 </div>
 
-The complete small fit took **124.70 s**. Of this, 103.90 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+The complete small fit took **70.81 s**. Of this, 51.56 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and

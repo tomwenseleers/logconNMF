@@ -82,7 +82,7 @@ def project(t, y, w):
     return z
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def log_shape(t, h):
     """Project log ordinates on the concave cone; keep a contiguous support."""
     h = np.maximum(h, 0.0)
@@ -101,7 +101,7 @@ def log_shape(t, h):
     return out
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def face(t, h):
     ix = np.flatnonzero(h > 0)
     if len(ix) < 3:
@@ -117,7 +117,7 @@ def face(t, h):
     return d
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def curve_error(t, h):
     i = np.flatnonzero(h > 0)
     if len(i) and i[-1] - i[0] + 1 != len(i):
@@ -223,7 +223,7 @@ def scan_coefficients(y, o, p, h):
     return v, gain, info
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def update_h(t, y, o, p, h, phi, price):
     old = profile_gain(y, o, p, h, phi) - price * face(t, h)
     best = h.copy()
@@ -273,7 +273,49 @@ def update_h(t, y, o, p, h, phi, price):
     return best, best_score - old
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
+def solve_ion(y, o, h, total, old, price, track_gain):
+    n = len(h)
+    improvement = 0.
+    out = 0.
+    if track_gain and old > 0:
+        improvement += old * total
+        for i in range(n):
+            improvement -= y[i] * np.log1p(old * h[i] / o[i])
+    der = -total
+    for i in range(n):
+        der += y[i] * h[i] / o[i]
+    if der <= 0:
+        return 0., improvement
+    lo = 0.0
+    hi = y.sum() / total
+    a = min(hi, max(old, 1e-4 * hi))
+    for _ in range(25):
+        der = -total
+        c = 0.0
+        for i in range(n):
+            r = h[i] / (o[i] + a * h[i])
+            der += y[i] * r
+            c += y[i] * r * r
+        if abs(der) < 1e-8 * total:
+            break
+        if der > 0:
+            lo = a
+        else:
+            hi = a
+        new = a + der / max(c, 1e-90)
+        a = new if lo < new < hi else 0.5 * (lo + hi)
+    gain = -a * total
+    for i in range(n):
+        gain += y[i] * np.log1p(a * h[i] / o[i])
+    if 2 * gain > price:
+        out = a
+        if track_gain:
+            improvement += gain
+    return out, improvement
+
+
+@njit(cache=True, nogil=True)
 def solve_p(y, o, h, old, price, track_gain):
     # The inputs y, o and h have already been divided by sample dispersion.
     n, m = y.shape
@@ -283,49 +325,17 @@ def solve_p(y, o, h, old, price, track_gain):
     if total <= 0:
         return v, improvement
     for j in range(m):
-        if track_gain and old[j] > 0:
-            improvement += old[j] * total
-            for i in range(n):
-                improvement -= y[i, j] * np.log1p(old[j] * h[i] / o[i, j])
-        der = -total
-        for i in range(n):
-            der += y[i, j] * h[i] / o[i, j]
-        if der <= 0:
-            continue
-        lo = 0.0
-        hi = y[:, j].sum() / total
-        a = min(hi, max(old[j], 1e-4 * hi))
-        for _ in range(25):
-            der = -total
-            c = 0.0
-            for i in range(n):
-                r = h[i] / (o[i, j] + a * h[i])
-                der += y[i, j] * r
-                c += y[i, j] * r * r
-            if abs(der) < 1e-8 * total:
-                break
-            if der > 0:
-                lo = a
-            else:
-                hi = a
-            new = a + der / max(c, 1e-90)
-            a = new if lo < new < hi else 0.5 * (lo + hi)
-        gain = -a * total
-        for i in range(n):
-            gain += y[i, j] * np.log1p(a * h[i] / o[i, j])
-        if 2 * gain > price:
-            v[j] = a
-            if track_gain:
-                improvement += gain
+        v[j], gain = solve_ion(y[:,j], o[:,j], h, total, old[j], price, track_gain)
+        improvement += gain
     return v, 2 * improvement
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def update_p(y, o, h, old, price):
     return solve_p(y, o, h, old, price, False)[0]
 
 
-@njit(cache=True)
+@njit(cache=True, nogil=True)
 def nnls_gram(G, U, B):
     """Many nonnegative right-hand sides with one positive-semidefinite Gram."""
     B = B.copy()

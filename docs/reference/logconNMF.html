@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9004</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9005</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -188,8 +188,11 @@ or <code>control$correlation</code> if supplied for a simultaneous fit.</p></dd>
 
 <dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
 <dd><p>Total core budget. <code>NULL</code> uses physical cores for one sample
-and logical cores for simultaneous fits. Simultaneous fits divide the budget
-between sample workers and their native threads, with one BLAS thread per worker.</p></dd>
+and logical cores for simultaneous fits. Grouped PSF regressions divide this
+budget between samples and native threads. The conditional count solver then
+reuses it for sample-specific profile and background updates and disjoint
+ion columns of the shared spectra, with one BLAS thread per worker. Set
+<code>ncores=1L</code> for a serial fit.</p></dd>
 
 
 <dt id="arg-control">control<a class="anchor" aria-label="anchor" href="#arg-control"></a></dt>
@@ -464,3 +467,4 @@ matrix.</p>
 
 
   </body></html>
+

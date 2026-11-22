@@ -82,6 +82,8 @@ reported information criterion for that dataset.
    solution. Supplied ground truth need not minimize a penalized criterion
    on one realization of noisy data.
 
+With the spectra fixed, profiles in different samples have separate likelihood contributions. With profiles fixed, the spectral likelihood and ion inclusion penalty separate by ion. Workers therefore update different samples or ion columns while preserving the component order within each. The spectral sweep transfers the unit-sum normalization into each profile after all ions have finished. Accepting a merge changes the offsets of its neighbours, so merge decisions remain sequential.
+
 For simulated data a truth-based comparison has a precise interpretation.
 Write \(\mu^\star=E(Y)\) and fix dispersion and weights. The expected
 difference in Poisson deviances between any fixed \(\mu\) and \(\mu^\star\)
@@ -1295,7 +1297,7 @@ their integration with L0glm's grouped initialization are developments of this
 package.
 
 
-## Parallel samples and bounded-memory updates
+## Parallel disk-backed updates in the classic solver {#parallel-samples-and-bounded-memory-updates}
 
 With common spectra $P$ fixed, sample-specific factors are conditionally
 independent. The simultaneous criterion is
