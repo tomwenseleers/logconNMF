@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9007</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9008</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,7 +79,8 @@ occurrence.</p>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"conditional"</span>, <span class="st">"classic"</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  objective.trace <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  objective.trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  truth.profiles <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">conditionalSolverAvailable</span><span class="op">(</span><span class="op">)</span></span>
@@ -268,6 +269,23 @@ index. Supply native time in each descriptor for a simultaneous fit.</p></dd>
 <dt id="arg-objective-trace">objective.trace<a class="anchor" aria-label="anchor" href="#arg-objective-trace"></a></dt>
 <dd><p>Record the penalized quasi-deviance after each
 conditional block. The default avoids the cost of those measurements.</p></dd>
+
+
+<dt id="arg-truth-profiles">truth.profiles<a class="anchor" aria-label="anchor" href="#arg-truth-profiles"></a></dt>
+<dd><p>Optional simulation diagnostic for the conditional
+Poisson and quasi-Poisson solver. For one sample supply a scan-by-compound
+matrix or a simulation record with <code>H</code>, compound <code>id</code> and optional <code>time</code>.
+For multiple samples supply one such entry per sample, in input order or
+named by sample ID. Match compounds across samples with column names or
+<code>id</code>. Unnamed matrices must have the same columns in the same order.
+A <code><a href="simulateGCMSSamples.html">simulateGCMSSamples()</a></code> result can be passed directly. Zero columns
+indicate absence. Each positive column is normalized to unit
+area. To satisfy the same constraint as the fit, the reference uses the
+least concave majorant of its log heights on the native scan grid and
+normalizes the result. This preserves log-concave input shapes.
+Areas, spectra and backgrounds are estimated from the observations.
+Both fits record their block traces. Retrieve the estimate and plot with
+<code>fit$gic_gap</code> and <code>plot(fit$gic_gap)</code>. See <code><a href="gicGap.html">gicGap()</a></code>.</p></dd>
 
 
 <dt id="arg-object">object<a class="anchor" aria-label="anchor" href="#arg-object"></a></dt>

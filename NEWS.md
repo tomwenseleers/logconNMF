@@ -1,3 +1,7 @@
+# logconNMF 0.1.0.9008
+
+- `truth.profiles` compares a conditional count fit with a second fit initialized from matched simulation profiles. `gicGap()` reports the signed empirical GIC gap and its plot shows both trajectories.
+
 # logconNMF 0.1.0.9007
 
 - The conditional count solver runs within R using compiled C++ and OpenMP. It uses the same penalized original-ion objective for profile, spectral and local support updates. The general identity-link solver supports the other noise families, weights, offsets and exposures.

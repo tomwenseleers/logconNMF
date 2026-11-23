@@ -1,5 +1,13 @@
 # Changelog
 
+## logconNMF 0.1.0.9008
+
+- `truth.profiles` compares a conditional count fit with a second fit
+  initialized from matched simulation profiles.
+  [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  reports the signed empirical GIC gap and its plot shows both
+  trajectories.
+
 ## logconNMF 0.1.0.9007
 
 - The conditional count solver runs within R using compiled C++ and

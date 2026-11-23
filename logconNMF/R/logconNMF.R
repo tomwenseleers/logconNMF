@@ -216,6 +216,20 @@
 #'   index. Supply native time in each descriptor for a simultaneous fit.
 #' @param objective.trace Record the penalized quasi-deviance after each
 #'   conditional block. The default avoids the cost of those measurements.
+#' @param truth.profiles Optional simulation diagnostic for the conditional
+#'   Poisson and quasi-Poisson solver. For one sample supply a scan-by-compound
+#'   matrix or a simulation record with `H`, compound `id` and optional `time`.
+#'   For multiple samples supply one such entry per sample, in input order or
+#'   named by sample ID. Match compounds across samples with column names or
+#'   `id`. Unnamed matrices must have the same columns in the same order.
+#'   A [simulateGCMSSamples()] result can be passed directly. Zero columns
+#'   indicate absence. Each positive column is normalized to unit
+#'   area. To satisfy the same constraint as the fit, the reference uses the
+#'   least concave majorant of its log heights on the native scan grid and
+#'   normalizes the result. This preserves log-concave input shapes.
+#'   Areas, spectra and backgrounds are estimated from the observations.
+#'   Both fits record their block traces. Retrieve the estimate and plot with
+#'   `fit$gic_gap` and `plot(fit$gic_gap)`. See [gicGap()].
 #' @export
 logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
                       background = NULL, dispersion = NULL, theta = NULL,
@@ -224,7 +238,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
                       start = NULL, path = NULL, align = TRUE,
                       method = c("cosine", "hellinger"), verbose = FALSE,
                       algorithm = c("auto", "conditional", "classic"), time = NULL,
-                      objective.trace = FALSE) {
+                      objective.trace = FALSE, truth.profiles = NULL) {
   algorithm <- match.arg(algorithm)
   if (!is.logical(objective.trace) || length(objective.trace) != 1L || is.na(objective.trace))
     stop("objective.trace must be TRUE or FALSE.")
@@ -261,10 +275,18 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     if (length(classic_controls) && algorithm == "conditional")
       stop("These controls are specific to the general solver: ", paste(classic_controls, collapse = ", "))
     conditional <- !length(classic_controls) && conditional_route(algorithm, family, dispersion, theta, samples)
+    if (!is.null(truth.profiles)) {
+      if (!conditional) stop("truth.profiles requires the conditional count solver.",call.=FALSE)
+      ids <- vapply(seq_along(samples),function(i) {
+        id <- samples[[i]]$sample_id
+        if (is.null(id)) paste0("sample",i) else as.character(id)
+      },"")
+      truth.profiles <- cc_truth_profiles(truth.profiles,lapply(samples,"[[","time"),ids)
+    }
     fit <- simultaneousNMF(samples, family = family, lambda = lambda, path = path,
       precluster = precluster, dispersion = dispersion, theta = theta,
       method = match.arg(method), align = align, ncores = ncores, control = control,
-      verbose = verbose, conditional = conditional, trace = objective.trace)
+      verbose = verbose, conditional = conditional, trace = objective.trace, reference=truth.profiles)
   } else {
     if (is.null(X)) stop("Supply X for a single-sample fit.", call. = FALSE)
     if (!is.null(path) || !missing(align) || !missing(method)) {
@@ -272,6 +294,11 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     }
     scalar <- lambda
     conditional <- conditional_route(algorithm, family, dispersion, theta, list(list(weights=weights, offset=offset)))
+    if (!is.null(truth.profiles)) {
+      if (!conditional) stop("truth.profiles requires the conditional count solver.",call.=FALSE)
+      grid <- if (is.null(time)) seq_len(NROW(y)) else time
+      truth.profiles <- cc_truth_profiles(truth.profiles,list(grid),"sample1")
+    }
     if (is.numeric(lambda)) lambda <- lambda * NCOL(y)
     if (is.null(correlation)) correlation <- "auto"
     fit <- splogconNMF(X, y, family = family, background = background, lambda = lambda,
@@ -282,7 +309,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     if (conditional) {
       price <- fit$spec$information_factor * if (is.numeric(scalar)) scalar else
         presetLambda(scalar, p = fit$p, n = fit$n)
-      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace)
+      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace,truth.profiles)
       fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
     }
   }

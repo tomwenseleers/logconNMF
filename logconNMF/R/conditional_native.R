@@ -1,14 +1,15 @@
-conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores) {
+conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores, reference=NULL) {
   if (!length(parts) || !length(group) || anyNA(group) || any(group < 1) ||
       any(group != as.integer(group)) || !is.finite(price) || price < 0)
     stop("Invalid channel groups, penalty or empty count-factorization input.")
   z <- new.env(parent = emptyenv())
-  z$data <- lapply(parts, cc_sample, group = group, price = price, threads = ncores)
+  z$data <- if (is.null(reference)) lapply(parts, cc_sample, group = group, price = price, threads = ncores) else
+    Map(function(part, ref) cc_reference_sample(part,ref,group,price,ncores),parts,reference)
   z$price <- price
   z$trace <- isTRUE(trace)
   z$threads <- as.integer(ncores)
   z$history <- list()
-  dictionary <- cc_dictionary(z$data, price, ncores)
+  dictionary <- if (is.null(reference)) cc_dictionary(z$data, price, ncores) else cc_reference_dictionary(z$data)
   z$p <- dictionary$p
   z$bands <- dictionary$bands
   for (x in z$data) {

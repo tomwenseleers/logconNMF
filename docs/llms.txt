@@ -407,6 +407,11 @@ comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports recovery, false calls and integration accuracy for every
 workflow.
 
+The joint fit achieved 96.7% of its GIC decrease in five sweeps and
+finished 0.454% above the solution initialized from the true profiles.
+[Compare the two GIC
+traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
+
 **769 / 769**true occurrences recovered
 
 **0.983**peak-level F1
@@ -621,6 +626,10 @@ responsibility for the work presented here.
   [`plot(`*`<simultaneousNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   : Fit a log-concave factorization with automatic rank selection
+- [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  [`plot(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  [`print(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  : Empirical GIC gap from matched reference profiles
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)

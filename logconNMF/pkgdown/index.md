@@ -295,6 +295,10 @@ The simulation includes concentration-dependent broadening, retention drift, a s
 a smooth experimental background and quasi-Poisson noise. The plots below
 summarise the simultaneous logconNMF result. The [seven-method comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html) reports recovery, false calls and integration accuracy for every workflow.
 
+The joint fit achieved 96.7% of its GIC decrease in five sweeps and finished
+0.454% above the solution initialized from the true profiles.
+[Compare the two GIC traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
+
 <div class="l0-benchmark-summary">
 <div><strong>769 / 769</strong><span>true occurrences recovered</span></div>
 <div><strong>0.983</strong><span>peak-level F1</span></div>

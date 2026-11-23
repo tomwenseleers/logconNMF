@@ -32,7 +32,8 @@ logconNMF(
   verbose = FALSE,
   algorithm = c("auto", "conditional", "classic"),
   time = NULL,
-  objective.trace = FALSE
+  objective.trace = FALSE,
+  truth.profiles = NULL
 )
 
 conditionalSolverAvailable()
@@ -173,6 +174,21 @@ index. Supply native time in each descriptor for a simultaneous fit.}
 
 \item{objective.trace}{Record the penalized quasi-deviance after each
 conditional block. The default avoids the cost of those measurements.}
+
+\item{truth.profiles}{Optional simulation diagnostic for the conditional
+Poisson and quasi-Poisson solver. For one sample supply a scan-by-compound
+matrix or a simulation record with \code{H}, compound \code{id} and optional \code{time}.
+For multiple samples supply one such entry per sample, in input order or
+named by sample ID. Match compounds across samples with column names or
+\code{id}. Unnamed matrices must have the same columns in the same order.
+A \code{\link[=simulateGCMSSamples]{simulateGCMSSamples()}} result can be passed directly. Zero columns
+indicate absence. Each positive column is normalized to unit
+area. To satisfy the same constraint as the fit, the reference uses the
+least concave majorant of its log heights on the native scan grid and
+normalizes the result. This preserves log-concave input shapes.
+Areas, spectra and backgrounds are estimated from the observations.
+Both fits record their block traces. Retrieve the estimate and plot with
+\code{fit$gic_gap} and \code{plot(fit$gic_gap)}. See \code{\link[=gicGap]{gicGap()}}.}
 
 \item{object}{A fitted model returned by \code{logconNMF()}.
 \code{sampleNMF()} takes a simultaneous model.}

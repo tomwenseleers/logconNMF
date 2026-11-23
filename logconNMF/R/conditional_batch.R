@@ -13,7 +13,7 @@ conditional_workers <- function(samples, ncores) {
   as.integer(limit)
 }
 
-conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, elapsed, begun, parallel) {
+conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, elapsed, begun, parallel, reference=NULL) {
   dirs <- store$manifest$directory
   meta <- lapply(dirs, function(d) readRDS(file.path(d, "metadata.rds")))
   parts <- lapply(seq_along(meta), function(i) {
@@ -50,13 +50,13 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
   N <- sum(store$manifest$n)
   infl <- max(vapply(parts, function(a) a$spec$information_factor, 0))
   price <- infl * if (is.character(lambda)) L0glm::presetLambda(lambda, p = N, n = N) else lambda
-  result <- conditional_run(parts, group, price, trace, ctl$cycles, ncores=ncores)
+  result <- conditional_run(parts, group, price, trace, ctl$cycles, ncores=ncores, reference=reference)
   P <- result$P
   colnames(P) <- axis
   obs <- result$objective
   state <- list(store = store, paths = character(length(parts)), P = P, map = seq_len(nrow(P)),
     scale = rep(1, nrow(P)), serial = 0L, lambda = price, L = obs$calls, rank = nrow(P),
-    alignment = alignment, history = if (trace) result$trace else data.frame(),
+    alignment = alignment, history = if (!is.null(result$trace)) result$trace else data.frame(),
     control = ctl, parallel = parallel, mass = axis, channel_groups = store$channel_groups,
     n = N, p = N, quasi = FALSE, information_factor = infl, algorithm = "conditional",
     conditional_objective = obs, objective_trace = result$trace, nuisance_df = 0L, loglik = 0)
@@ -86,6 +86,10 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
   state <- sinmf_compact(state)
   state$ic_df <- obs$shape_df + obs$spectral_df + state$nuisance_df
   state$objective <- -2*state$loglik + price*state$ic_df
+  if (!is.null(reference)) {
+    state$gic_gap <- cc_gap_traces(result,infl*presetLambda("gic",p=N,n=N))
+    state$gic_gap <- gicGap(state)
+  }
   total <- proc.time()[["elapsed"]] - begun
   state$seconds <- c(initial = elapsed, simultaneous = total - elapsed, total = total)
   state$store$cache <- NULL

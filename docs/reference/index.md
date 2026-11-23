@@ -27,6 +27,10 @@
   [`plot(`*`<simultaneousNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   [`sampleNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
   : Fit a log-concave factorization with automatic rank selection
+- [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  [`plot(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  [`print(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
+  : Empirical GIC gap from matched reference profiles
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)

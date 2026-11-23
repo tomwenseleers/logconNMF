@@ -14,24 +14,29 @@ cc_means <- function(x, p) {
   # A chromatographic profile occupies a small interval of a long scan grid.
   x$mu <- pmax(x$bg + as.matrix(as(x$h, "dgCMatrix") %*% p), 1e-08)
 }
+cc_weighted_nnls <- function(design,y,phi,start=NULL) {
+  w <- 1/sqrt(phi*pmax(rowSums(y),1))
+  X <- Matrix::Diagonal(x=w) %*% design
+  scale <- sqrt(Matrix::colSums(X^2))
+  scale[scale==0] <- 1
+  if (is.null(start)) start <- matrix(0,ncol(X),ncol(y))
+  if (!ncol(X)) return(start)
+  X <- X %*% Matrix::Diagonal(x=1/scale)
+  cc_gram_nnls(as(Matrix::crossprod(X),"generalMatrix"),as.matrix(Matrix::crossprod(X,y*w)),
+               start*scale)/scale
+}
 cc_lift <- function(x, p, group, price, threads) {
   count <- rowSums(p)
   x$h <- as.matrix(x$init %*% Matrix::Diagonal(x = count))
   p <- p/pmax(count, 1e-100)
   design <- cbind(as(x$h, "dgCMatrix"), as(x$z, "dgCMatrix"))
-  w <- 1/sqrt(x$phi * pmax(rowSums(x$y), 1))
-  X <- Matrix::Diagonal(x = w) %*% design
-  scale <- sqrt(Matrix::colSums(X^2))
-  scale[scale == 0] <- 1
-  X <- X %*% Matrix::Diagonal(x = 1/scale)
   ion <- colSums(x$y)
   denom <- numeric(max(group))
   sums <- rowsum(ion, group, reorder = FALSE)
   denom[as.integer(rownames(sums))] <- sums[, 1]
   frac <- ion/pmax(denom[group], 1e-100)
   initial <- sweep(rbind(p, x$alpha)[, group, drop = FALSE], 2L, frac, "*")
-  coef <- cc_gram_nnls(as(Matrix::crossprod(X), "generalMatrix"), as.matrix(Matrix::crossprod(X, x$y * w)), initial *
-    scale)/scale
+  coef <- cc_weighted_nnls(design,x$y,x$phi,initial)
   K <- nrow(p)
   idx <- seq_len(K)
   p <- coef[idx, , drop = FALSE]

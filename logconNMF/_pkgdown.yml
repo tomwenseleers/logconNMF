@@ -68,7 +68,7 @@ reference:
   - title: Estimate point spread functions and deconvolve signals
     contents: [convKernel, convMatrix, estimatePSF, estimatePSFFromStd, l0glmBlindDeco, l0glmSparseDeco, l0glmDecoEstKernel]
   - title: Sparse and simultaneous factorization
-    contents: [logconNMF, splogconNMF, channelGroups, aggregateChannels]
+    contents: [logconNMF, gicGap, splogconNMF, channelGroups, aggregateChannels]
   - title: Noise calibration and profile constraints
     contents: [estimateSignalNoise, fitLogConcaveProfile, logConcSmooth]
   - title: Simulations and experimental data

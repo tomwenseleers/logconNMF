@@ -407,6 +407,11 @@ comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports recovery, false calls and integration accuracy for every
 workflow.
 
+The joint fit achieved 96.7% of its GIC decrease in five sweeps and
+finished 0.454% above the solution initialized from the true profiles.
+[Compare the two GIC
+traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
+
 **769 / 769**true occurrences recovered
 
 **0.983**peak-level F1

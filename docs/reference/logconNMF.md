@@ -30,7 +30,8 @@ logconNMF(
   verbose = FALSE,
   algorithm = c("auto", "conditional", "classic"),
   time = NULL,
-  objective.trace = FALSE
+  objective.trace = FALSE,
+  truth.profiles = NULL
 )
 
 conditionalSolverAvailable()
@@ -235,6 +236,26 @@ sampleNMF(object, sample = 1L)
 
   Record the penalized quasi-deviance after each conditional block. The
   default avoids the cost of those measurements.
+
+- truth.profiles:
+
+  Optional simulation diagnostic for the conditional Poisson and
+  quasi-Poisson solver. For one sample supply a scan-by-compound matrix
+  or a simulation record with `H`, compound `id` and optional `time`.
+  For multiple samples supply one such entry per sample, in input order
+  or named by sample ID. Match compounds across samples with column
+  names or `id`. Unnamed matrices must have the same columns in the same
+  order. A
+  [`simulateGCMSSamples()`](https://tomwenseleers.github.io/logconNMF/reference/simulateGCMSSamples.md)
+  result can be passed directly. Zero columns indicate absence. Each
+  positive column is normalized to unit area. To satisfy the same
+  constraint as the fit, the reference uses the least concave majorant
+  of its log heights on the native scan grid and normalizes the result.
+  This preserves log-concave input shapes. Areas, spectra and
+  backgrounds are estimated from the observations. Both fits record
+  their block traces. Retrieve the estimate and plot with `fit$gic_gap`
+  and `plot(fit$gic_gap)`. See
+  [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md).
 
 - object:
 
