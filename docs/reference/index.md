@@ -30,7 +30,7 @@
 - [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
   [`plot(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
   [`print(`*`<logconNMF_gap>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md)
-  : Empirical GIC gap from matched reference profiles
+  : Empirical optimality gap in GIC from matched reference profiles
 - [`residuals(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   [`fitted(`*`<splogconNMF>`*`)`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)

@@ -4,7 +4,7 @@
 \alias{gicGap}
 \alias{plot.logconNMF_gap}
 \alias{print.logconNMF_gap}
-\title{Empirical GIC gap from matched reference profiles}
+\title{Empirical optimality gap in GIC from matched reference profiles}
 \usage{
 gicGap(object)
 
@@ -18,7 +18,9 @@ gicGap(object)
 \item{x}{The returned diagnostic.}
 
 \item{type}{Show both panels, the complete GIC trace, or the final half of
-each trajectory on a percentage scale relative to the reference endpoint.}
+each trajectory on a percentage scale relative to the reference endpoint.
+The dotted red line marks the final GIC of the truth-initialised fit
+(zero on the difference scale).}
 
 \item{...}{Other arguments passed to the base plot.}
 }
@@ -27,8 +29,12 @@ A plottable object with the standard and reference GIC, their signed
 \code{difference}, \code{percent = 100 * difference / abs(reference_gic)}, both
 block traces and elapsed seconds for reference initialization and fitting.
 A zero reference GIC gives an undefined percentage. A negative difference
-means the standard fit reached a lower GIC. The reference is a feasible
-fitted solution. A global optimality bound would require a separate proof.
+means the standard fit reached a lower GIC. Both fits use the same stopping
+rules. Further updates could improve either fit. The global minimum is unknown.
+On the small 16-sample benchmark, the default fit achieved an empirical
+optimality gap of 0.45\% relative to the fit initialised with the true
+elution profiles and cross-sample compound identities. After 100 additional
+profile and spectrum sweeps from both endpoints, the gap was 0.15\%.
 An independently fitted GCMSprime directory returns a named list of these
 diagnostics, one per sample.
 }

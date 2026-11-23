@@ -30,7 +30,6 @@ logconNMF(
   align = TRUE,
   method = c("cosine", "hellinger"),
   verbose = FALSE,
-  algorithm = c("auto", "conditional", "classic"),
   time = NULL,
   objective.trace = FALSE,
   truth.profiles = NULL
@@ -162,13 +161,6 @@ simultaneous fit. \code{NULL} uses a temporary directory.}
 
 \item{verbose}{Print stage timings, objective changes and compound counts.}
 
-\item{algorithm}{Solver for count data. \code{"conditional"} alternates hard
-log-concave profiles and sparse spectra on the original ion counts.
-Multisample fits can reassign mixed spectra to recurring components. A local
-refit must improve the same original-channel information criterion.
-\code{"classic"} uses the general identity-link solver. \code{"auto"} uses the
-built-in conditional solver for supported inputs.}
-
 \item{time}{Increasing scan coordinates for a single sample. Defaults to scan
 index. Supply native time in each descriptor for a simultaneous fit.}
 
@@ -187,7 +179,8 @@ area. To satisfy the same constraint as the fit, the reference uses the
 least concave majorant of its log heights on the native scan grid and
 normalizes the result. This preserves log-concave input shapes.
 Areas, spectra and backgrounds are estimated from the observations.
-Both fits record their block traces. Retrieve the estimate and plot with
+Both fits record their block traces. Retrieve the empirical optimality gap
+in GIC relative to the truth-initialised fit and plot both trajectories with
 \code{fit$gic_gap} and \code{plot(fit$gic_gap)}. See \code{\link[=gicGap]{gicGap()}}.}
 
 \item{object}{A fitted model returned by \code{logconNMF()}.
@@ -322,6 +315,14 @@ in \code{integrated_area}, and consensus IDs in \code{compound_id}. Alignment an
 exposure are included in the profiles and spectra. Use \code{coef()},
 \code{fitted()} and \code{GIC()} on the returned view. The view carries no observed
 matrix.
+}
+
+\section{Automatic solver selection}{
+
+Poisson and quasi-Poisson fits with unit weights and exposure and zero
+observation offset use conditional updates of profiles, spectra and background.
+Other noise families, weighted or offset models, and joint fits requesting
+\code{control = list(cache = FALSE)} use the general identity-link solver.
 }
 
 \examples{

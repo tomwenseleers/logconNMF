@@ -28,7 +28,6 @@ logconNMF(
   align = TRUE,
   method = c("cosine", "hellinger"),
   verbose = FALSE,
-  algorithm = c("auto", "conditional", "classic"),
   time = NULL,
   objective.trace = FALSE,
   truth.profiles = NULL
@@ -218,15 +217,6 @@ sampleNMF(object, sample = 1L)
 
   Print stage timings, objective changes and compound counts.
 
-- algorithm:
-
-  Solver for count data. `"conditional"` alternates hard log-concave
-  profiles and sparse spectra on the original ion counts. Multisample
-  fits can reassign mixed spectra to recurring components. A local refit
-  must improve the same original-channel information criterion.
-  `"classic"` uses the general identity-link solver. `"auto"` uses the
-  built-in conditional solver for supported inputs.
-
 - time:
 
   Increasing scan coordinates for a single sample. Defaults to scan
@@ -253,8 +243,9 @@ sampleNMF(object, sample = 1L)
   of its log heights on the native scan grid and normalizes the result.
   This preserves log-concave input shapes. Areas, spectra and
   backgrounds are estimated from the observations. Both fits record
-  their block traces. Retrieve the estimate and plot with `fit$gic_gap`
-  and `plot(fit$gic_gap)`. See
+  their block traces. Retrieve the empirical optimality gap in GIC
+  relative to the truth-initialised fit and plot both trajectories with
+  `fit$gic_gap` and `plot(fit$gic_gap)`. See
   [`gicGap()`](https://tomwenseleers.github.io/logconNMF/reference/gicGap.md).
 
 - object:
@@ -409,6 +400,14 @@ exposure are included in the profiles and spectra. Use
 [`fitted()`](https://rdrr.io/r/stats/fitted.values.html) and
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)
 on the returned view. The view carries no observed matrix.
+
+## Automatic solver selection
+
+Poisson and quasi-Poisson fits with unit weights and exposure and zero
+observation offset use conditional updates of profiles, spectra and
+background. Other noise families, weighted or offset models, and joint
+fits requesting `control = list(cache = FALSE)` use the general
+identity-link solver.
 
 ## Examples
 

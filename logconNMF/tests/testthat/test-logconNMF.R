@@ -5,9 +5,10 @@ test_that("one matrix uses the single-sample penalty and extractors", {
   mu <- as.matrix(X[, c(18L, 43L)] %*% S) + 1
   Y <- matrix(rpois(length(mu), mu), nrow(mu), dimnames = list(NULL, c("43", "57", "71")))
   B <- matrix(1, nrow(Y), 1L)
-  direct <- splogconNMF(X, Y, lambda = 2 * ncol(Y), background = B, ncores = 1L)
-  fit <- logconNMF(Y, X = X, lambda = 2, background = B, ncores = 1L, algorithm = "classic")
-  preset <- logconNMF(Y, X = X, lambda = "aic", background = B, ncores = 1L, algorithm = "classic")
+  direct <- splogconNMF(X, Y, lambda = 2 * ncol(Y), background = B, offset = 1, ncores = 1L)
+  fit <- logconNMF(Y, X = X, lambda = 2, background = B, offset = 1, ncores = 1L)
+  preset <- logconNMF(Y, X = X, lambda = "aic", background = B, offset = 1, ncores = 1L)
+  expect_identical(fit$algorithm, "general")
   expect_s3_class(fit, "logconNMF_fit")
   expect_identical(fit$H, direct$H)
   expect_identical(coef(fit), coef(direct))

@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9008</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -77,7 +77,6 @@ occurrence.</p>
 <span>  align <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cosine"</span>, <span class="st">"hellinger"</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  algorithm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"conditional"</span>, <span class="st">"classic"</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  objective.trace <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  truth.profiles <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -252,15 +251,6 @@ simultaneous fit. <code>NULL</code> uses a temporary directory.</p></dd>
 <dd><p>Print stage timings, objective changes and compound counts.</p></dd>
 
 
-<dt id="arg-algorithm">algorithm<a class="anchor" aria-label="anchor" href="#arg-algorithm"></a></dt>
-<dd><p>Solver for count data. <code>"conditional"</code> alternates hard
-log-concave profiles and sparse spectra on the original ion counts.
-Multisample fits can reassign mixed spectra to recurring components. A local
-refit must improve the same original-channel information criterion.
-<code>"classic"</code> uses the general identity-link solver. <code>"auto"</code> uses the
-built-in conditional solver for supported inputs.</p></dd>
-
-
 <dt id="arg-time">time<a class="anchor" aria-label="anchor" href="#arg-time"></a></dt>
 <dd><p>Increasing scan coordinates for a single sample. Defaults to scan
 index. Supply native time in each descriptor for a simultaneous fit.</p></dd>
@@ -284,7 +274,8 @@ area. To satisfy the same constraint as the fit, the reference uses the
 least concave majorant of its log heights on the native scan grid and
 normalizes the result. This preserves log-concave input shapes.
 Areas, spectra and backgrounds are estimated from the observations.
-Both fits record their block traces. Retrieve the estimate and plot with
+Both fits record their block traces. Retrieve the empirical optimality gap
+in GIC relative to the truth-initialised fit and plot both trajectories with
 <code>fit$gic_gap</code> and <code>plot(fit$gic_gap)</code>. See <code><a href="gicGap.html">gicGap()</a></code>.</p></dd>
 
 
@@ -425,6 +416,15 @@ in <code>integrated_area</code>, and consensus IDs in <code>compound_id</code>. 
 exposure are included in the profiles and spectra. Use <code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>,
 <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> and <code><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC()</a></code> on the returned view. The view carries no observed
 matrix.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="automatic-solver-selection">Automatic solver selection<a class="anchor" aria-label="anchor" href="#automatic-solver-selection"></a></h2>
+
+
+<p>Poisson and quasi-Poisson fits with unit weights and exposure and zero
+observation offset use conditional updates of profiles, spectra and background.
+Other noise families, weighted or offset models, and joint fits requesting
+<code>control = list(cache = FALSE)</code> use the general identity-link solver.</p>
     </div>
 
     <div class="section level2">

@@ -206,12 +206,11 @@
 #' second_fit$compound_id
 #' coef(second_fit)
 #' @md
-#' @param algorithm Solver for count data. `"conditional"` alternates hard
-#'   log-concave profiles and sparse spectra on the original ion counts.
-#'   Multisample fits can reassign mixed spectra to recurring components. A local
-#'   refit must improve the same original-channel information criterion.
-#'   `"classic"` uses the general identity-link solver. `"auto"` uses the
-#'   built-in conditional solver for supported inputs.
+#' @section Automatic solver selection:
+#' Poisson and quasi-Poisson fits with unit weights and exposure and zero
+#' observation offset use conditional updates of profiles, spectra and background.
+#' Other noise families, weighted or offset models, and joint fits requesting
+#' `control = list(cache = FALSE)` use the general identity-link solver.
 #' @param time Increasing scan coordinates for a single sample. Defaults to scan
 #'   index. Supply native time in each descriptor for a simultaneous fit.
 #' @param objective.trace Record the penalized quasi-deviance after each
@@ -228,7 +227,8 @@
 #'   least concave majorant of its log heights on the native scan grid and
 #'   normalizes the result. This preserves log-concave input shapes.
 #'   Areas, spectra and backgrounds are estimated from the observations.
-#'   Both fits record their block traces. Retrieve the estimate and plot with
+#'   Both fits record their block traces. Retrieve the empirical optimality gap
+#'   in GIC relative to the truth-initialised fit and plot both trajectories with
 #'   `fit$gic_gap` and `plot(fit$gic_gap)`. See [gicGap()].
 #' @export
 logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
@@ -237,9 +237,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
                       correlation = NULL, ncores = NULL, control = list(),
                       start = NULL, path = NULL, align = TRUE,
                       method = c("cosine", "hellinger"), verbose = FALSE,
-                      algorithm = c("auto", "conditional", "classic"), time = NULL,
-                      objective.trace = FALSE, truth.profiles = NULL) {
-  algorithm <- match.arg(algorithm)
+                      time = NULL, objective.trace = FALSE, truth.profiles = NULL) {
   if (!is.logical(objective.trace) || length(objective.trace) != 1L || is.na(objective.trace))
     stop("objective.trace must be TRUE or FALSE.")
   begun <- proc.time()[["elapsed"]]
@@ -271,10 +269,9 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     })
     if (!is.null(correlation)) control$correlation <- correlation
     if (is.null(path)) path <- tempfile("logconNMF_")
-    classic_controls <- intersect(names(control), c("rounds", "initial_cycles", "ridge", "q"))
-    if (length(classic_controls) && algorithm == "conditional")
-      stop("These controls are specific to the general solver: ", paste(classic_controls, collapse = ", "))
-    conditional <- !length(classic_controls) && conditional_route(algorithm, family, dispersion, theta, samples)
+    conditional <- !isFALSE(control$cache) &&
+      !any(c("rounds", "initial_cycles", "ridge", "q") %in% names(control)) &&
+      conditional_route(family, dispersion, theta, samples)
     if (!is.null(truth.profiles)) {
       if (!conditional) stop("truth.profiles requires the conditional count solver.",call.=FALSE)
       ids <- vapply(seq_along(samples),function(i) {
@@ -293,7 +290,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
       stop("path, align and method apply to simultaneous fits.", call. = FALSE)
     }
     scalar <- lambda
-    conditional <- conditional_route(algorithm, family, dispersion, theta, list(list(weights=weights, offset=offset)))
+    conditional <- conditional_route(family, dispersion, theta, list(list(weights=weights, offset=offset)))
     if (!is.null(truth.profiles)) {
       if (!conditional) stop("truth.profiles requires the conditional count solver.",call.=FALSE)
       grid <- if (is.null(time)) seq_len(NROW(y)) else time
@@ -313,7 +310,7 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
       fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
     }
   }
-  if (is.null(fit$algorithm)) fit$algorithm <- "classic"
+  if (is.null(fit$algorithm)) fit$algorithm <- "general"
   class(fit) <- c("logconNMF_fit", class(fit))
   fit
 }

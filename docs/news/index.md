@@ -1,5 +1,14 @@
 # Changelog
 
+## logconNMF 0.1.0.9009
+
+- [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
+  selects the fitting method from the family, observation weights,
+  offset, exposure and joint fit controls. Use
+  `control = list(cache = FALSE)` for disk-backed joint refinement.
+- The GIC plot marks the final value from the true-profile start with a
+  dotted red line on both scales.
+
 ## logconNMF 0.1.0.9008
 
 - `truth.profiles` compares a conditional count fit with a second fit
@@ -41,7 +50,6 @@
   The GIC counts fitted profile and spectrum dimensions. A single matrix
   and registered sample lists use the same criterion.
   `objective.trace=TRUE` records the accepted objective values.
-  `algorithm="classic"` selects the general-family implementation.
 - Grouped PSF regressions in large batches cap their worker count using
   available memory. The conditional solver releases the worker pool
   before refining the factors.

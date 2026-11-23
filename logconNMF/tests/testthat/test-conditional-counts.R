@@ -7,7 +7,7 @@ test_that("conditional factors preserve total ion counts and native-grid shape",
   y <- round(3 + 2000*h %*% p)
   for (ions in list(1L,1:4)) {
     Y <- y[,ions,drop=FALSE]
-    fit <- logconNMF(Y,X,precluster=FALSE,ncores=1L,algorithm="conditional",
+    fit <- logconNMF(Y,X,precluster=FALSE,ncores=1L,
       time=time,correlation="none",objective.trace=TRUE)
     expect_identical(fit$algorithm,"conditional")
     expect_gt(fit$rank,0)
@@ -38,12 +38,12 @@ test_that("shared spectra reconstruct each measured grid and trace the scored mo
   })
   for (m in c(1L,4L)) {
     z <- lapply(samples,function(s) {s$y<-s$y[,seq_len(m),drop=FALSE];s})
-    ans <- logconNMF(z,algorithm="conditional",precluster=FALSE,ncores=1L,
+    ans <- logconNMF(z,precluster=FALSE,ncores=1L,
       family=quasipoisson("identity"),dispersion=2,objective.trace=TRUE)
     expect_identical(ans$algorithm,"conditional")
     expect_equal(rowSums(unname(ans$P)),rep(1,ans$rank))
     expect_equal(ans$L,ans$conditional_objective$calls)
-    parallel_fit <- logconNMF(z,algorithm="conditional",precluster=FALSE,ncores=2L,
+    parallel_fit <- logconNMF(z,precluster=FALSE,ncores=2L,
       control=list(workers=1L),family=quasipoisson("identity"),dispersion=2,
       objective.trace=TRUE)
     expect_equal(parallel_fit$P,ans$P,tolerance=1e-10)
@@ -57,7 +57,12 @@ test_that("shared spectra reconstruct each measured grid and trace the scored mo
     }
     expect_equal(tail(ans$objective_trace$objective,1),ans$conditional_objective$objective)
   }
-  expect_error(logconNMF(samples,algorithm="conditional",family=gaussian()),"requires")
+  disk <- logconNMF(samples, family=quasipoisson("identity"), dispersion=2,
+                    precluster=FALSE, ncores=1L, control=list(cache=FALSE))
+  on.exit(unlink(disk$store$path,recursive=TRUE),add=TRUE)
+  expect_identical(disk$algorithm,"general")
+  expect_null(disk$store$cache)
+  expect_true(is.finite(as.numeric(GIC(disk))))
 })
 
 test_that("a mixed spectrum returns area to three independent spectra", {
@@ -95,11 +100,11 @@ test_that("a mixed spectrum returns area to three independent spectra", {
 test_that("native count routing preserves the general identity-link fits", {
   general <- c("gaussian", "gamma", "gamma_scale", "nb1", "nb")
   for (family in general)
-    expect_false(conditional_route("auto", family, NULL, NULL, list(list())))
+    expect_false(conditional_route(family, NULL, NULL, list(list())))
   for (family in c("poisson", "quasipoisson")) {
-    expect_true(conditional_route("auto", family, NULL, NULL, list(list())))
+    expect_true(conditional_route(family, NULL, NULL, list(list())))
     for (s in list(list(weights = c(1, 0)), list(offset = 3), list(exposure = 2)))
-      expect_false(conditional_route("auto", family, NULL, NULL, list(s)))
+      expect_false(conditional_route(family, NULL, NULL, list(s)))
   }
   time <- seq_len(21)
   part <- list(H = as(matrix(0, 21, 0), "dgCMatrix"), S = matrix(0, 0, 2),

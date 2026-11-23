@@ -139,16 +139,24 @@ positives. After dictionary construction its GIC fell from 21,188,577 to
 profile and spectrum sweeps and 96.7% in the first five. Across 56
 checkpoints there were 51 decreases and four ties.
 
-Starting the same joint updates from the true unit-area profiles and
-their known cross-sample matches gave a final GIC of 4,154,879. The
-standard fit retained 115 shared factors and the reference fit retained
-100. The standard fit finished **0.454% above this empirical
-reference**. Scaled deviance accounted for 80% of the 18,848 GIC units
-between the endpoints and model complexity for the remaining 20%. The
-signed percentage is 100(\mathrm{GIC}\_{\rm standard}-\mathrm{GIC}\_{\rm
-reference})/ \|\mathrm{GIC}\_{\rm reference}\|. Either start can give
-the lower value. Certifying a global optimum for this nonconvex problem
-would require a lower bound on the criterion.
+The default fit achieved an **empirical optimality gap of 0.45%**
+relative to a fit initialised with the true elution profiles and
+cross-sample compound identities. The latter reached a GIC of 4,154,879
+with 100 shared factors. The default fit retained 115. Scaled deviance
+accounted for 80% of the 18,848 GIC units between the endpoints and
+model complexity for the remaining 20%. The signed percentage is
+100(\mathrm{GIC}\_{\rm standard}-\mathrm{GIC}\_{\rm reference})/
+\|\mathrm{GIC}\_{\rm reference}\|. The dotted red line marks the
+reference endpoint in both panels. Both fits used the same stopping
+rules.
+
+Continuing from each endpoint with the same profile, spectrum and
+background updates narrowed the gap to **0.29% after five extra sweeps**
+and **0.15% after 100**. At sweep 100 the default fit had a GIC of
+4,157,283 and the truth-initialised fit had a GIC of 4,151,163. Each fit
+reused its final dictionary. [Download the GIC for both fits at every
+additional
+sweep](https://tomwenseleers.github.io/logconNMF/benchmark-gic-continuation.csv).
 
 ![GIC over the joint fit and percentage difference from the
 truth-initialized endpoint on the small 16-sample
@@ -209,16 +217,18 @@ fit and both traces (two runs per setting). The extra fit reuses the
 estimated PSF, registration and noise calibration. Ordinary fits leave
 tracing and the reference calculation off.
 
-The conditional solver supports identity-link Poisson and quasipoisson
-data with unit observation weights and exposure. Its C++ kernels update
-sample profiles and independent ion columns with OpenMP. Fits use the
-arrays held by R. For on-disk inputs, the solver reads the stored counts
-for each sample. The general solver supplies the other identity-link
-families, observation weights, offsets and exposures.
+Solver selection is automatic. Identity-link Poisson and quasi-Poisson
+data with unit weights and exposure and zero observation offset use the
+conditional count solver. Its C++ kernels update profiles and ion
+columns with OpenMP. Other noise families, non-unit weights or
+exposures, nonzero offsets, and joint fits requesting
+`control = list(cache = FALSE)` use the general solver. Its profile
+update uses a local weighted least-squares approximation in log height
+and checks each proposed step against the original likelihood.
 
 ## Rank selection in the general identity-link solver
 
-For a fitted mean M_s in each sample, `algorithm="classic"` searches for
+For a fitted mean M_s in each sample, the general solver searches for
 nonnegative channel loadings and nonnegative, log-concave profiles that
 approximately minimize
 
@@ -1445,8 +1455,8 @@ grids, bin exposures and sparse PSF matrices X_s remain sample specific.
 
 Before matching, Poisson and common-scale quasipoisson observations with
 shared scan weights use channel sums for profile proposals and all
-original channels for acceptance. Once spectra are shared, every family
-uses the native kernel of
+original channels for acceptance. In the general solver, once spectra
+are shared, all families use the native kernel of
 [`fitLogConcaveProfile()`](https://tomwenseleers.github.io/logconNMF/reference/fitLogConcaveProfile.md)
 on the original observations. For the focal component, the background
 and overlapping neighbours form a fixed offset. A weighted projection of

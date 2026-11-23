@@ -2,8 +2,7 @@
 #' @export
 conditionalSolverAvailable <- function() is.loaded("_logconNMF_cc_profile_sweep", PACKAGE="logconNMF")
 
-conditional_route <- function(algorithm, family, dispersion, theta, samples) {
-  if (algorithm == "classic") return(FALSE)
+conditional_route <- function(family, dispersion, theta, samples) {
   unit <- function(x, v) is.null(x) || (!is.character(x) && all(is.finite(x)) && all(x == v))
   supported <- function(s) {
     f <- if(is.character(s$fit)) readRDS(s$fit) else s$fit
@@ -13,11 +12,8 @@ conditional_route <- function(algorithm, family, dispersion, theta, samples) {
     unit(w,1) && (unit(o,0) || (identical(f$algorithm,"conditional") && unit(o,1e-8))) &&
       unit(s$exposure,1) && (is.null(f) || f$spec$kind %in% c(1L,2L))
   }
-  valid <- slcn_family(family, dispersion, theta)$kind %in% c(1L, 2L) &&
+  slcn_family(family, dispersion, theta)$kind %in% c(1L, 2L) &&
     all(vapply(samples, supported, logical(1)))
-  if (!valid && algorithm == "conditional")
-    stop("The conditional solver requires identity-link Poisson or quasipoisson counts, unit weights and exposure, and zero observation offset.")
-  valid
 }
 
 conditional_windows <- function(h) sinmf_landmarks(h, seq_len(nrow(h)))$windows

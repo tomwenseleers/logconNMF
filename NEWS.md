@@ -1,3 +1,8 @@
+# logconNMF 0.1.0.9009
+
+- `logconNMF()` selects the fitting method from the family, observation weights, offset, exposure and joint fit controls. Use `control = list(cache = FALSE)` for disk-backed joint refinement.
+- The GIC plot marks the final value from the true-profile start with a dotted red line on both scales.
+
 # logconNMF 0.1.0.9008
 
 - `truth.profiles` compares a conditional count fit with a second fit initialized from matched simulation profiles. `gicGap()` reports the signed empirical GIC gap and its plot shows both trajectories.
@@ -17,7 +22,7 @@
 
 # logconNMF 0.1.0.9004
 
-* The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. `objective.trace=TRUE` records the accepted objective values. `algorithm="classic"` selects the general-family implementation.
+* The default Poisson and quasi-Poisson count fit alternates original-ion updates of hard log-concave profiles and sparse spectra. The GIC counts fitted profile and spectrum dimensions. A single matrix and registered sample lists use the same criterion. `objective.trace=TRUE` records the accepted objective values.
 * Grouped PSF regressions in large batches cap their worker count using available memory. The conditional solver releases the worker pool before refining the factors.
 
 # logconNMF 0.1.0.9003

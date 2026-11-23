@@ -273,8 +273,8 @@ remotes::install_github(c(
 
 The R package includes the conditional Poisson and quasi-Poisson solver.
 It fits the original ion counts with compiled C++ kernels and uses
-OpenMP when available. `algorithm="auto"` selects the solver for
-compatible count data.
+OpenMP when available. Solver selection is automatic for the requested
+noise model and memory settings.
 
 ## Log-concave NMF for single samples
 
@@ -407,8 +407,9 @@ comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports recovery, false calls and integration accuracy for every
 workflow.
 
-The joint fit achieved 96.7% of its GIC decrease in five sweeps and
-finished 0.454% above the solution initialized from the true profiles.
+The joint fit achieved 96.7% of its GIC decrease in five sweeps. Its
+**empirical optimality gap was 0.45%** relative to a fit initialised
+with the true elution profiles and cross-sample compound identities.
 [Compare the two GIC
 traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
 
