@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9010</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -128,6 +128,93 @@ equals one for independent residuals. Backgrounds are estimated on a
 fixed basis and remain unpenalized. The fitted noise parameters add a
 constant charge to the reported information criterion for that
 dataset.</p>
+<div class="section level3">
+<h3 id="calibrating-the-adaptive-ridge-and-scoring-a-support">Calibrating the adaptive ridge and scoring a support<a class="anchor" aria-label="anchor" href="#calibrating-the-adaptive-ridge-and-scoring-a-support"></a>
+</h3>
+<p>For one orthogonal Gaussian coordinate, write the dispersion-scaled
+loss as <span class="math inline">h(b-z)^2</span>, with curvature <span class="math inline">h&gt;0</span> and unpenalized estimate <span class="math inline">z</span>. Including the coordinate saves <span class="math inline">hz^2</span> units of deviance and costs <span class="math inline">\lambda c</span>, where <span class="math inline">c</span> is its dimension charge. The adaptive-ridge
+subproblem adds <span class="math inline">a b^2/b_{\rm old}^2</span>. A
+nonzero fixed point satisfies <span class="math inline">b^2-zb+a/h=0</span>, so its existence threshold is
+<span class="math inline">hz^2=4a</span>. Setting <span class="math inline">a=\lambda c/4</span> therefore reproduces the
+support threshold. Above threshold the smaller nonzero root separates
+the basins of zero and the larger root (in absolute value). A small warm
+start can still converge to zero. Initial fitted means or linear
+predictors change the first working response and curvature. They supply
+no multiplicative correction to the penalty. <a href="https://doi.org/10.1371/journal.pone.0148620" class="external-link">Frommlet and Nuel
+(2016)</a></p>
+<p>For a block with loss <span class="math inline">h\lVert
+b-z\rVert_2^2</span> and ridge term <span class="math inline">a\lVert
+b\rVert_2^2/\lVert b_{\rm old}\rVert_2^2</span>, taking lengths gives
+the same quadratic and the group threshold <span class="math inline">h\lVert z\rVert_2^2&gt;\lambda c</span>. A charge
+per group uses <span class="math inline">c=1</span>. A charge per
+coefficient in an unrestricted group of size <span class="math inline">m</span> uses <span class="math inline">c=m</span>.
+This calculation assumes equal curvature within the block. The
+nonnegative PSF dictionary fit shares row starts across ions and fits
+adaptive-ridge subproblems with ion-specific information. Its selection
+is approximate for correlated PSFs and heterogeneous ions.</p>
+<p>For the conditional NMF updates, dropping, fusing or adding factors
+changes the objective by <span class="math inline">\Delta D+\lambda_{\rm
+eff}\Delta d</span> on the original ions. Here <span class="math inline">d</span> is the dimension given above. These
+comparisons use the <strong>full</strong> dimension charge at every
+step. The preset uses the prespecified search space throughout a fit.
+Replacing <span class="math inline">p</span> by the number of surviving
+factors would give a different criterion and change the price paid for
+previously selected dimensions.</p>
+</div>
+<div class="section level3">
+<h3 id="optional-support-search-after-factor-refinement">Optional support search after factor refinement<a class="anchor" aria-label="anchor" href="#optional-support-search-after-factor-refinement"></a>
+</h3>
+<p>For two fitted count models evaluated on the same observations, let
+<span class="math inline">D_0,D_1</span> be the original-channel
+quasi-deviances and <span class="math inline">d_0,d_1</span> their
+dimensions. Deleting an occurrence improves GIC exactly when the
+increase in deviance <span class="math inline">D_1-D_0</span> is smaller
+than <span class="math inline">\lambda_{\rm eff}(d_0-d_1)</span>.
+Deleting the last occurrence also saves the dimension of its shared
+spectrum. The same comparison applies after refitting overlapping
+compounds with their neighbours and the background included in the
+mean.</p>
+<p><code>control=list(refinement_sweeps=100L, penalty_search=TRUE)</code>
+requests additional alternating sweeps followed by one proposal at four
+times the original price. The stronger price can remove a split peak
+long enough for its neighbour to absorb its signal. The count solver
+refits at the original price and tests re-entry of sample occurrences.
+Every candidate competes with the incumbent at that same original price.
+On long refinements the default selective schedule checks all factors on
+the first, every tenth and the final sweep. <code>fit$refinement</code>
+reports how many factors were visited across the sweeps.</p>
+<p>A factor missing from the initial dictionary can require a different
+PSF initialization. Supply <code>control$alternative_X</code> to fit an
+additional blind dictionary and compare the solutions using the
+observations. For simultaneous conditional count fits,
+<code>alternative_X=TRUE</code> estimates a PSF from total intensity
+pooled on a common time grid and transfers it to each sample. For the
+local count search, factors whose half-height intervals overlap in any
+sample form connected groups. The search tries exchanging each group as
+a unit, scores all affected original scans and ions including the tails,
+and retains improvements at the original price. The final comparison
+includes both complete fits. The general-family solver compares the
+complete fits using its likelihood and degrees of freedom. These
+searches establish the best criterion among the candidates examined. A
+fitted rank can still depend on which dictionaries contain
+distinguishable spectra.</p>
+<p>In the 16-sample width experiment, the calibrated PSF, a half-width
+Gaussian and a double-width Gaussian all recovered <strong>true rank 100
+exactly (estimated rank 100)</strong> with 769 true and zero false
+positive calls. Their final original-channel GICs were 4,146,698,
+4,144,750 and 4,141,611, respectively. In two counterbalanced
+repetitions per start, selective refinement took 20.7, 20.1 and 30.1
+seconds for 100 sweeps, compared with 31.9, 31.6 and 39.1 seconds for
+full sweeps. Those timings exclude dictionary construction and support
+search. The full-sweep and selective-sweep GICs differed by less than
+0.007% at each start.</p>
+<div class="float">
+<img src="../reference/figures/psf-start-recovery.png" alt="Missed occurrences and false positives across PSF starts"><div class="figcaption">Missed occurrences and false positives across
+PSF starts</div>
+</div>
+<p><a href="https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/psf-starts.csv" class="external-link">Per-start
+rank, GIC and recovery</a>. <a href="https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/selective-sweep-timings.csv" class="external-link">Sweep
+timings and visited factors</a>.</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Form a spectral dictionary.</strong> Calibrate the PSF, form
@@ -208,32 +295,24 @@ deviance reference. The <code><a href="https://tomwenseleers.github.io/L0glm/ref
 data-dependent likelihood constant and estimated noise dimensions.
 Comparisons on the same observations and noise specification give the
 same objective differences.</p>
+</div>
 <div class="section level3">
 <h3 id="empirical-gic-gap">Convergence from estimated and true elution profiles<a class="anchor" aria-label="anchor" href="#empirical-gic-gap"></a>
 </h3>
-<p>On the small 16-sample benchmark (1,200 scans and 258 ions per
-sample), the standard fit recovered all 769 true occurrences with only
-26 false positives. After dictionary construction its GIC fell from
-21,188,577 to 4,173,728. Of the total decrease, 91.9% occurred in the
-first three profile and spectrum sweeps and 96.7% in the first five.
-Across 56 checkpoints there were 51 decreases and four ties.</p>
-<p>The default fit achieved an <strong>empirical optimality gap of
-0.45%</strong> relative to a fit initialised with the true elution
-profiles and cross-sample compound identities. The latter reached a GIC
-of 4,154,879 with 100 shared factors. The default fit retained 115.
-Scaled deviance accounted for 80% of the 18,848 GIC units between the
-endpoints and model complexity for the remaining 20%. The signed
-percentage is <span class="math inline">100(\mathrm{GIC}_{\rm
-standard}-\mathrm{GIC}_{\rm reference})/
-|\mathrm{GIC}_{\rm reference}|</span>. The dotted red line marks the
-reference endpoint in both panels. Both fits used the same stopping
-rules.</p>
-<p>Continuing from each endpoint with the same profile, spectrum and
-background updates narrowed the gap to <strong>0.29% after five extra
-sweeps</strong> and <strong>0.15% after 100</strong>. At sweep 100 the
-default fit had a GIC of 4,157,283 and the truth-initialised fit had a
-GIC of 4,151,163. Each fit reused its final dictionary. <a href="../benchmark-gic-continuation.csv">Download the GIC for both fits
-at every additional sweep</a>.</p>
+<p>The simulation contained 100 shared compounds across 16 samples with
+1,200 scans and 258 ions each. The estimated-profile start descended
+from 21,188,577 to <strong>4,146,698</strong> and the true-profile start
+from 10,875,547 to <strong>4,142,623</strong>. Both reached
+<strong>estimated rank 100, equal to the true rank of 100</strong>. The
+GIC held steady or decreased at every recorded checkpoint (158 for the
+estimated start and 126 for the true-profile start). Both fits used the
+observed counts and identical search settings. Their endpoints differ by
+<strong>0.098%</strong> of the absolute reference GIC. This empirical
+optimality gap measures agreement with an attainable reference. Its
+distance from the global minimum is unknown. The red dotted line marks
+the truth-initialised endpoint in both panels. Each plotted checkpoint
+uses the original GIC, including those following a temporary support
+proposal.</p>
 <div class="float">
 <img src="../reference/figures/empirical-gic-convergence.png" alt="GIC over the joint fit and percentage difference from the truth-initialized endpoint on the small 16-sample benchmark"><div class="figcaption">GIC over the joint fit and percentage difference
 from the truth-initialized endpoint on the small 16-sample
@@ -257,6 +336,8 @@ and the largest was 0.044%.</p>
 <span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">samples</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">Y</span>, time <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">time</span>, sample_id <span class="op">=</span> <span class="va">s</span><span class="op">$</span><span class="va">sample_id</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, truth.profiles <span class="op">=</span> <span class="va">sim</span><span class="op">)</span></span>
+<span><span class="va">true_rank</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">present</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">true_rank</span>, estimated_rank<span class="op">=</span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>, rank_exact<span class="op">=</span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span> <span class="op">==</span> <span class="va">true_rank</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/gicGap.html">gicGap</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">gic_gap</span><span class="op">)</span></span></code></pre></div>
 <p>With profile shapes held fixed, a single spectral sweep on this
@@ -1160,7 +1241,7 @@ variance-matched Poisson working weights</p>
 w^{\rm pilot}_{ij}=w_{ij}\,
 \frac{\widetilde\mu_{ij}}{\operatorname{Var}(Y_{ij}\mid\widetilde\mu_{ij},\nu)}.
 </span></p>
-<p>It fits grouped nonnegative <code>l0glmFit()</code> on the PSF design
+<p>It fits grouped nonnegative <code><a href="https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html" class="external-link">l0glmFit()</a></code> on the PSF design
 with compulsory background, using the unadjusted <span class="math inline">\lambda_{\rm IC}</span>. The starting search and
 original-channel polish use <span class="math display">
 J_0=-2\ell_\nu+m\lambda_{\rm IC}K.

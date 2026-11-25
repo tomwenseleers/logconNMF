@@ -17,7 +17,7 @@ With a different selection penalty, its decrease need not imply a GIC decrease."
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9009</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9010</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,10 +101,9 @@ block traces and elapsed seconds for reference initialization and fitting.
 A zero reference GIC gives an undefined percentage. A negative difference
 means the standard fit reached a lower GIC. Both fits use the same stopping
 rules. Further updates could improve either fit. The global minimum is unknown.
-On the small 16-sample benchmark, the default fit achieved an empirical
-optimality gap of 0.45% relative to the fit initialised with the true
-elution profiles and cross-sample compound identities. After 100 additional
-profile and spectrum sweeps from both endpoints, the gap was 0.15%.
+On the 16-sample benchmark, 100 additional sweeps, a temporary fourfold
+support search and a blind alternative PSF gave an empirical gap of 0.098%
+relative to the same search initialised with the true profiles and identities.
 An independently fitted GCMSprime directory returns a named list of these
 diagnostics, one per sample.</p>
     </div>
@@ -127,6 +126,9 @@ diagnostics, one per sample.</p>
 <span class="r-in"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">Y</span>, <span class="va">X</span>, time <span class="op">=</span> <span class="va">t</span>, background <span class="op">=</span> <span class="va">B</span>, truth.profiles <span class="op">=</span> <span class="va">H</span>,</span></span>
 <span class="r-in"><span>                 ncores <span class="op">=</span> <span class="fl">1L</span>, correlation <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">gap</span> <span class="op">&lt;-</span> <span class="fu">gicGap</span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>true_rank <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">H</span><span class="op">)</span>, estimated_rank <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">rank</span>, rank_exact <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">rank</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">H</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   true_rank estimated_rank rank_exact</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         2              2       TRUE</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>default <span class="op">=</span> <span class="va">gap</span><span class="op">$</span><span class="va">fitted_gic</span>, truth_initialised <span class="op">=</span> <span class="va">gap</span><span class="op">$</span><span class="va">reference_gic</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           default truth_initialised </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          1003.461          1003.461 </span>

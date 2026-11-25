@@ -48,11 +48,10 @@ block traces and elapsed seconds for reference initialization and
 fitting. A zero reference GIC gives an undefined percentage. A negative
 difference means the standard fit reached a lower GIC. Both fits use the
 same stopping rules. Further updates could improve either fit. The
-global minimum is unknown. On the small 16-sample benchmark, the default
-fit achieved an empirical optimality gap of 0.45% relative to the fit
-initialised with the true elution profiles and cross-sample compound
-identities. After 100 additional profile and spectrum sweeps from both
-endpoints, the gap was 0.15%. An independently fitted GCMSprime
+global minimum is unknown. On the 16-sample benchmark, 100 additional
+sweeps, a temporary fourfold support search and a blind alternative PSF
+gave an empirical gap of 0.098% relative to the same search initialised
+with the true profiles and identities. An independently fitted GCMSprime
 directory returns a named list of these diagnostics, one per sample.
 
 ## See also
@@ -74,6 +73,9 @@ B <- matrix(1, nrow = length(t), ncol = 1L)
 fit <- logconNMF(Y, X, time = t, background = B, truth.profiles = H,
                  ncores = 1L, correlation = "none")
 gap <- gicGap(fit)
+data.frame(true_rank = ncol(H), estimated_rank = fit$rank, rank_exact = fit$rank == ncol(H))
+#>   true_rank estimated_rank rank_exact
+#> 1         2              2       TRUE
 round(c(default = gap$fitted_gic, truth_initialised = gap$reference_gic), 3)
 #>           default truth_initialised
 #>          1003.461          1003.461

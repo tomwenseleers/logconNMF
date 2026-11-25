@@ -1,6 +1,4 @@
-Log-concave NMF.\
-Automatic rank selection.
-=========================
+# logconNMF
 
 SPARSE NONNEGATIVE MATRIX FACTORIZATION · LOG-CONCAVE PROFILES
 
@@ -391,7 +389,8 @@ independently, keeping a fixed component order within each ion. The
 general identity-link solver can stream original-channel blocks from
 disk. The full-size fit recovered **7,917 of 7,917 occurrences** with
 **only 13 false positives** in **8.90 min** across 16 chromatograms of
-10,000 scans and 550 channels. See the [two 16-sample
+10,000 scans and 550 channels. Its estimated rank was **1,002** for a
+true rank of **1,000**. See the [two 16-sample
 experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales)
 for full CDF-to-results timings, memory use and recovery.
 
@@ -407,45 +406,46 @@ comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports recovery, false calls and integration accuracy for every
 workflow.
 
-The joint fit achieved 96.7% of its GIC decrease in five sweeps. Its
-**empirical optimality gap was 0.45%** relative to a fit initialised
-with the true elution profiles and cross-sample compound identities.
+The optional support search recovered **true rank 100 exactly (estimated
+rank 100)**. Its GIC was **0.098%** above the endpoint obtained with the
+same search initialised from the true profiles and identities.
+
 [Compare the two GIC
 traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
 
 **769 / 769**true occurrences recovered
 
-**0.983**peak-level F1
+**100 / 100 (exact)**true rank / estimated rank
 
-**0.999628**ordinary adjusted log-area R²
+**0.999993**ordinary adjusted log-area R²
 
-**0.9999991**median spectral cosine
+**0.9999993**median spectral cosine
 
 Across all four true-area quartiles, **every occurrence was recovered**,
 including all 193 peaks in the smallest quarter. The complete small fit
-took **52.37 s**. Of this, 37.87 s covered the grouped regressions,
+took **196.28 s**. Of this, 177.10 s covered the grouped regressions,
 alignment and original-channel factor updates. The [two-benchmark
 overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales)
 gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence
-recovery and false-positive counts (only 26 among 795 calls).
-Ion-support F1 applies the same 0.1% of base-peak cutoff to the
-reference and recovered spectra.
+recovery and false-positive counts (zero among 769 calls). Ion-support
+F1 applies the same 0.1% of base-peak cutoff to the reference and
+recovered spectra.
 
 [![True versus estimated peak areas for the simultaneous logconNMF fit
 with ordinary least-squares regression and a 95% prediction
 interval](reference/figures/simultaneous-benchmark-area-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-area-accuracy.png)
 
-Peak-area accuracy: ordinary adjusted R² 0.999628 and median absolute
-area error 0.10% over 769 matched occurrences.
+Peak-area accuracy: ordinary adjusted R² 0.999993 and median absolute
+area error 0.079% over 769 matched occurrences.
 
 [![Distribution of spectral cosine similarity for correctly matched
 spectra from simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-Spectral accuracy: median cosine similarity 0.9999991 for 769 correctly
+Spectral accuracy: median cosine similarity 0.9999993 for 769 correctly
 matched true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous

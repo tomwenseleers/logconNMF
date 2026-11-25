@@ -52,6 +52,95 @@ independent residuals. Backgrounds are estimated on a fixed basis and
 remain unpenalized. The fitted noise parameters add a constant charge to
 the reported information criterion for that dataset.
 
+### Calibrating the adaptive ridge and scoring a support
+
+For one orthogonal Gaussian coordinate, write the dispersion-scaled loss
+as h(b-z)^2, with curvature h\>0 and unpenalized estimate z. Including
+the coordinate saves hz^2 units of deviance and costs \lambda c, where c
+is its dimension charge. The adaptive-ridge subproblem adds a
+b^2/b\_{\rm old}^2. A nonzero fixed point satisfies b^2-zb+a/h=0, so its
+existence threshold is hz^2=4a. Setting a=\lambda c/4 therefore
+reproduces the support threshold. Above threshold the smaller nonzero
+root separates the basins of zero and the larger root (in absolute
+value). A small warm start can still converge to zero. Initial fitted
+means or linear predictors change the first working response and
+curvature. They supply no multiplicative correction to the penalty.
+[Frommlet and Nuel (2016)](https://doi.org/10.1371/journal.pone.0148620)
+
+For a block with loss h\lVert b-z\rVert_2^2 and ridge term a\lVert
+b\rVert_2^2/\lVert b\_{\rm old}\rVert_2^2, taking lengths gives the same
+quadratic and the group threshold h\lVert z\rVert_2^2\>\lambda c. A
+charge per group uses c=1. A charge per coefficient in an unrestricted
+group of size m uses c=m. This calculation assumes equal curvature
+within the block. The nonnegative PSF dictionary fit shares row starts
+across ions and fits adaptive-ridge subproblems with ion-specific
+information. Its selection is approximate for correlated PSFs and
+heterogeneous ions.
+
+For the conditional NMF updates, dropping, fusing or adding factors
+changes the objective by \Delta D+\lambda\_{\rm eff}\Delta d on the
+original ions. Here d is the dimension given above. These comparisons
+use the **full** dimension charge at every step. The preset uses the
+prespecified search space throughout a fit. Replacing p by the number of
+surviving factors would give a different criterion and change the price
+paid for previously selected dimensions.
+
+### Optional support search after factor refinement
+
+For two fitted count models evaluated on the same observations, let
+D_0,D_1 be the original-channel quasi-deviances and d_0,d_1 their
+dimensions. Deleting an occurrence improves GIC exactly when the
+increase in deviance D_1-D_0 is smaller than \lambda\_{\rm
+eff}(d_0-d_1). Deleting the last occurrence also saves the dimension of
+its shared spectrum. The same comparison applies after refitting
+overlapping compounds with their neighbours and the background included
+in the mean.
+
+`control=list(refinement_sweeps=100L, penalty_search=TRUE)` requests
+additional alternating sweeps followed by one proposal at four times the
+original price. The stronger price can remove a split peak long enough
+for its neighbour to absorb its signal. The count solver refits at the
+original price and tests re-entry of sample occurrences. Every candidate
+competes with the incumbent at that same original price. On long
+refinements the default selective schedule checks all factors on the
+first, every tenth and the final sweep. `fit$refinement` reports how
+many factors were visited across the sweeps.
+
+A factor missing from the initial dictionary can require a different PSF
+initialization. Supply `control$alternative_X` to fit an additional
+blind dictionary and compare the solutions using the observations. For
+simultaneous conditional count fits, `alternative_X=TRUE` estimates a
+PSF from total intensity pooled on a common time grid and transfers it
+to each sample. For the local count search, factors whose half-height
+intervals overlap in any sample form connected groups. The search tries
+exchanging each group as a unit, scores all affected original scans and
+ions including the tails, and retains improvements at the original
+price. The final comparison includes both complete fits. The
+general-family solver compares the complete fits using its likelihood
+and degrees of freedom. These searches establish the best criterion
+among the candidates examined. A fitted rank can still depend on which
+dictionaries contain distinguishable spectra.
+
+In the 16-sample width experiment, the calibrated PSF, a half-width
+Gaussian and a double-width Gaussian all recovered **true rank 100
+exactly (estimated rank 100)** with 769 true and zero false positive
+calls. Their final original-channel GICs were 4,146,698, 4,144,750 and
+4,141,611, respectively. In two counterbalanced repetitions per start,
+selective refinement took 20.7, 20.1 and 30.1 seconds for 100 sweeps,
+compared with 31.9, 31.6 and 39.1 seconds for full sweeps. Those timings
+exclude dictionary construction and support search. The full-sweep and
+selective-sweep GICs differed by less than 0.007% at each start.
+
+![Missed occurrences and false positives across PSF
+starts](../reference/figures/psf-start-recovery.png)
+
+Missed occurrences and false positives across PSF starts
+
+[Per-start rank, GIC and
+recovery](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/psf-starts.csv).
+[Sweep timings and visited
+factors](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/selective-sweep-timings.csv).
+
 1.  **Form a spectral dictionary.** Calibrate the PSF, form its banded
     design and fit a nonnegative grouped L0 regression across channels.
     For a single sample the independent log-concave fit supplies local
@@ -132,31 +221,19 @@ specification give the same objective differences.
 
 ### Convergence from estimated and true elution profiles
 
-On the small 16-sample benchmark (1,200 scans and 258 ions per sample),
-the standard fit recovered all 769 true occurrences with only 26 false
-positives. After dictionary construction its GIC fell from 21,188,577 to
-4,173,728. Of the total decrease, 91.9% occurred in the first three
-profile and spectrum sweeps and 96.7% in the first five. Across 56
-checkpoints there were 51 decreases and four ties.
-
-The default fit achieved an **empirical optimality gap of 0.45%**
-relative to a fit initialised with the true elution profiles and
-cross-sample compound identities. The latter reached a GIC of 4,154,879
-with 100 shared factors. The default fit retained 115. Scaled deviance
-accounted for 80% of the 18,848 GIC units between the endpoints and
-model complexity for the remaining 20%. The signed percentage is
-100(\mathrm{GIC}\_{\rm standard}-\mathrm{GIC}\_{\rm reference})/
-\|\mathrm{GIC}\_{\rm reference}\|. The dotted red line marks the
-reference endpoint in both panels. Both fits used the same stopping
-rules.
-
-Continuing from each endpoint with the same profile, spectrum and
-background updates narrowed the gap to **0.29% after five extra sweeps**
-and **0.15% after 100**. At sweep 100 the default fit had a GIC of
-4,157,283 and the truth-initialised fit had a GIC of 4,151,163. Each fit
-reused its final dictionary. [Download the GIC for both fits at every
-additional
-sweep](https://tomwenseleers.github.io/logconNMF/benchmark-gic-continuation.csv).
+The simulation contained 100 shared compounds across 16 samples with
+1,200 scans and 258 ions each. The estimated-profile start descended
+from 21,188,577 to **4,146,698** and the true-profile start from
+10,875,547 to **4,142,623**. Both reached **estimated rank 100, equal to
+the true rank of 100**. The GIC held steady or decreased at every
+recorded checkpoint (158 for the estimated start and 126 for the
+true-profile start). Both fits used the observed counts and identical
+search settings. Their endpoints differ by **0.098%** of the absolute
+reference GIC. This empirical optimality gap measures agreement with an
+attainable reference. Its distance from the global minimum is unknown.
+The red dotted line marks the truth-initialised endpoint in both panels.
+Each plotted checkpoint uses the original GIC, including those following
+a temporary support proposal.
 
 ![GIC over the joint fit and percentage difference from the
 truth-initialized endpoint on the small 16-sample
@@ -188,6 +265,8 @@ sim <- simulateGCMSSamples(samples = 2L, n = 240L, k = 8L, seed = 3L)
 samples <- lapply(sim$samples, function(s)
   list(y = s$Y, time = s$time, sample_id = s$sample_id))
 fit <- logconNMF(samples, family = quasipoisson("identity"), truth.profiles = sim)
+true_rank <- sum(rowSums(sim$present) > 0)
+data.frame(true_rank, estimated_rank=fit$rank, rank_exact=fit$rank == true_rank)
 gicGap(fit)
 plot(fit$gic_gap)
 ```
@@ -983,9 +1062,10 @@ variance-matched Poisson working weights
 w^{\rm pilot}\_{ij}=w\_{ij}\\
 \frac{\widetilde\mu\_{ij}}{\operatorname{Var}(Y\_{ij}\mid\widetilde\mu\_{ij},\nu)}.
 
-It fits grouped nonnegative `l0glmFit()` on the PSF design with
-compulsory background, using the unadjusted \lambda\_{\rm IC}. The
-starting search and original-channel polish use
+It fits grouped nonnegative
+[`l0glmFit()`](https://tomwenseleers.github.io/L0glm/reference/l0glmFit.html)
+on the PSF design with compulsory background, using the unadjusted
+\lambda\_{\rm IC}. The starting search and original-channel polish use
 J_0=-2\ell\_\nu+m\lambda\_{\rm IC}K. This permissive initialization
 preserves candidates while the profiles are refined. Final rank
 comparisons use J=-2\ell\_\nu+m\kappa\lambda\_{\rm IC}K. When \kappa=1,

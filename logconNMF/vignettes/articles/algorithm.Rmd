@@ -119,6 +119,12 @@ using its likelihood and degrees of freedom. These searches establish the
 best criterion among the candidates examined. A fitted rank can still depend
 on which dictionaries contain distinguishable spectra.
 
+In the 16-sample width experiment, the calibrated PSF, a half-width Gaussian and a double-width Gaussian all recovered **true rank 100 exactly (estimated rank 100)** with 769 true and zero false positive calls. Their final original-channel GICs were 4,146,698, 4,144,750 and 4,141,611, respectively. In two counterbalanced repetitions per start, selective refinement took 20.7, 20.1 and 30.1 seconds for 100 sweeps, compared with 31.9, 31.6 and 39.1 seconds for full sweeps. Those timings exclude dictionary construction and support search. The full-sweep and selective-sweep GICs differed by less than 0.007% at each start.
+
+![Missed occurrences and false positives across PSF starts](../reference/figures/psf-start-recovery.png)
+
+[Per-start rank, GIC and recovery](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/psf-starts.csv). [Sweep timings and visited factors](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/selective-sweep-timings.csv).
+
 1. **Form a spectral dictionary.** Calibrate the PSF, form its banded design
    and fit a nonnegative grouped L0 regression across channels. For a single
    sample the independent log-concave fit supplies local starts. Repeated
@@ -172,28 +178,7 @@ specification give the same objective differences.
 
 ### Convergence from estimated and true elution profiles {#empirical-gic-gap}
 
-On the small 16-sample benchmark (1,200 scans and 258 ions per sample), the
-standard fit recovered all 769 true occurrences with only 26 false positives.
-After dictionary construction its GIC fell from 21,188,577 to 4,173,728.
-Of the total decrease, 91.9% occurred in the first three profile and spectrum
-sweeps and 96.7% in the first five. Across 56 checkpoints there were 51
-decreases and four ties.
-
-The default fit achieved an **empirical optimality gap of 0.45%** relative to
-a fit initialised with the true elution profiles and cross-sample compound
-identities. The latter reached a GIC of 4,154,879 with 100 shared factors.
-The default fit retained 115. Scaled deviance accounted
-for 80% of the 18,848 GIC units between the endpoints and model complexity for
-the remaining 20%. The signed percentage is
-$100(\mathrm{GIC}_{\rm standard}-\mathrm{GIC}_{\rm reference})/
-|\mathrm{GIC}_{\rm reference}|$. The dotted red line marks the reference
-endpoint in both panels. Both fits used the same stopping rules.
-
-Continuing from each endpoint with the same profile, spectrum and background
-updates narrowed the gap to **0.29% after five extra sweeps** and **0.15%
-after 100**. At sweep 100 the default fit had a GIC of 4,157,283 and the
-truth-initialised fit had a GIC of 4,151,163. Each fit reused its final dictionary.
-[Download the GIC for both fits at every additional sweep](../benchmark-gic-continuation.csv).
+The simulation contained 100 shared compounds across 16 samples with 1,200 scans and 258 ions each. The estimated-profile start descended from 21,188,577 to **4,146,698** and the true-profile start from 10,875,547 to **4,142,623**. Both reached **estimated rank 100, equal to the true rank of 100**. The GIC held steady or decreased at every recorded checkpoint (158 for the estimated start and 126 for the true-profile start). Both fits used the observed counts and identical search settings. Their endpoints differ by **0.098%** of the absolute reference GIC. This empirical optimality gap measures agreement with an attainable reference. Its distance from the global minimum is unknown. The red dotted line marks the truth-initialised endpoint in both panels. Each plotted checkpoint uses the original GIC, including those following a temporary support proposal.
 
 ![GIC over the joint fit and percentage difference from the truth-initialized endpoint on the small 16-sample benchmark](../reference/figures/empirical-gic-convergence.png)
 
@@ -215,6 +200,8 @@ sim <- simulateGCMSSamples(samples = 2L, n = 240L, k = 8L, seed = 3L)
 samples <- lapply(sim$samples, function(s)
   list(y = s$Y, time = s$time, sample_id = s$sample_id))
 fit <- logconNMF(samples, family = quasipoisson("identity"), truth.profiles = sim)
+true_rank <- sum(rowSums(sim$present) > 0)
+data.frame(true_rank, estimated_rank=fit$rank, rank_exact=fit$rank == true_rank)
 gicGap(fit)
 plot(fit$gic_gap)
 ~~~

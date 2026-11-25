@@ -157,7 +157,28 @@ sampleNMF(object, sample = 1L)
 
 - control:
 
-  Named controls. See
+  Named controls. In both fitting modes, `refinement_sweeps` (default 0)
+  requests extra alternating updates. With `selective=TRUE`, long
+  refinements revisit every component on the first, every tenth and the
+  final sweep. Between these audits they update components whose
+  relative profiles or spectra changed by at least 0.0001 on the last
+  audit. `penalty_search=TRUE` proposes deletions at four times the
+  fitted penalty and refits at the original penalty. The count solver
+  also tests occurrence re-entry. The retained model must improve the
+  original-channel criterion. This additional search defaults to FALSE.
+  `fit$refinement` reports the objective before and after refinement and
+  the number of component visits. `alternative_X` enables a second blind
+  PSF initialization. Supply a PSF design, one design per sample in
+  input order, or TRUE for blind estimation. Joint conditional count
+  fits pool total signal on a common time grid, estimate a time-varying
+  PSF and transfer it to each native grid. Other fits estimate the
+  alternate PSF per sample. Both runs use the primary noise
+  specification, original data and price. The general solver keeps the
+  better complete fit. The conditional count solver also exchanges
+  overlapping groups of factors between fits, across all samples, when
+  the original criterion decreases. `fit$restart` records both scores
+  and the final score. The default NULL incurs no second fit.
+  Disk-backed fits share one store of observations. See
   [`splogconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/splogconNMF.md)
   for one matrix. The conditional count solver uses up to 12 initial
   sweeps, stopping at a relative improvement of 0.001. For a general
@@ -317,11 +338,12 @@ and alternating conditional updates give a local optimum candidate. For
 the general solver, for one matrix with \\m\\ channels and \\K\\
 components, \\d=mK\\. For a simultaneous model, \\d=(m-1)G+L\\, where
 \\G\\ is the number of shared unit-sum spectra and \\L\\ counts the
-detected sample–component occurrences. Each spectrum contributes \\m-1\\
-coordinates and each occurrence contributes one amplitude. Setting
-\\G=L=K\\ gives the single-sample count. Profiles have contiguous
-support and a concave logarithm on the positive interval. Profile shapes
-and smooth backgrounds carry no additional rank charge.
+detected sample-specific component occurrences. Each spectrum
+contributes \\m-1\\ coordinates and each occurrence contributes one
+amplitude. Setting \\G=L=K\\ gives the single-sample count. Profiles
+have contiguous support and a concave logarithm on the positive
+interval. Profile shapes and smooth backgrounds carry no additional rank
+charge.
 
 The simultaneous `objective` and reported information criteria such as
 [`GIC()`](https://tomwenseleers.github.io/L0glm/reference/model_criteria.html)

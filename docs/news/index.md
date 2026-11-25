@@ -1,5 +1,12 @@
 # Changelog
 
+## logconNMF 0.1.0.9010
+
+- Optional terminal sweeps concentrate on changing factors between full
+  sweeps. A temporary fourfold penalty proposes deletions, and a second
+  blind PSF can propose different groups of peaks. The original
+  criterion selects the retained fit.
+
 ## logconNMF 0.1.0.9009
 
 - [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)

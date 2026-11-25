@@ -27,6 +27,10 @@ matches <- matches[matches$method == "GCMSprime", , drop = FALSE]
 truth <- read_table("truth-peaks.csv")
 summary <- read_table("benchmark.csv")
 summary <- summary[summary$method == "GCMSprime", , drop = FALSE]
+rank_label <- if (all(c("true_rank","estimated_rank") %in% names(summary))) {
+  sprintf("true rank %d, estimated rank %d%s", summary$true_rank, summary$estimated_rank,
+          if (isTRUE(summary$rank_exact)) " (exact)" else "")
+} else NULL
 hits <- read_table("spectral-hits.csv")
 hits <- hits[hits$method == "GCMSprime" & hits$present, , drop = FALSE]
 
@@ -71,7 +75,7 @@ graphics::points(
 graphics::abline(
   0, 1, col = "black", lty = 2, lwd = 2
 )
-graphics::title("Peak-area accuracy of the simultaneous logconNMF fit",
+graphics::title(paste(c("Peak-area accuracy",rank_label),collapse=" | "),
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(
   sprintf(
@@ -147,7 +151,7 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
       x = NULL, y = axis, title = title,
       subtitle = sprintf("%s %.6f | %d correctly matched true spectra | bar: interquartile range",
         statistic_name, centre, length(scores)),
-      caption = caption
+      caption = paste(c(rank_label,caption),collapse="\n")
     ) +
     ggplot2::theme_minimal(base_size = 14) +
     ggplot2::theme(
@@ -247,7 +251,7 @@ graphics::mtext(
   "All 16 samples; absent true profiles lie at zero | solid: inferred | dashed: truth | blue to red: increasing true area",
   side = 1, outer = TRUE, line = 0.65, cex = 0.98, col = muted
 )
-graphics::mtext("Small-scale 16-sample benchmark | 100 reference compounds | 1,200 scans",
+graphics::mtext(paste(c("Small-scale 16-sample benchmark", rank_label, "1,200 scans"),collapse=" | "),
   side = 3, outer = TRUE, line = 0.4, cex = 1.2, font = 2, col = navy)
 grDevices::dev.off()
 

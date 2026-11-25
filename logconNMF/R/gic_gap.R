@@ -160,10 +160,9 @@ cc_gap_traces <- function(result, price) {
 #'   A zero reference GIC gives an undefined percentage. A negative difference
 #'   means the standard fit reached a lower GIC. Both fits use the same stopping
 #'   rules. Further updates could improve either fit. The global minimum is unknown.
-#'   On the small 16-sample benchmark, the default fit achieved an empirical
-#'   optimality gap of 0.45% relative to the fit initialised with the true
-#'   elution profiles and cross-sample compound identities. After 100 additional
-#'   profile and spectrum sweeps from both endpoints, the gap was 0.15%.
+#'   On the 16-sample benchmark, 100 additional sweeps, a temporary fourfold
+#'   support search and a blind alternative PSF gave an empirical gap of 0.098%
+#'   relative to the same search initialised with the true profiles and identities.
 #'   An independently fitted GCMSprime directory returns a named list of these
 #'   diagnostics, one per sample.
 #' @example examples/gicGap.R
@@ -229,7 +228,7 @@ plot.logconNMF_gap <- function(x,type=c("both","GIC","gap"),...) {
       graphics::points(utils::tail(z$sweep,1),utils::tail(z$GIC,1),pch=19,col=colors[i])
     }
     if (panel=="GIC") graphics::legend("topright",
-      c("Default fit","True-profile start","Reference endpoint"),
+      c("Estimated-profile start","True-profile start","Reference endpoint"),
       col=c(colors,reference_color),lty=1:3,lwd=c(2,2,1.5),bty="n",cex=.8,y.intersp=1.25)
   }
   invisible(x)

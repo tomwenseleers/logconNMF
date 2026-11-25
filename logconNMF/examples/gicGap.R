@@ -10,5 +10,6 @@ B <- matrix(1, nrow = length(t), ncol = 1L)
 fit <- logconNMF(Y, X, time = t, background = B, truth.profiles = H,
                  ncores = 1L, correlation = "none")
 gap <- gicGap(fit)
+data.frame(true_rank = ncol(H), estimated_rank = fit$rank, rank_exact = fit$rank == ncol(H))
 round(c(default = gap$fitted_gic, truth_initialised = gap$reference_gic), 3)
 plot(gap, type = "GIC", main = "Two simulated peaks with a constant background")
