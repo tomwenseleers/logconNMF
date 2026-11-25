@@ -13,6 +13,10 @@ nuisance_gaussian_cpp <- function(B, Y, Signal, Prior, Start, constrained, nthre
     .Call(`_logconNMF_nuisance_gaussian_cpp`, B, Y, Signal, Prior, Start, constrained, nthreads)
 }
 
+cc_total_mass <- function(data, ids, threads) {
+    .Call(`_logconNMF_cc_total_mass`, data, ids, threads)
+}
+
 cc_log_shape <- function(time, h) {
     .Call(`_logconNMF_cc_log_shape`, time, h)
 }
@@ -33,8 +37,8 @@ cc_profile_sweep <- function(data, spectra, order, bands, price, birth, threads)
     .Call(`_logconNMF_cc_profile_sweep`, data, spectra, order, bands, price, birth, threads)
 }
 
-cc_spectrum_sweep <- function(data, spectra, order, price, track, threads) {
-    .Call(`_logconNMF_cc_spectrum_sweep`, data, spectra, order, price, track, threads)
+cc_spectrum_sweep <- function(data, spectra, order, price, track, threads, background = TRUE) {
+    .Call(`_logconNMF_cc_spectrum_sweep`, data, spectra, order, price, track, threads, background)
 }
 
 cc_deviance <- function(y, mu, phi) {
@@ -167,5 +171,9 @@ spolo_connected_cpp <- function(spectra, area, center, lo, hi, anchor, radius) {
 
 spolo_extract_cpp <- function(spectra, area, center, fraction = .1, pure_radius = .005, nthreads = 1L) {
     .Call(`_logconNMF_spolo_extract_cpp`, spectra, area, center, fraction, pure_radius, nthreads)
+}
+
+cc_screen_transfers <- function(data, spectra, first, second, fraction, threads) {
+    .Call(`_logconNMF_cc_screen_transfers`, data, spectra, first, second, fraction, threads)
 }
 

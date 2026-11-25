@@ -19,31 +19,53 @@ cc_history <- function(context, label, cycle, block, D) {
 }
 cc_set_h <- function(x, rows, cols, v) cc_write_block(x$h, rows, cols, as.matrix(v))
 cc_set_mu <- function(x, rows, cols, m) cc_write_block(x$mu, rows, cols, m)
-cc_optimize <- function(z, limit, label, active = FALSE) {
+cc_optimize <- function(z, limit, label, active = FALSE, selective = FALSE) {
   d <- z$data
   p <- z$p
   D <- cc_D(d)
-  prev <- cc_dimension(d, p, D, z$price)$objective
+  prior_model <- cc_dimension(d, p, D, z$price)
   cc_history(z, label, 0L, "start", D)
+  ids <- use <- seq_len(nrow(p))
+  force_full <- TRUE
+  visited <- completed <- 0L
   for (it in seq_len(limit)) {
-    order <- order(-colSums(cc_mass(d)))
-    D <- D - cc_profile_sweep(d, p, order, z$bands, z$price, FALSE, z$threads)
+    audit <- !selective || force_full || it %% 10L == 0L || it == limit
+    if (audit) use <- ids
+    if (audit && selective && it < limit) prior <- cc_refinement_snapshot(z)
+    visited <- visited + length(use)
+    completed <- it
+    full <- length(use) == length(ids)
+    D <- D - cc_profile_sweep(d, p, cc_factor_order(z, use), z$bands, z$price, FALSE, z$threads)
     cc_history(z, label, it, "profiles", D)
-    D <- D - cc_spectrum_sweep(d, p, order(-colSums(cc_mass(d))), z$price, TRUE, z$threads)
+    D <- D - cc_spectrum_sweep(d, p, cc_factor_order(z, use), z$price, TRUE, z$threads, background = full)
     cc_history(z, label, it, "spectra and background", D)
+    support_changed <- FALSE
     if (active) {
-      D <- D - cc_support_sweep(d, p, order(colSums(cc_mass(d))), z$price)
-      if (it %in% c(2L, 5L))
-        D <- D - cc_contract(z)
+      support_gain <- cc_support_sweep(d, p, order(colSums(cc_mass(d))), z$price)
+      D <- D - support_gain
+      support_changed <- support_gain != 0
+      if (it %in% c(2L, 5L)) {
+        contraction <- cc_contract(z)
+        D <- D - contraction
+        support_changed <- support_changed || contraction != 0
+      }
       cc_history(z, label, it, "active support", D)
     }
-    now <- cc_dimension(d, p, D, z$price)$objective
+    model <- cc_dimension(d, p, D, z$price)
+    support_changed <- support_changed || model$rank != prior_model$rank || model$calls != prior_model$calls
+    prev <- prior_model$objective
+    now <- model$objective
     if (now > prev + 1e-05 * max(1, prev))
       stop("Count factor update increased the joint objective.")
-    if (prev - now <= 0.001 * prev)
-      break
-    prev <- now
+    small <- prev - now <= 0.001 * prev
+    if (small && full) break
+    # A support change, even in a full sweep, changes the next conditional
+    # problem for neighbouring factors. Recheck them before skipping any.
+    force_full <- support_changed || small
+    if (audit && selective && it < limit) use <- ids[cc_refinement_change(prior, z) >= 1e-4]
+    prior_model <- model
   }
+  invisible(c(visited = visited, possible = as.double(completed)*length(ids), sweeps = completed))
 }
 cc_blocks <- function(z, ids, ions = seq_len(ncol(z$p)), floor_bg = TRUE) {
   blocks <- lapply(seq_along(z$data), function(i)

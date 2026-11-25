@@ -387,10 +387,14 @@ means. OpenMP updates elution profiles across samples. It fits each
 ion’s shared spectrum and sample-specific background coefficients
 independently, keeping a fixed component order within each ion. The
 general identity-link solver can stream original-channel blocks from
-disk. The full-size fit recovered **7,917 of 7,917 occurrences** with
-**only 13 false positives** in **8.90 min** across 16 chromatograms of
-10,000 scans and 550 channels. Its estimated rank was **1,002** for a
-true rank of **1,000**. See the [two 16-sample
+disk. The local rank search recovered **all 7,917 occurrences** in
+**9.37 min** with **only 2 false positives** across 16 chromatograms of
+10,000 scans and 550 channels. Its **estimated rank of 1,000 exactly
+matched the true rank of 1,000**. The same control recovered **true rank
+100 exactly** in **104.48 s** on the smaller simulation. [Compare rank,
+recovery and
+timing](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#local-rank-search).
+See the [two 16-sample
 experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales)
 for full CDF-to-results timings, memory use and recovery.
 
@@ -406,9 +410,10 @@ comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
 reports recovery, false calls and integration accuracy for every
 workflow.
 
-The optional support search recovered **true rank 100 exactly (estimated
-rank 100)**. Its GIC was **0.098%** above the endpoint obtained with the
-same search initialised from the true profiles and identities.
+The extended search with 100 extra sweeps and a second blind PSF
+recovered **true rank 100 exactly (estimated rank 100)**. Its GIC was
+**0.098%** above the endpoint obtained with the same search initialised
+from the true profiles and identities.
 
 [Compare the two GIC
 traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).

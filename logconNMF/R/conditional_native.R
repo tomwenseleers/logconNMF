@@ -17,7 +17,8 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
     rm(list = c("init", "initial_p", "norms"), envir = x)
     cc_means(x, z$p)
   }
-  cc_optimize(z, cycles, "factor updates", TRUE)
+  selective <- refinement$selective_initial
+  initial_work <- cc_optimize(z, cycles, "factor updates", TRUE, selective)
   cc_trim(z)
   if (nrow(z$p)) {
     for (i in seq_len(exchanges)) {
@@ -30,7 +31,7 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
       cc_history(z, "support exchange", i, "exchange", D)
       if (!moves)
         break
-      cc_optimize(z, 10L, paste("conditional refit", i))
+      cc_optimize(z, 10L, paste("conditional refit", i), selective = selective)
     }
     previous <- cc_dimension(z$data, z$p, cc_D(z$data), price)$objective
     change <- cc_shared_exchange(z)
@@ -52,7 +53,11 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
   cc_history(z, "local joint refit", 1L, "overlap", D)
   report <- NULL
   if (refinement$refinement_sweeps || refinement$penalty_search) {
-    report <- cc_end_refine(z, refinement)
+    report <- if (refinement$penalty_search && refinement$refinement_sweeps == 0L &&
+                  is.null(alternate) && !checkpoint) {
+      cc_local_search(z, objective$objective, refinement$selective)
+    } else cc_end_refine(z, refinement)
+    report$initial <- initial_work
     cc_trim(z)
     objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
   }
@@ -64,7 +69,7 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
   restart <- NULL
   if (!is.null(alternate)) {
     alternate$bands <- cc_restart_bands(alternate$bands, alternate$warps, z$data)
-    restart <- cc_restart_search(z, alternate)
+    restart <- cc_restart_search(z, alternate, selective)
     objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
   }
   idx <- order(rowMeans(z$bands))

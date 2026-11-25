@@ -64,6 +64,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cc_total_mass
+NumericVector cc_total_mass(List data, IntegerVector ids, int threads);
+RcppExport SEXP _logconNMF_cc_total_mass(SEXP dataSEXP, SEXP idsSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_total_mass(data, ids, threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cc_log_shape
 NumericVector cc_log_shape(NumericVector time, NumericVector h);
 RcppExport SEXP _logconNMF_cc_log_shape(SEXP timeSEXP, SEXP hSEXP) {
@@ -141,8 +154,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cc_spectrum_sweep
-double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, double price, bool track, int threads);
-RcppExport SEXP _logconNMF_cc_spectrum_sweep(SEXP dataSEXP, SEXP spectraSEXP, SEXP orderSEXP, SEXP priceSEXP, SEXP trackSEXP, SEXP threadsSEXP) {
+double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, double price, bool track, int threads, bool background);
+RcppExport SEXP _logconNMF_cc_spectrum_sweep(SEXP dataSEXP, SEXP spectraSEXP, SEXP orderSEXP, SEXP priceSEXP, SEXP trackSEXP, SEXP threadsSEXP, SEXP backgroundSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -152,7 +165,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type price(priceSEXP);
     Rcpp::traits::input_parameter< bool >::type track(trackSEXP);
     Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
-    rcpp_result_gen = Rcpp::wrap(cc_spectrum_sweep(data, spectra, order, price, track, threads));
+    Rcpp::traits::input_parameter< bool >::type background(backgroundSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_spectrum_sweep(data, spectra, order, price, track, threads, background));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -697,17 +711,34 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cc_screen_transfers
+Rcpp::NumericMatrix cc_screen_transfers(Rcpp::List data, Rcpp::NumericMatrix spectra, Rcpp::IntegerMatrix first, Rcpp::IntegerMatrix second, Rcpp::NumericMatrix fraction, int threads);
+RcppExport SEXP _logconNMF_cc_screen_transfers(SEXP dataSEXP, SEXP spectraSEXP, SEXP firstSEXP, SEXP secondSEXP, SEXP fractionSEXP, SEXP threadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type spectra(spectraSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type first(firstSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerMatrix >::type second(secondSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type fraction(fractionSEXP);
+    Rcpp::traits::input_parameter< int >::type threads(threadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(cc_screen_transfers(data, spectra, first, second, fraction, threads));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_nuisance_poisson_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_cpp, 8},
     {"_logconNMF_nuisance_poisson_checked_cpp", (DL_FUNC) &_logconNMF_nuisance_poisson_checked_cpp, 8},
     {"_logconNMF_nuisance_gaussian_cpp", (DL_FUNC) &_logconNMF_nuisance_gaussian_cpp, 7},
+    {"_logconNMF_cc_total_mass", (DL_FUNC) &_logconNMF_cc_total_mass, 3},
     {"_logconNMF_cc_log_shape", (DL_FUNC) &_logconNMF_cc_log_shape, 2},
     {"_logconNMF_cc_faces", (DL_FUNC) &_logconNMF_cc_faces, 3},
     {"_logconNMF_cc_local_profile", (DL_FUNC) &_logconNMF_cc_local_profile, 8},
     {"_logconNMF_cc_local_spectrum", (DL_FUNC) &_logconNMF_cc_local_spectrum, 6},
     {"_logconNMF_cc_profile_sweep", (DL_FUNC) &_logconNMF_cc_profile_sweep, 7},
-    {"_logconNMF_cc_spectrum_sweep", (DL_FUNC) &_logconNMF_cc_spectrum_sweep, 6},
+    {"_logconNMF_cc_spectrum_sweep", (DL_FUNC) &_logconNMF_cc_spectrum_sweep, 7},
     {"_logconNMF_cc_deviance", (DL_FUNC) &_logconNMF_cc_deviance, 3},
     {"_logconNMF_cc_diff", (DL_FUNC) &_logconNMF_cc_diff, 4},
     {"_logconNMF_cc_local_window", (DL_FUNC) &_logconNMF_cc_local_window, 6},
@@ -741,6 +772,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_logconNMF_slcn_project_design_cpp", (DL_FUNC) &_logconNMF_slcn_project_design_cpp, 3},
     {"_logconNMF_spolo_connected_cpp", (DL_FUNC) &_logconNMF_spolo_connected_cpp, 7},
     {"_logconNMF_spolo_extract_cpp", (DL_FUNC) &_logconNMF_spolo_extract_cpp, 6},
+    {"_logconNMF_cc_screen_transfers", (DL_FUNC) &_logconNMF_cc_screen_transfers, 6},
     {NULL, NULL, 0}
 };
 

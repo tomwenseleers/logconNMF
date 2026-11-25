@@ -10,6 +10,8 @@ nmf_refinement_control <- function(control) {
     if (!is.logical(out[[key]]) || length(out[[key]]) != 1L || is.na(out[[key]]))
       stop(key, " must be TRUE or FALSE.")
   out$refinement_sweeps <- as.integer(n)
+  out$selective_initial <- out$selective && (isTRUE(control$selective) ||
+    (out$penalty_search && n == 0 && is.null(control$alternative_X)))
   out
 }
 
@@ -19,15 +21,17 @@ nmf_refinement_control <- function(control) {
 nmf_sweep_schedule <- function(state, ids, n, selective, step, snapshot, change) {
   use <- ids
   visited <- 0
+  completed <- 0L
   for (i in seq_len(n)) {
     audit <- selective && n >= 10L && (i == 1L || i %% 10L == 0L || i == n)
     if (audit) use <- ids
     if (audit && i < n) before <- snapshot(state)
     state <- step(state, use, i)
     visited <- visited + length(use)
+    completed <- i
     if (audit && i < n) use <- ids[change(before, state) >= 1e-4]
   }
-  list(state = state, visited = visited, possible = as.double(n) * length(ids))
+  list(state = state, visited = visited, possible = as.double(n) * length(ids), completed = completed)
 }
 
 nmf_profile_change <- function(old, new) {
@@ -61,21 +65,29 @@ cc_restore <- function(z, snap) {
     x$h <- as.matrix(snap$h[[s]])
     x$alpha <- snap$alpha[[s]] + 0
     x$bg <- pmax(x$z %*% x$alpha + 1e-8, 1e-8)
+    if (!is.null(x$fixed)) x$bg <- x$bg + x$fixed
     cc_means(x, z$p)
   }
 }
 
+cc_factor_order <- function(z, ids) {
+  if (length(ids) < 2L) return(ids)
+  ids[order(-cc_total_mass(z$data, ids, z$threads))]
+}
+
 cc_end_step <- function(z, ids, i, birth = FALSE, record = FALSE) {
-  ordered <- function() {
-    if (length(ids) < 2L) return(ids)
-    mass <- if (length(ids) == nrow(z$p)) colSums(cc_mass(z$data))[ids] else
-      Reduce(`+`, lapply(z$data, function(x) colSums(x$h[,ids,drop=FALSE])))
-    ids[order(-mass)]
-  }
-  cc_profile_sweep(z$data, z$p, ordered(), z$bands, z$price, birth, z$threads)
-  cc_spectrum_sweep(z$data, z$p, ordered(), z$price, TRUE, z$threads)
+  full <- length(ids) == nrow(z$p)
+  if (length(ids)) cc_profile_sweep(z$data, z$p, cc_factor_order(z, ids), z$bands, z$price, birth, z$threads)
+  if (length(ids) || full)
+    cc_spectrum_sweep(z$data, z$p, cc_factor_order(z, ids), z$price, FALSE, z$threads, background = full)
   if (record && z$trace) cc_history(z, "terminal refinement", i, "spectra and background", cc_D(z$data))
   z
+}
+
+cc_refine_sweeps <- function(z, n, selective, record = FALSE) {
+  nmf_sweep_schedule(z, seq_len(nrow(z$p)), n, selective,
+    function(z, j, i) cc_end_step(z, j, i, record = record),
+    cc_refinement_snapshot, cc_refinement_change)
 }
 
 cc_end_refine <- function(z, control) {
@@ -87,8 +99,7 @@ cc_end_refine <- function(z, control) {
   retained <- "input"
   if (control$refinement_sweeps) saved <- cc_checkpoint(z)
   nh <- length(z$history)
-  run <- nmf_sweep_schedule(z, ids(), control$refinement_sweeps, control$selective,
-    function(z, j, i) cc_end_step(z, j, i, record = TRUE), cc_refinement_snapshot, cc_refinement_change)
+  run <- cc_refine_sweeps(z, control$refinement_sweeps, control$selective, record = TRUE)
   now <- if (control$refinement_sweeps) objective() else before
   if (is.finite(now) && now <= best) {
     best <- now
@@ -108,7 +119,7 @@ cc_end_refine <- function(z, control) {
     }
     cc_trim(z)
     z$price <- price
-    for (i in seq_len(20L)) cc_end_step(z, ids(), i)
+    cc_refine_sweeps(z, 20L, control$selective)
     drop()
     now <- objective()
     if (is.finite(now) && now < best) {
@@ -117,7 +128,7 @@ cc_end_refine <- function(z, control) {
       retained <- "fourfold deletion"
     }
     cc_end_step(z, ids(), 1L, birth = TRUE)
-    for (i in seq_len(10L)) cc_end_step(z, ids(), i)
+    cc_refine_sweeps(z, 10L, control$selective)
     drop()
     now <- objective()
     if (is.finite(now) && now < best) {
@@ -127,5 +138,6 @@ cc_end_refine <- function(z, control) {
     cc_trim(z)
     if (z$trace) cc_history(z, "support search", 1L, "original price", cc_D(z$data))
   }
-  list(before = before, after = best, retained = retained, visited = run$visited, possible = run$possible)
+  list(before = before, after = best, retained = retained, visited = run$visited,
+       possible = run$possible, completed = run$completed)
 }

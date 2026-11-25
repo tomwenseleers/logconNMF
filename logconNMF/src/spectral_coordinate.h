@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 
 // One ion's conditional count likelihood. Counts, offsets and profile have
@@ -25,6 +26,15 @@ inline Coordinate solve_ion(const double *counts, const double *offset, const do
     previous_gain = track ? previous_gain - previous * total : 0;
     if (at_zero <= 0)
         return {0, -previous_gain};
+    if (price > 0) {
+        // For N counts and T=sum(h), Jensen bounds twice the maximum
+        // log-likelihood gain by N*r^2/(1+r), r=score(0)/T. A coordinate
+        // below its price can be set to zero without solving the score equation.
+        const double r = at_zero / total;
+        const double upper_r = r + 8. * (n + 1.) * std::numeric_limits<double>::epsilon() * (1. + r);
+        if (count_sum * upper_r * (upper_r / (1. + upper_r)) < price)
+            return {0, -previous_gain};
+    }
     double lower = 0, upper = count_sum / total;
     double x = std::min(upper, std::max(previous, 1e-4 * upper));
     for (int step = 0; step < 25; ++step) {

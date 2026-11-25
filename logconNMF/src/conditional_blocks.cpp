@@ -53,6 +53,34 @@ std::vector<int> indexes(IntegerVector x) {
     return v;
 }
 } // namespace
+// Sum the selected profile columns across samples without subsetting dense matrices in R.
+// [[Rcpp::export]]
+NumericVector cc_total_mass(List data, IntegerVector ids, int threads) {
+    if (threads < 1) stop("Invalid thread count.");
+    std::vector<View> profiles;
+    auto columns = indexes(ids);
+    for (SEXP item : data) {
+        Environment sample(item);
+        profiles.emplace_back(as<NumericMatrix>(sample["h"]));
+        for (int k : columns)
+            if (k < 0 || k >= profiles.back().cols) stop("Invalid profile column.");
+    }
+    NumericVector mass(ids.size());
+    double *out = REAL(mass);
+#ifdef _OPENMP
+#pragma omp parallel for schedule(static) num_threads(threads) if (threads > 1 && columns.size() > 1)
+#endif
+    for (int j = 0; j < (int)columns.size(); ++j) {
+        long double total = 0;
+        for (const auto &h : profiles) {
+            const double *col = h.ptr + (size_t)columns[j] * h.rows;
+            total += (double)std::accumulate(col, col + h.rows, (long double)0);
+        }
+        out[j] = (double)total;
+    }
+    return mass;
+}
+
 // [[Rcpp::export]]
 NumericVector cc_log_shape(NumericVector time, NumericVector h) {
     if (time.size() != h.size())
@@ -182,28 +210,55 @@ double cc_profile_sweep(List data, NumericMatrix spectra, IntegerVector order, N
 // A component keeps its Gauss-Seidel order within each ion. Different ion columns are independent.
 // [[Rcpp::export]]
 double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, double price,
-                         bool track, int threads) {
+                         bool track, int threads, bool background = true) {
     auto s = samples(data);
     View p(spectra);
     auto ord = indexes(order);
     struct Entry {
         int si, i;
-        double raw, scaled;
+        double raw;
     };
     std::vector<std::vector<Entry>> positions(p.rows);
-    for (int k : ord)
+    std::vector<Vec> profiles(p.rows);
+    Vec totals(p.rows);
+    for (int k : ord) {
         for (int si = 0; si < (int)s.size(); ++si)
             for (int i = 0; i < s[si].h.rows; ++i) {
                 double h = s[si].h(i, k);
-                if (h > 0)
-                    positions[k].push_back({si, i, h, h / s[si].phi});
+                if (h > 0) {
+                    positions[k].push_back({si, i, h});
+                    profiles[k].push_back(h / s[si].phi);
+                }
             }
+        totals[k] = logcon_counts::sum(profiles[k]);
+    }
+    struct BackgroundTerm {
+        std::vector<int> rows;
+        Vec profile;
+        double total;
+    };
+    std::vector<std::vector<BackgroundTerm>> bases(s.size());
+    if (background) {
+        for (size_t si = 0; si < s.size(); ++si) {
+            auto &x = s[si];
+            bases[si].resize(x.z.cols);
+            for (int k = 0; k < x.z.cols; ++k) {
+                auto &b = bases[si][k];
+                for (int i = 0; i < x.z.rows; ++i)
+                    if (x.z(i, k) > 0) {
+                        b.rows.push_back(i);
+                        b.profile.push_back(x.z(i, k) / x.phi);
+                    }
+                b.total = logcon_counts::sum(b.profile);
+            }
+        }
+    }
     Vec gains(p.cols);
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static) num_threads(threads) if (threads > 1)
 #endif
     for (int j = 0; j < p.cols; ++j) {
-        Vec y, o, h, raw;
+        Vec y, o, raw;
         for (int k : ord) {
             auto &at = positions[k];
             int n = at.size();
@@ -211,44 +266,46 @@ double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, 
                 continue;
             y.resize(n);
             o.resize(n);
-            h.resize(n);
             raw.resize(n);
             double old = p(k, j);
             for (int i = 0; i < n; ++i) {
                 auto &e = at[i];
                 auto &x = s[e.si];
-                h[i] = e.scaled;
                 y[i] = x.y(e.i, j) / x.phi;
                 raw[i] = std::max(1e-8, x.mean(e.i, j) - e.raw * old);
                 o[i] = raw[i] / x.phi;
             }
-            auto fit = logcon_counts::solve_ion(y.data(), o.data(), h.data(), n,
-                                                logcon_counts::sum(h), old, price, track);
+            auto fit = logcon_counts::solve_ion(y.data(), o.data(), profiles[k].data(), n,
+                                                totals[k], old, price, track);
             p(k, j) = fit.value;
             gains[j] += fit.gain;
+            if (old == 0 && fit.value == 0)
+                continue;
             for (int i = 0; i < n; ++i) {
                 auto &e = at[i];
                 s[e.si].mean(e.i, j) = raw[i] + e.raw * fit.value;
             }
         }
         // Background coefficients are unpenalised, sample-specific nonnegative fits.
-        for (auto &x : s)
+        // A restricted sweep holds them fixed. Each updated component already
+        // writes a nonnegative mean on its occupied scans.
+        if (!background)
+            continue;
+        for (size_t si = 0; si < s.size(); ++si) {
+            auto &x = s[si];
             for (int k = 0; k < x.z.cols; ++k) {
-                std::vector<int> at;
-                y.clear();
-                o.clear();
-                h.clear();
+                const auto &b = bases[si][k];
+                y.resize(b.rows.size());
+                o.resize(b.rows.size());
                 double old = x.alpha(k, j);
-                for (int i = 0; i < x.z.rows; ++i)
-                    if (x.z(i, k) > 0) {
-                        at.push_back(i);
-                        y.push_back(x.y(i, j) / x.phi);
-                        h.push_back(x.z(i, k) / x.phi);
-                        o.push_back(std::max(1e-8, x.mean(i, j) - x.z(i, k) * old) / x.phi);
-                    }
-                auto f = logcon_counts::solve_ion(y.data(), o.data(), h.data(), at.size(),
-                                                  logcon_counts::sum(h), old, 0., track);
-                for (int i : at) {
+                for (size_t t = 0; t < b.rows.size(); ++t) {
+                    int i = b.rows[t];
+                    y[t] = x.y(i, j) / x.phi;
+                    o[t] = std::max(1e-8, x.mean(i, j) - x.z(i, k) * old) / x.phi;
+                }
+                auto f = logcon_counts::solve_ion(y.data(), o.data(), b.profile.data(), b.rows.size(),
+                                                  b.total, old, 0., track);
+                for (int i : b.rows) {
                     double dx = x.z(i, k) * (f.value - old);
                     x.mean(i, j) += dx;
                     x.bg(i, j) += dx;
@@ -256,6 +313,7 @@ double cc_spectrum_sweep(List data, NumericMatrix spectra, IntegerVector order, 
                 x.alpha(k, j) = f.value;
                 gains[j] += f.gain;
             }
+        }
         for (auto &x : s)
             for (int i = 0; i < x.y.rows; ++i) {
                 x.bg(i, j) = std::max(x.bg(i, j), 1e-8);

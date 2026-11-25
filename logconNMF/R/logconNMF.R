@@ -37,11 +37,22 @@
 #'   long refinements revisit every component on the first, every tenth and the
 #'   final sweep. Between these audits they update components whose relative
 #'   profiles or spectra changed by at least 0.0001 on the last audit.
+#'   The local search also schedules initial and post-matching sweeps this
+#'   way. Set `selective=TRUE` explicitly for early scheduling with other
+#'   controls. Partial sweeps hold the background fixed. Native count fits
+#'   check apparent convergence with a full update. `selective=FALSE` uses
+#'   full alternating sweeps throughout.
 #'   `penalty_search=TRUE` proposes deletions at four times the fitted penalty
 #'   and refits at the original penalty. The count solver also tests occurrence
 #'   re-entry. The retained model must improve the original-channel criterion.
-#'   This additional search defaults to FALSE. `fit$refinement` reports the
-#'   objective before and after refinement and the number of component visits.
+#'   This additional search defaults to FALSE. With zero extra sweeps and a
+#'   single PSF dictionary, count fits first try removing a weak occurrence
+#'   and refitting up to two overlapping log-concave profiles. If a shared
+#'   spectrum still qualifies for removal at the higher penalty, the solver
+#'   refines the connected profiles with the remaining compounds in the offset.
+#'   Across samples it also tests one shared spectrum for similar identities
+#'   with overlapping aligned half-height intervals, refitting their neighbours.
+#'   `fit$refinement` records the before and after criteria and search work.
 #'   `alternative_X` enables a second blind PSF initialization. Supply a PSF
 #'   design, one design per sample in input order, or TRUE for blind estimation.
 #'   Joint conditional count fits pool total signal on a common time grid,

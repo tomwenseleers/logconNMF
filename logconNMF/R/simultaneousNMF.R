@@ -47,14 +47,14 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
     state <- sinmf_initialize(store,method,align,ncores,lambda,ctl,key)
     state$runtime <- runtime
     state$parallel <- runtime$budget
-    state <- sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)
+    state <- sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q,selective=refinement$selective_initial)
     reference <- sinmf_score(state)
     candidate <- state
     for (round in seq_len(ctl$rounds)) {
       before <- length(unique(candidate$map))
       candidate <- sinmf_batch_spectral_groups(candidate,method,ctl$ridge)
       if (round>1L && length(unique(candidate$map))==before) break
-      candidate <- sinmf_optimize(candidate,cycles=ctl$cycles,q=ctl$q)
+      candidate <- sinmf_optimize(candidate,cycles=ctl$cycles,q=ctl$q,selective=refinement$selective_initial)
       if (verbose) cat("Grouping round",round,":",length(unique(candidate$map)),"compounds; objective",sinmf_score(candidate),"\n")
     }
     delta <- sinmf_score(candidate)-reference

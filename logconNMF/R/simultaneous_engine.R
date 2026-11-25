@@ -51,18 +51,31 @@ sinmf_background_pass <- function(state,samples=seq_along(state$paths)) {
   sinmf_parallel_pass(state,samples,"background")
 }
 sinmf_optimize <- function(state,cycles=4L,samples=seq_along(state$paths),roots=NULL,record=TRUE,
-                             q=32L,joint_profiles=FALSE) {
+                             q=32L,joint_profiles=FALSE,selective=FALSE) {
   previous<-sinmf_score(state,samples)
+  selective <- selective && cycles >= 3L && is.null(roots) && !joint_profiles
+  ids <- sort(unique(state$map))
   for(cycle in seq_len(cycles)) {
     start<-proc.time()[["elapsed"]]
-    state<-sinmf_profile_pass(state,samples,if(joint_profiles)NULL else roots,q=q)
-    for(i in 1:3)state<-sinmf_spectrum_pass(state,samples,roots)
-    state<-sinmf_background_pass(state,samples)
-    state<-sinmf_noise_pass(state,samples)
-    score<-sinmf_score(state,samples)
+    audit <- selective && (cycle == 1L || cycle %% 10L == 0L || cycle == cycles)
+    if (audit) {
+      roots <- NULL
+      if (cycle < cycles) before <- state
+    }
+    full <- is.null(roots) || length(roots) == length(ids)
+    if (full || length(roots) || joint_profiles) {
+      state<-sinmf_profile_pass(state,samples,if(joint_profiles)NULL else roots,q=q)
+      for(i in 1:3)state<-sinmf_spectrum_pass(state,samples,roots)
+    }
+    if (full) {
+      state<-sinmf_background_pass(state,samples)
+      state<-sinmf_noise_pass(state,samples)
+    }
+    score<-if(full || length(roots) || joint_profiles)sinmf_score(state,samples) else previous
     if(score>previous+1e-4)stop("Joint objective increased.")
     if(record)state$history<-rbind(state$history,data.frame(stage="simultaneous_cycle",cycle,
       objective=score,delta=score-previous,seconds=proc.time()[["elapsed"]]-start))
+    if (audit && cycle < cycles) roots <- ids[sinmf_factor_changes(before,state,ids) >= 1e-4]
     previous<-score
   }
   state

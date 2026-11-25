@@ -1,3 +1,8 @@
+# logconNMF 0.1.0.9011
+
+- For Poisson and quasi-Poisson fits, `control = list(penalty_search = TRUE)` screens occurrence deletions and transfers to overlapping profiles. It refines connected profiles when a shared factor remains ambiguous. The original-channel criterion decides every accepted support change.
+- Early selective sweeps recheck every factor after a support change and before declaring convergence. Restricted sweeps reuse the fitted background.
+
 # logconNMF 0.1.0.9010
 
 - Optional terminal sweeps concentrate on changing factors between full sweeps. A temporary fourfold penalty proposes deletions, and a second blind PSF can propose different groups of peaks. The original criterion selects the retained fit.

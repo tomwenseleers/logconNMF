@@ -96,6 +96,41 @@ last occurrence also saves the dimension of its shared spectrum. The same
 comparison applies after refitting overlapping compounds with their neighbours
 and the background included in the mean.
 
+For a count fit, `control = list(penalty_search = TRUE)` requests a local
+search after the ordinary alternating updates. In each sample the screen
+compares a deletion with transferring the same intensity to one overlapping
+spectrum or a convex combination of two. For the two-spectrum proposal the
+mixing weight minimizes squared distance to the candidate's unit-sum spectrum.
+The screen uses four times the fitted penalty to identify candidates. The
+solver then fits hard log-concave recipient profiles on the affected scans
+and accepts a move only if the original-ion GIC at the fitted penalty falls.
+
+Let \(\delta_s\) denote the change in sample \(s\)'s deviance and profile
+penalty after removing one occurrence and refitting its neighbours. Removing
+the occurrences with \(\delta_s<0\) improves the criterion individually.
+When every occurrence of a factor is eligible, removing the entire factor also
+saves \(\lambda d_S\), where \(d_S\) is the number of positive spectral
+coefficients minus one for unit-sum normalization. The complete deletion
+wins over removing just the individually beneficial occurrences when
+\(\sum_s \max(\delta_s,0) < \lambda d_S\).
+
+If an entire shared factor still qualifies for removal in the screen, the
+solver refits its connected set of overlapping profiles. A shared identity
+links its occurrences in different samples. Contributions from compounds
+outside this set enter the offset. A bounded sequence of higher-penalty
+proposals and ordinary-penalty refits stops when consecutive rounds retain
+the same sample-by-compound support. The fitted rank is the number of shared
+spectra with at least one surviving occurrence.
+
+A single compound can also have two fitted spectra in different samples.
+For pairs with spectral cosine above 0.9 and overlapping aligned half-height
+intervals, try each spectrum as the common identity. Nonnegative regression
+initializes the transfer of intensity to that spectrum and its neighbours.
+Two local alternating updates refit the profiles and spectra on the original
+channels. The comparison includes all profile tails, overlapping compounds
+and the background. The solver keeps a shared identity only if the complete
+original-penalty GIC improves.
+
 `control=list(refinement_sweeps=100L, penalty_search=TRUE)` requests additional
 alternating sweeps followed by one proposal at four times the original price.
 The stronger price can remove a split peak long enough for its neighbour to

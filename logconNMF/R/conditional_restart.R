@@ -8,7 +8,7 @@ cc_restart_bands <- function(bands, old_warps, data) {
         Reduce(pmax, lapply(mapped, function(b) b[,2L])))
 }
 
-cc_restart_search <- function(z, donor) {
+cc_restart_search <- function(z, donor, selective = FALSE) {
   score <- function() cc_dimension(z$data, z$p, cc_D(z$data), z$price)$objective
   before <- score()
   incumbent <- cc_checkpoint(z)
@@ -73,7 +73,7 @@ cc_restart_search <- function(z, donor) {
   if (after > initial + 1e-5) stop("Local PSF exchange increased the original-channel objective.")
   if (swaps) {
     saved <- cc_checkpoint(z)
-    for (i in seq_len(30L)) cc_end_step(z, seq_len(nrow(z$p)), i)
+    cc_refine_sweeps(z, 30L, selective)
     cc_support_sweep(z$data,z$p,order(colSums(cc_mass(z$data))),z$price)
     cc_trim(z)
     if (score() > after) cc_restore(z, saved)
