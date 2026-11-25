@@ -54,6 +54,38 @@ for independent residuals. Backgrounds are estimated on a fixed basis and
 remain unpenalized. The fitted noise parameters add a constant charge to the
 reported information criterion for that dataset.
 
+### Calibrating the adaptive ridge and scoring a support
+
+For one orthogonal Gaussian coordinate, write the dispersion-scaled loss as
+\(h(b-z)^2\), with curvature \(h>0\) and unpenalized estimate \(z\).
+Including the coordinate saves \(hz^2\) units of deviance and costs
+\(\lambda c\), where \(c\) is its dimension charge. The adaptive-ridge
+subproblem adds \(a b^2/b_{\rm old}^2\). A nonzero fixed point satisfies
+\(b^2-zb+a/h=0\), so its existence threshold is \(hz^2=4a\).
+Setting \(a=\lambda c/4\) therefore reproduces the support threshold.
+Above threshold the smaller nonzero root separates the basins of zero and
+the larger root (in absolute value). A small warm start can still converge
+to zero. Initial fitted means or linear predictors change the first working
+response and curvature. They supply no multiplicative correction to the
+penalty. [Frommlet and Nuel (2016)](https://doi.org/10.1371/journal.pone.0148620)
+
+For a block with loss \(h\lVert b-z\rVert_2^2\) and ridge term
+\(a\lVert b\rVert_2^2/\lVert b_{\rm old}\rVert_2^2\), taking lengths gives
+the same quadratic and the group threshold \(h\lVert z\rVert_2^2>\lambda c\).
+A charge per group uses \(c=1\). A charge per coefficient in an unrestricted
+group of size \(m\) uses \(c=m\). This calculation assumes equal curvature
+within the block. The nonnegative PSF dictionary fit shares row starts across
+ions and fits adaptive-ridge subproblems with ion-specific information.
+Its selection is approximate for correlated PSFs and heterogeneous ions.
+
+For the conditional NMF updates, dropping, fusing or adding factors changes
+the objective by \(\Delta D+\lambda_{\rm eff}\Delta d\) on the original ions.
+Here \(d\) is the dimension given above. These comparisons use the **full**
+dimension charge at every step. The preset uses the prespecified search space
+throughout a fit. Replacing \(p\) by the number of surviving factors would
+give a different criterion and change the price paid for previously selected
+dimensions.
+
 1. **Form a spectral dictionary.** Calibrate the PSF, form its banded design
    and fit a nonnegative grouped L0 regression across channels. For a single
    sample the independent log-concave fit supplies local starts. Repeated
