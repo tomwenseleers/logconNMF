@@ -1,4 +1,5 @@
-conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores, reference=NULL) {
+conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores, reference=NULL,
+                               refinement=nmf_refinement_control(list())) {
   if (!length(parts) || !length(group) || anyNA(group) || any(group < 1) ||
       any(group != as.integer(group)) || !is.finite(price) || price < 0)
     stop("Invalid channel groups, penalty or empty count-factorization input.")
@@ -49,11 +50,17 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
   if (abs(objective$objective - (previous + change)) > 1e-04 + 1e-08 * abs(objective$objective))
     stop("Local updates disagree with the complete original-ion objective.")
   cc_history(z, "local joint refit", 1L, "overlap", D)
+  report <- NULL
+  if (refinement$refinement_sweeps || refinement$penalty_search) {
+    report <- cc_end_refine(z, refinement)
+    cc_trim(z)
+    objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
+  }
   idx <- order(rowMeans(z$bands))
   factors <- lapply(z$data, function(x) {
     h <- x$h[, idx, drop = FALSE]
     list(H = as(h, "dgCMatrix"), alpha = x$alpha, shape_df = cc_faces(x$t, h, TRUE))
   })
-  list(P = z$p[idx, , drop = FALSE], factors = factors, objective = objective, trace = if (z$trace) do.call(rbind,
+  list(P = z$p[idx, , drop = FALSE], factors = factors, objective = objective, refinement = report, trace = if (z$trace) do.call(rbind,
     z$history) else NULL)
 }

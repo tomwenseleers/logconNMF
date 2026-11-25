@@ -117,7 +117,17 @@ reuses it for sample-specific profile and background updates and disjoint
 ion columns of the shared spectra, with one BLAS thread per worker. Set
 \code{ncores=1L} for a serial fit.}
 
-\item{control}{Named controls. See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. The conditional count solver uses up to
+\item{control}{Named controls. In both fitting modes, \code{refinement_sweeps}
+(default 0) requests extra alternating updates. With \code{selective=TRUE},
+long refinements revisit every component on the first, every tenth and the
+final sweep. Between these audits they update components whose relative
+profiles or spectra changed by at least 0.0001 on the last audit.
+\code{penalty_search=TRUE} proposes deletions at four times the fitted penalty
+and refits at the original penalty. The count solver also tests occurrence
+re-entry. The retained model must improve the original-channel criterion.
+This additional search defaults to FALSE. \code{fit$refinement} reports the
+objective before and after refinement and the number of component visits.
+See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. The conditional count solver uses up to
 12 initial sweeps, stopping at a relative improvement of 0.001. For a
 general simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
 \code{rounds=3L} sets the number of grouping rounds, and \code{q=64L} sets the

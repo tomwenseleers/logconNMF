@@ -32,7 +32,17 @@
 #' @param correlation Lag-one working information adjustment. `NULL` uses the
 #'   fitter's default (`"auto"` for one sample and `"none"` for simultaneous fits),
 #'   or `control$correlation` if supplied for a simultaneous fit.
-#' @param control Named controls. See [splogconNMF()] for one matrix. The conditional count solver uses up to
+#' @param control Named controls. In both fitting modes, `refinement_sweeps`
+#'   (default 0) requests extra alternating updates. With `selective=TRUE`,
+#'   long refinements revisit every component on the first, every tenth and the
+#'   final sweep. Between these audits they update components whose relative
+#'   profiles or spectra changed by at least 0.0001 on the last audit.
+#'   `penalty_search=TRUE` proposes deletions at four times the fitted penalty
+#'   and refits at the original penalty. The count solver also tests occurrence
+#'   re-entry. The retained model must improve the original-channel criterion.
+#'   This additional search defaults to FALSE. `fit$refinement` reports the
+#'   objective before and after refinement and the number of component visits.
+#'   See [splogconNMF()] for one matrix. The conditional count solver uses up to
 #'   12 initial sweeps, stopping at a relative improvement of 0.001. For a
 #'   general simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
 #'   `rounds=3L` sets the number of grouping rounds, and `q=64L` sets the
@@ -246,6 +256,8 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     stop("Use one finite, nonnegative penalty or an information criterion.", call. = FALSE)
   }
   if (!is.list(control)) stop("Use a named control list.", call. = FALSE)
+  refinement <- nmf_refinement_control(control)
+  control[names(refinement)] <- NULL
   simultaneous <- is.list(y) && !is.data.frame(y)
   if (identical(precluster, "auto")) precluster <- if (simultaneous) 32L else NULL
   if (simultaneous) {
@@ -283,7 +295,8 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     fit <- simultaneousNMF(samples, family = family, lambda = lambda, path = path,
       precluster = precluster, dispersion = dispersion, theta = theta,
       method = match.arg(method), align = align, ncores = ncores, control = control,
-      verbose = verbose, conditional = conditional, trace = objective.trace, reference=truth.profiles)
+      verbose = verbose, conditional = conditional, trace = objective.trace, reference=truth.profiles,
+      refinement=refinement)
   } else {
     if (is.null(X)) stop("Supply X for a single-sample fit.", call. = FALSE)
     if (!is.null(path) || !missing(align) || !missing(method)) {
@@ -306,7 +319,10 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
     if (conditional) {
       price <- fit$spec$information_factor * if (is.numeric(scalar)) scalar else
         presetLambda(scalar, p = fit$p, n = fit$n)
-      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace,truth.profiles)
+      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace, truth.profiles, refinement)
+      fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
+    } else if (refinement$refinement_sweeps || refinement$penalty_search) {
+      fit <- slcn_end_refine(fit, as.matrix(y), refinement)
       fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
     }
   }

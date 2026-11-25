@@ -3,7 +3,7 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
                        path=tempfile("simultaneousNMF_"), precluster=32L,
                        dispersion=NULL, theta=NULL, method=c("cosine","hellinger"),
                        align=TRUE, ncores=NULL, control=list(), verbose=FALSE, conditional=FALSE, trace=FALSE,
-                       reference=NULL) {
+                       reference=NULL, refinement=nmf_refinement_control(list())) {
   begun<-proc.time()[["elapsed"]];method<-match.arg(method)
   if(!is.list(samples)||length(samples)<2L)stop("Supply at least two sample descriptions.")
   if(!is.logical(align)||length(align)!=1L||is.na(align))stop("align must be TRUE or FALSE.")
@@ -37,7 +37,7 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   if (conditional) {
     sinmf_close_runtime(runtime)
     closed <- TRUE
-    return(conditional_batch(store,method,align,ncores,lambda,ctl,trace,initial,begun,runtime$budget,reference))
+    return(conditional_batch(store,method,align,ncores,lambda,ctl,trace,initial,begun,runtime$budget,reference,refinement))
   }
   state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
   state$runtime<-runtime;state$parallel<-runtime$budget
@@ -54,6 +54,8 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   accepted<-is.finite(candidate$batch_delta)&&candidate$batch_delta<=0
   if(accepted)state<-candidate
   state$batch_delta<-candidate$batch_delta;state$batch_accepted<-accepted
+  if (refinement$refinement_sweeps || refinement$penalty_search)
+    state <- sinmf_end_refine(state, refinement, ctl$q)
   state<-sinmf_compact(state)
   state$rank<-nrow(state$P)
   state$loglik<- -sinmf_score(state,penalty=FALSE)/2
