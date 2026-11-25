@@ -41,28 +41,35 @@ conditional_dictionary <- function(X, Y, B, spec, groups, lambda, ncores, contro
 }
 
 conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, exchanges = 2L, ncores = 1L,
-                            reference = NULL, refinement=nmf_refinement_control(list())) {
+                            reference = NULL, refinement=nmf_refinement_control(list()), alternative=NULL) {
   cores <- sinmf_core_count(ncores)
+  proposal <- if (!is.null(alternative))
+    conditional_native(alternative, group, price, FALSE, cycles, exchanges, cores,
+                       refinement=refinement, checkpoint=TRUE)
   result <- conditional_native(parts, group, price, trace || !is.null(reference), cycles, exchanges, cores,
-                               refinement=refinement)
+                               refinement=refinement, alternate=proposal)
   if (!is.null(reference)) {
     tic <- proc.time()[["elapsed"]]
-    ref <- conditional_native(parts, group, price, TRUE, cycles, exchanges, cores, reference, refinement)
+    ref <- conditional_native(parts, group, price, TRUE, cycles, exchanges, cores, reference, refinement, proposal)
     result$reference_trace <- ref$trace
     result$reference_seconds <- proc.time()[["elapsed"]] - tic
   }
   result
 }
 
-conditional_single <- function(fit, y, time, price, trace, reference=NULL, refinement=nmf_refinement_control(list())) {
+conditional_single <- function(fit, y, time, price, trace, reference=NULL, refinement=nmf_refinement_control(list()),
+                               alternative=NULL) {
   time <- if (is.null(time)) seq_len(nrow(y)) else as.numeric(time)
   if (length(time) != nrow(y) || any(!is.finite(time)) || any(diff(time) <= 0))
     stop("time must contain one increasing finite coordinate per scan.")
-  part <- fit[c("H", "S", "alpha", "background", "spec")]
-  part$observed <- y
-  part$time <- part$aligned <- time
-  result <- conditional_run(list(part), seq_len(ncol(y)), price, trace, ncores=fit$ncores, reference=reference,
-                            refinement=refinement)
+  parts <- function(f) {
+    part <- f[c("H", "S", "alpha", "background", "spec")]
+    part$observed <- y
+    part$time <- part$aligned <- time
+    list(part)
+  }
+  result <- conditional_run(parts(fit), seq_len(ncol(y)), price, trace, ncores=fit$ncores,
+    reference=reference, refinement=refinement, alternative=if (!is.null(alternative)) parts(alternative))
   f <- result$factors[[1L]]
   counts <- as.numeric(Matrix::colSums(f$H))
   fit$H <- if (length(counts)) as(f$H %*% Matrix::Diagonal(x = 1/counts), "dgCMatrix") else f$H
@@ -76,6 +83,7 @@ conditional_single <- function(fit, y, time, price, trace, reference=NULL, refin
   fit$rank <- length(counts)
   fit$conditional_objective <- result$objective
   fit$refinement <- result$refinement
+  fit$restart <- result$restart
   fit$objective_trace <- result$trace
   fit$ic_df <- result$objective$shape_df + result$objective$spectral_df + fit$nuisance_df
   fit$lambda <- price

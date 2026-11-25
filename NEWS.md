@@ -1,5 +1,11 @@
 # logconNMF 0.1.0.9009
 
+- Added optional terminal refinement, a fourfold support-penalty proposal scored
+  at the original penalty, and alternate PSF starts. Long refinements can
+  concentrate on changing spectra and profiles between full sweeps. Count
+  fits can exchange overlapping groups between two blind starts on the
+  original ions. The fitting controls apply to single and simultaneous fits.
+
 - `logconNMF()` selects the fitting method from the family, observation weights, offset, exposure and joint fit controls. Use `control = list(cache = FALSE)` for disk-backed joint refinement.
 - The GIC plot marks the final value from the true-profile start with a dotted red line on both scales.
 

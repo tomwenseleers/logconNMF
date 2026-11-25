@@ -66,7 +66,12 @@ cc_restore <- function(z, snap) {
 }
 
 cc_end_step <- function(z, ids, i, birth = FALSE, record = FALSE) {
-  ordered <- function() ids[order(-colSums(cc_mass(z$data))[ids])]
+  ordered <- function() {
+    if (length(ids) < 2L) return(ids)
+    mass <- if (length(ids) == nrow(z$p)) colSums(cc_mass(z$data))[ids] else
+      Reduce(`+`, lapply(z$data, function(x) colSums(x$h[,ids,drop=FALSE])))
+    ids[order(-mass)]
+  }
   cc_profile_sweep(z$data, z$p, ordered(), z$bands, z$price, birth, z$threads)
   cc_spectrum_sweep(z$data, z$p, ordered(), z$price, TRUE, z$threads)
   if (record && z$trace) cc_history(z, "terminal refinement", i, "spectra and background", cc_D(z$data))
@@ -80,11 +85,11 @@ cc_end_refine <- function(z, control) {
   ids <- function() seq_len(nrow(z$p))
   before <- best <- objective()
   retained <- "input"
-  saved <- cc_checkpoint(z)
+  if (control$refinement_sweeps) saved <- cc_checkpoint(z)
   nh <- length(z$history)
   run <- nmf_sweep_schedule(z, ids(), control$refinement_sweeps, control$selective,
     function(z, j, i) cc_end_step(z, j, i, record = TRUE), cc_refinement_snapshot, cc_refinement_change)
-  now <- objective()
+  now <- if (control$refinement_sweeps) objective() else before
   if (is.finite(now) && now <= best) {
     best <- now
     if (control$refinement_sweeps) retained <- "ordinary sweeps"

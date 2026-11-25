@@ -86,6 +86,39 @@ throughout a fit. Replacing \(p\) by the number of surviving factors would
 give a different criterion and change the price paid for previously selected
 dimensions.
 
+### Optional support search after factor refinement
+
+For two fitted count models evaluated on the same observations, let \(D_0,D_1\)
+be the original-channel quasi-deviances and \(d_0,d_1\) their dimensions.
+Deleting an occurrence improves GIC exactly when the increase in deviance
+\(D_1-D_0\) is smaller than \(\lambda_{\rm eff}(d_0-d_1)\). Deleting the
+last occurrence also saves the dimension of its shared spectrum. The same
+comparison applies after refitting overlapping compounds with their neighbours
+and the background included in the mean.
+
+`control=list(refinement_sweeps=100L, penalty_search=TRUE)` requests additional
+alternating sweeps followed by one proposal at four times the original price.
+The stronger price can remove a split peak long enough for its neighbour to
+absorb its signal. The count solver refits at the original price and tests
+re-entry of sample occurrences. Every candidate competes with the incumbent
+at that same original price. On long refinements the default selective
+schedule checks all factors on the first, every tenth and the final sweep.
+`fit$refinement` reports how many factors were visited across the sweeps.
+
+A factor missing from the initial dictionary can require a different PSF
+initialization. Supply `control$alternative_X` to fit an additional blind
+dictionary and compare the solutions using the observations. For simultaneous
+conditional count fits, `alternative_X=TRUE` estimates a PSF from total
+intensity pooled on a common time grid and transfers it to each sample.
+For the local count search, factors whose half-height intervals overlap in
+any sample form connected groups. The search tries exchanging each group as
+a unit, scores all affected original scans and ions including the tails,
+and retains improvements at the original price. The final comparison includes
+both complete fits. The general-family solver compares the complete fits
+using its likelihood and degrees of freedom. These searches establish the
+best criterion among the candidates examined. A fitted rank can still depend
+on which dictionaries contain distinguishable spectra.
+
 1. **Form a spectral dictionary.** Calibrate the PSF, form its banded design
    and fit a nonnegative grouped L0 regression across channels. For a single
    sample the independent log-concave fit supplies local starts. Repeated

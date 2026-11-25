@@ -42,6 +42,16 @@
 #'   re-entry. The retained model must improve the original-channel criterion.
 #'   This additional search defaults to FALSE. `fit$refinement` reports the
 #'   objective before and after refinement and the number of component visits.
+#'   `alternative_X` enables a second blind PSF initialization. Supply a PSF
+#'   design, one design per sample in input order, or TRUE for blind estimation.
+#'   Joint conditional count fits pool total signal on a common time grid,
+#'   estimate a time-varying PSF and transfer it to each native grid. Other
+#'   fits estimate the alternate PSF per sample. Both runs use the primary noise specification,
+#'   original data and price. The general solver keeps the better complete fit.
+#'   The conditional count solver also exchanges overlapping groups of factors
+#'   between fits, across all samples, when the original criterion decreases.
+#'   `fit$restart` records both scores and the final score. The default NULL
+#'   incurs no second fit. Disk-backed fits share one store of observations.
 #'   See [splogconNMF()] for one matrix. The conditional count solver uses up to
 #'   12 initial sweeps, stopping at a relative improvement of 0.001. For a
 #'   general simultaneous fit, `cycles=10L` and `initial_cycles=5L` set refinement limits,
@@ -113,7 +123,7 @@
 #' for one matrix with \eqn{m} channels and \eqn{K} components,
 #' \eqn{d=mK}. For a simultaneous model, \eqn{d=(m-1)G+L}, where \eqn{G} is
 #' the number of shared unit-sum spectra and \eqn{L} counts the detected
-#' sample–component occurrences. Each spectrum contributes \eqn{m-1}
+#' sample-specific component occurrences. Each spectrum contributes \eqn{m-1}
 #' coordinates and each occurrence contributes one amplitude. Setting
 #' \eqn{G=L=K} gives the single-sample count. Profiles have contiguous
 #' support and a concave logarithm on the positive interval. Profile shapes
@@ -258,6 +268,9 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
   if (!is.list(control)) stop("Use a named control list.", call. = FALSE)
   refinement <- nmf_refinement_control(control)
   control[names(refinement)] <- NULL
+  alternate <- control$alternative_X
+  if (isFALSE(alternate)) alternate <- NULL
+  control$alternative_X <- NULL
   simultaneous <- is.list(y) && !is.data.frame(y)
   if (identical(precluster, "auto")) precluster <- if (simultaneous) 32L else NULL
   if (simultaneous) {
@@ -268,11 +281,19 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
       stop("Supply X, background, weights, offset and initial fits in the sample descriptions.",
         call. = FALSE)
     }
+    designs <- if (!is.null(alternate)) {
+      if (is.list(alternate) && !inherits(alternate, "Matrix")) {
+        if (length(alternate) != length(y) || any(vapply(alternate,is.null,FALSE)))
+          stop("Supply one alternative_X design per sample.")
+        alternate
+      } else rep(list(alternate),length(y))
+    }
     samples <- lapply(seq_along(y), function(i) {
       sample <- y[[i]]
       if (!is.list(sample) || is.null(sample$y) || is.null(sample$time)) {
         stop("Each sample description needs y and time.", call. = FALSE)
       }
+      sample$alternate_design <- designs[[i]]
       name <- names(y)[i]
       if (is.null(sample$sample_id) && length(name) && !is.na(name) && nzchar(name)) {
         sample$sample_id <- name
@@ -316,13 +337,21 @@ logconNMF <- function(y, X = NULL, family = poisson("identity"), lambda = "gic",
       offset = if (conditional && is.null(background)) 1e-8 else offset,
       correlation = correlation, ncores = ncores, control = control,
       start = start, verbose = verbose)
+    challenger <- if (!is.null(alternate)) {
+      design <- nmf_restart_basis(alternate,y,if (is.null(time)) seq_len(NROW(y)) else time,family,ncores)
+      nmf_alternate_single(design,as.matrix(y),fit,family,lambda,precluster,weights,fit$offset,control,ncores)
+    }
     if (conditional) {
       price <- fit$spec$information_factor * if (is.numeric(scalar)) scalar else
         presetLambda(scalar, p = fit$p, n = fit$n)
-      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace, truth.profiles, refinement)
+      fit <- conditional_single(fit, as.matrix(y), time, price, objective.trace, truth.profiles, refinement, challenger)
       fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
     } else if (refinement$refinement_sweeps || refinement$penalty_search) {
       fit <- slcn_end_refine(fit, as.matrix(y), refinement)
+      fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
+    }
+    if (!conditional && !is.null(challenger)) {
+      fit <- slcn_restart(fit,challenger,as.matrix(y),refinement)
       fit$seconds["total"] <- proc.time()[["elapsed"]] - begun
     }
   }

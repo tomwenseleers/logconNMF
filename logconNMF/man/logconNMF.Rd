@@ -127,6 +127,16 @@ and refits at the original penalty. The count solver also tests occurrence
 re-entry. The retained model must improve the original-channel criterion.
 This additional search defaults to FALSE. \code{fit$refinement} reports the
 objective before and after refinement and the number of component visits.
+\code{alternative_X} enables a second blind PSF initialization. Supply a PSF
+design, one design per sample in input order, or TRUE for blind estimation.
+Joint conditional count fits pool total signal on a common time grid,
+estimate a time-varying PSF and transfer it to each native grid. Other
+fits estimate the alternate PSF per sample. Both runs use the primary noise specification,
+original data and price. The general solver keeps the better complete fit.
+The conditional count solver also exchanges overlapping groups of factors
+between fits, across all samples, when the original criterion decreases.
+\code{fit$restart} records both scores and the final score. The default NULL
+incurs no second fit. Disk-backed fits share one store of observations.
 See \code{\link[=splogconNMF]{splogconNMF()}} for one matrix. The conditional count solver uses up to
 12 initial sweeps, stopping at a relative improvement of 0.001. For a
 general simultaneous fit, \code{cycles=10L} and \code{initial_cycles=5L} set refinement limits,
@@ -247,7 +257,7 @@ conditional updates give a local optimum candidate. For the general solver,
 for one matrix with \eqn{m} channels and \eqn{K} components,
 \eqn{d=mK}. For a simultaneous model, \eqn{d=(m-1)G+L}, where \eqn{G} is
 the number of shared unit-sum spectra and \eqn{L} counts the detected
-sample–component occurrences. Each spectrum contributes \eqn{m-1}
+sample-specific component occurrences. Each spectrum contributes \eqn{m-1}
 coordinates and each occurrence contributes one amplitude. Setting
 \eqn{G=L=K} gives the single-sample count. Profiles have contiguous
 support and a concave logarithm on the positive interval. Profile shapes

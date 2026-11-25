@@ -1,5 +1,5 @@
 conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores, reference=NULL,
-                               refinement=nmf_refinement_control(list())) {
+                               refinement=nmf_refinement_control(list()), alternate=NULL, checkpoint=FALSE) {
   if (!length(parts) || !length(group) || anyNA(group) || any(group < 1) ||
       any(group != as.integer(group)) || !is.finite(price) || price < 0)
     stop("Invalid channel groups, penalty or empty count-factorization input.")
@@ -56,11 +56,22 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
     cc_trim(z)
     objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
   }
+  if (checkpoint) {
+    snap <- cc_checkpoint(z)
+    snap$warps <- lapply(z$data, function(x) x$warp)
+    return(snap)
+  }
+  restart <- NULL
+  if (!is.null(alternate)) {
+    alternate$bands <- cc_restart_bands(alternate$bands, alternate$warps, z$data)
+    restart <- cc_restart_search(z, alternate)
+    objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
+  }
   idx <- order(rowMeans(z$bands))
   factors <- lapply(z$data, function(x) {
     h <- x$h[, idx, drop = FALSE]
     list(H = as(h, "dgCMatrix"), alpha = x$alpha, shape_df = cc_faces(x$t, h, TRUE))
   })
-  list(P = z$p[idx, , drop = FALSE], factors = factors, objective = objective, refinement = report, trace = if (z$trace) do.call(rbind,
+  list(P = z$p[idx, , drop = FALSE], factors = factors, objective = objective, refinement = report, restart = restart, trace = if (z$trace) do.call(rbind,
     z$history) else NULL)
 }

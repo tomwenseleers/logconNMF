@@ -17,9 +17,9 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
                               refinement=nmf_refinement_control(list())) {
   dirs <- store$manifest$directory
   meta <- lapply(dirs, function(d) readRDS(file.path(d, "metadata.rds")))
-  parts <- lapply(seq_along(meta), function(i) {
+  read_parts <- function(key) lapply(seq_along(meta), function(i) {
     x <- meta[[i]]
-    a <- readRDS(x$initial)
+    a <- readRDS(x[[key]])
     a$time <- x$time
     a$observed <- file.path(dirs[i], "observed.bin")
     landmarks <- sinmf_landmarks(a$H, x$time)
@@ -38,21 +38,28 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
   # contain grouped spectra. Registration uses the same coordinates for all.
   axis <- meta[[1L]]$mass
   group <- if (is.null(store$channel_groups)) seq_along(axis) else sinmf_channel_index(store$channel_groups, axis)
-  geometry <- lapply(parts, "[[", "anchors")
-  anchors <- lapply(parts, function(a) {
-    p <- a$S
-    if (!is.null(store$channel_groups) && ncol(p) == length(axis)) p <- aggregateChannels(p, store$channel_groups, axis)
-    list(S = p)
-  })
-  alignment <- if (align) sinmf_estimate_alignment(anchors, meta, method, lapply(meta, "[[", "small_width"),
-    ctl$alignment_window, geometry = geometry) else list(maps = lapply(meta, function(x)
-      list(evaluate = identity, method = "identity")), reference = 1L, method = "none")
-  for (i in seq_along(parts)) parts[[i]]$aligned <- alignment$maps[[i]]$evaluate(meta[[i]]$time)
+  registered <- function(key) {
+    parts <- read_parts(key)
+    anchors <- lapply(parts, function(a) {
+      p <- a$S
+      if (!is.null(store$channel_groups) && ncol(p) == length(axis)) p <- aggregateChannels(p, store$channel_groups, axis)
+      list(S = p)
+    })
+    alignment <- if (align) sinmf_estimate_alignment(anchors, meta, method, lapply(meta, "[[", "small_width"),
+      ctl$alignment_window, geometry = lapply(parts, "[[", "anchors")) else list(maps = lapply(meta, function(x)
+        list(evaluate = identity, method = "identity")), reference = 1L, method = "none")
+    for (i in seq_along(parts)) parts[[i]]$aligned <- alignment$maps[[i]]$evaluate(meta[[i]]$time)
+    list(parts = parts, alignment = alignment)
+  }
+  primary <- registered("initial")
+  parts <- primary$parts
+  alignment <- primary$alignment
+  alternate <- if (!is.null(meta[[1L]]$alternate_initial)) registered("alternate_initial")$parts
   N <- sum(store$manifest$n)
   infl <- max(vapply(parts, function(a) a$spec$information_factor, 0))
   price <- infl * if (is.character(lambda)) L0glm::presetLambda(lambda, p = N, n = N) else lambda
   result <- conditional_run(parts, group, price, trace, ctl$cycles, ncores=ncores, reference=reference,
-                            refinement=refinement)
+                            refinement=refinement, alternative=alternate)
   P <- result$P
   colnames(P) <- axis
   obs <- result$objective
@@ -61,7 +68,8 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
     alignment = alignment, history = if (!is.null(result$trace)) result$trace else data.frame(),
     control = ctl, parallel = parallel, mass = axis, channel_groups = store$channel_groups,
     n = N, p = N, quasi = FALSE, information_factor = infl, algorithm = "conditional",
-    conditional_objective = obs, refinement = result$refinement, objective_trace = result$trace, nuisance_df = 0L, loglik = 0)
+    conditional_objective = obs, refinement = result$refinement, restart = result$restart,
+    objective_trace = result$trace, nuisance_df = 0L, loglik = 0)
   for (i in seq_along(parts)) {
     f <- result$factors[[i]]
     meta_i <- meta[[i]]
@@ -96,8 +104,8 @@ conditional_batch <- function(store, method, align, ncores, lambda, ctl, trace, 
   state$seconds <- c(initial = elapsed, simultaneous = total - elapsed, total = total)
   state$store$cache <- NULL
   for (i in seq_along(dirs)) {
-    unlink(meta[[i]]$initial)
-    meta[[i]]$initial <- NULL
+    unlink(c(meta[[i]]$initial, meta[[i]]$alternate_initial))
+    meta[[i]]$initial <- meta[[i]]$alternate_initial <- NULL
     saveRDS(meta[[i]], file.path(dirs[i], "metadata.rds"), compress = FALSE)
   }
   saveRDS(state, file.path(store$path, "model.rds"))

@@ -33,29 +33,47 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   runtime<-sinmf_runtime(ncores,length(samples),ctl$workers,cache=ctl$cache)
   closed <- FALSE
   on.exit(if(!closed) sinmf_close_runtime(runtime),add=TRUE)
-  initial<-slcn_time(store<-sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda))[["elapsed"]]
+  initial <- slcn_time({
+    if (conditional && all(vapply(samples,function(s) isTRUE(s$alternate_design),FALSE)))
+      samples <- nmf_pooled_restart(samples,family,dispersion,ctl$correlation,lambda,ncores)
+    store <- sinmf_prepare(samples,path,family,dispersion,theta,precluster,ncores,ctl,verbose,runtime,lambda)
+  })[["elapsed"]]
   if (conditional) {
     sinmf_close_runtime(runtime)
     closed <- TRUE
     return(conditional_batch(store,method,align,ncores,lambda,ctl,trace,initial,begun,runtime$budget,reference,refinement))
   }
-  state<-sinmf_initialize(store,method,align,ncores,lambda,ctl)
-  state$runtime<-runtime;state$parallel<-runtime$budget
-  state<-sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)
-  reference<-sinmf_score(state);candidate<-state
-  for(round in seq_len(ctl$rounds)) {
-    before<-length(unique(candidate$map))
-    candidate<-sinmf_batch_spectral_groups(candidate,method,ctl$ridge)
-    if(round>1L&&length(unique(candidate$map))==before)break
-    candidate<-sinmf_optimize(candidate,cycles=ctl$cycles,q=ctl$q)
-    if(verbose)cat("Grouping round",round,":",length(unique(candidate$map)),"compounds; objective",sinmf_score(candidate),"\n")
+  fit_start <- function(key) {
+    state <- sinmf_initialize(store,method,align,ncores,lambda,ctl,key)
+    state$runtime <- runtime
+    state$parallel <- runtime$budget
+    state <- sinmf_optimize(state,cycles=ctl$initial_cycles,q=ctl$q)
+    reference <- sinmf_score(state)
+    candidate <- state
+    for (round in seq_len(ctl$rounds)) {
+      before <- length(unique(candidate$map))
+      candidate <- sinmf_batch_spectral_groups(candidate,method,ctl$ridge)
+      if (round>1L && length(unique(candidate$map))==before) break
+      candidate <- sinmf_optimize(candidate,cycles=ctl$cycles,q=ctl$q)
+      if (verbose) cat("Grouping round",round,":",length(unique(candidate$map)),"compounds; objective",sinmf_score(candidate),"\n")
+    }
+    delta <- sinmf_score(candidate)-reference
+    accepted <- is.finite(delta) && delta<=0
+    if (accepted) state <- candidate
+    state$batch_delta <- delta
+    state$batch_accepted <- accepted
+    if (refinement$refinement_sweeps || refinement$penalty_search)
+      state <- sinmf_end_refine(state, refinement, ctl$q)
+    state
   }
-  candidate$batch_delta<-sinmf_score(candidate)-reference
-  accepted<-is.finite(candidate$batch_delta)&&candidate$batch_delta<=0
-  if(accepted)state<-candidate
-  state$batch_delta<-candidate$batch_delta;state$batch_accepted<-accepted
-  if (refinement$refinement_sweeps || refinement$penalty_search)
-    state <- sinmf_end_refine(state, refinement, ctl$q)
+  state <- fit_start("initial")
+  if (!is.null(samples[[1L]]$alternate_design)) {
+    challenger <- fit_start("alternate_initial")
+    first <- sinmf_score(state)
+    second <- sinmf_score(challenger)
+    if (is.finite(second) && second < first) state <- challenger
+    state$restart <- list(before=first, alternative=second, after=sinmf_score(state))
+  }
   state<-sinmf_compact(state)
   state$rank<-nrow(state$P)
   state$loglik<- -sinmf_score(state,penalty=FALSE)/2
@@ -66,7 +84,7 @@ simultaneousNMF <- function(samples, family=poisson("identity"), lambda="gic",
   for(d in store$manifest$directory) {
     obsolete<-setdiff(list.files(d,pattern="^fit_.*\\.rds$",full.names=TRUE),state$paths)
     if(length(obsolete))unlink(obsolete)
-    meta<-readRDS(file.path(d,"metadata.rds"));meta$initial<-NULL
+    meta<-readRDS(file.path(d,"metadata.rds"));meta$initial<-meta$alternate_initial<-NULL
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
   }
   state$runtime<-NULL;state$store$cache<-NULL
@@ -149,13 +167,23 @@ sinmf_prepare_sample <- function(task) {
     f<-f[intersect(c("H","S","background","alpha","spec","grouped_dictionary"),names(f))]
     if(is.null(f$background))f$background<-B*E
     initial<-sinmf_checkpoint_sample(f,d,"initial")
+    alternate <- NULL
+    if (!is.null(x$alternate_design)) {
+      design <- nmf_restart_basis(x$alternate_design,Y,time,family,ncores)
+      other <- if (isTRUE(ctl$conditional))
+        conditional_dictionary(design,Y,f$background,f$spec,precluster,
+                               ctl$dictionary_lambda*f$spec$information_factor,ncores,ctl$initial) else
+        nmf_alternate_single(design,Y,f,family,
+          if (is.numeric(task$lambda)) task$lambda*m else task$lambda,precluster,W,O,ctl$initial,ncores)
+      alternate <- sinmf_checkpoint_sample(other[intersect(names(f),names(other))],d,"alternate")
+    }
     wfile<-if(length(W)>1L)file.path(d,"weights.rds")else NULL
     ofile<-if(length(O)>1L)file.path(d,"offset.rds")else NULL
     if(!is.null(wfile))saveRDS(W,wfile,compress=FALSE)
     if(!is.null(ofile))saveRDS(O,ofile,compress=FALSE)
     meta<-list(n=n,m=m,time=time,edges=edges,raw_exposure=E,mass=mass,sample_id=id,
       group=if(is.null(x$group))"samples"else as.character(x$group),small_width=small,
-      initial=initial,weights=if(is.null(wfile))W else wfile,
+      initial=initial,alternate_initial=alternate,weights=if(is.null(wfile))W else wfile,
       offset=if(is.null(ofile))O else ofile,censor=ctl$censor)
     saveRDS(meta,file.path(d,"metadata.rds"),compress=FALSE)
     aggregate<-if(is.null(precluster) || isTRUE(ctl$conditional))NULL else aggregateChannels(Y,precluster,mass)
@@ -169,8 +197,9 @@ sinmf_prepare_sample <- function(task) {
     list(entry=entry,aggregate=if(ctl$cache)aggregate else NULL)
 }
 
-sinmf_initialize <- function(store,method,align,ncores,lambda,ctl) {
+sinmf_initialize <- function(store,method,align,ncores,lambda,ctl,key="initial") {
   meta<-lapply(store$manifest$directory,function(d)readRDS(file.path(d,"metadata.rds")))
+  if (key != "initial") meta <- lapply(meta,function(m) {m$initial <- m[[key]]; m})
   # Retain spectra and anchor summaries globally; load profile matrices singly.
   fits<-lapply(meta,function(m) {
     f<-readRDS(m$initial)
