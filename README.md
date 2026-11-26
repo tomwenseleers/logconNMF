@@ -310,23 +310,23 @@ The extended search with 100 extra sweeps and a second blind PSF recovered **tru
 | Quantity | Simultaneous logconNMF result |
 |:--|--:|
 | True rank / estimated rank | **100 / 100 (exact)** |
-| True occurrences recovered / false positives | 769 / 0 |
-| Peak-level F1 | 1.000 |
+| True occurrences recovered / false positives | 769 / 1 |
+| Peak-level F1 | 0.999 |
 | Ordinary adjusted log-area R² | 0.999993 |
 | Median spectral cosine | 0.9999993 |
-| Mean within-spectrum ion-support F1 | 0.995 |
+| Mean within-spectrum ion-support F1 | 0.996 |
 
-Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **196.28 s**. Of this, 177.10 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **104.48 s**. Of this, 89.05 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and
-false-positive counts (zero among 769 calls). Ion-support F1 applies the same
+false-positive counts (one among 770 calls). Ion-support F1 applies the same
 0.1% of base-peak cutoff to the reference and recovered spectra.
 
 [![True versus estimated peak areas for the simultaneous logconNMF fit](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-area-accuracy.png)
 
 Peak-area accuracy: ordinary adjusted R² 0.999993 and median absolute area error
-0.079% over 769 matched occurrences.
+0.082% over 769 matched occurrences.
 
 [![Distribution of spectral cosine similarity for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-accuracy.png)
 
@@ -335,7 +335,7 @@ true spectra.
 
 [![Distribution of within-spectrum ion-support F1 for simultaneous logconNMF](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)](logconNMF/man/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-Spectral sparsity: mean within-spectrum ion-support F1 0.995 under the shared
+Spectral sparsity: mean within-spectrum ion-support F1 0.996 under the shared
 0.1% cutoff.
 
 [![Inferred and true regular and acid-shaped profiles across the simultaneous fit](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)](logconNMF/man/figures/simultaneous-benchmark-elution-profiles.png)

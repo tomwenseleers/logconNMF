@@ -51,7 +51,7 @@ grDevices::png(
   width = 1600L, height = 1080L, res = 160L
 )
 graphics::par(mar = c(5.2, 5.5, 5.0, 1.4), mgp = c(3.25, 0.85, 0),
-  las = 1, cex.axis = 1.0)
+  las = 1, cex.axis = 1.12, cex.lab = 1.2)
 graphics::plot(
   area$data$log_true, area$data$log_estimated,
   type = "n", xlim = limits, ylim = limits,
