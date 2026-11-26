@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9011</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9012</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -336,19 +336,20 @@ same objective differences.</p>
 <h3 id="empirical-gic-gap">Convergence from estimated and true elution profiles<a class="anchor" aria-label="anchor" href="#empirical-gic-gap"></a>
 </h3>
 <p>The simulation contained 100 shared compounds across 16 samples with
-1,200 scans and 258 ions each. The estimated-profile start descended
-from 21,188,577 to <strong>4,146,698</strong> and the true-profile start
-from 10,875,547 to <strong>4,142,623</strong>. Both reached
-<strong>estimated rank 100, equal to the true rank of 100</strong>. The
-GIC held steady or decreased at every recorded checkpoint (158 for the
-estimated start and 126 for the true-profile start). Both fits used the
-observed counts and identical search settings. Their endpoints differ by
-<strong>0.098%</strong> of the absolute reference GIC. This empirical
-optimality gap measures agreement with an attainable reference. Its
-distance from the global minimum is unknown. The red dotted line marks
-the truth-initialised endpoint in both panels. Each plotted checkpoint
-uses the original GIC, including those following a temporary support
-proposal.</p>
+1,200 scans and 258 ions each. In a separate convergence experiment with
+100 extra sweeps and a second blind PSF, the estimated-profile start
+descended from 21,188,577 to <strong>4,146,698</strong> and the
+true-profile start from 10,875,547 to <strong>4,142,623</strong>. Both
+reached <strong>estimated rank 100, equal to the true rank of
+100</strong>. The GIC held steady or decreased at every recorded
+checkpoint (158 for the estimated start and 126 for the true-profile
+start). Both fits used the observed counts and identical search
+settings. Their endpoints differ by <strong>0.098%</strong> of the
+absolute reference GIC. This empirical optimality gap measures agreement
+with an attainable reference. Its distance from the global minimum is
+unknown. The red dotted line marks the truth-initialised endpoint in
+both panels. Each plotted checkpoint uses the original GIC, including
+those following a temporary support proposal.</p>
 <div class="float">
 <img src="../reference/figures/empirical-gic-convergence.png" alt="GIC over the joint fit and percentage difference from the truth-initialized endpoint on the small 16-sample benchmark"><div class="figcaption">GIC over the joint fit and percentage difference
 from the truth-initialized endpoint on the small 16-sample

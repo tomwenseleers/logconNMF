@@ -61,15 +61,12 @@ fit$areas
 plot(fit, type="profiles", compounds=c(1L,12L))
 ```
 
-The three-sample validation retains all **258 mass channels**. With every
-compound present, it recovers **26 shared compounds and all 78 occurrences**.
-With `presence=0.5`, the realized data contain **23 shared compounds and 37
-occurrences**, all recovered. Missing occurrences remain `NA` in the area table.
+The fit used all **258 mass channels**. With every compound present, it recovered **78 of 78 occurrences** at an estimated rank of 26 (true rank 26). With a 50% presence probability, it recovered **37 of 37 occurrences** at an estimated rank of 23 (true rank 23). The area table records missing occurrences as `NA`.
 
 | Simulation | True rank | Estimated rank | True occurrences | Recovered | False calls | Total time |
 |:--|--:|--:|--:|--:|--:|--:|
-| All compounds present | 26 | **26 (exact)** | 78 | 78 | 0 | 20.80 s |
-| 50% presence probability | 23 | **23 (exact)** | 37 | 37 | 0 | 17.87 s |
+| All compounds present | 26 | **26 (exact)** | 78 | 78 | 0 | 17.06 s |
+| 50% presence probability | 23 | **23 (exact)** | 37 | 37 | 0 | 13.27 s |
 
 Each timing includes independent fits, alignment, grouping and simultaneous
 refinement, with a budget of eight logical cores and one BLAS thread per
@@ -101,11 +98,11 @@ native scan grids and report recovery against the generating compounds.
 | True occurrences | 769 | 7,917 |
 | Samples containing the acid | 7 | 8 |
 | PSF calibration | Blind, two windows | Standard-assisted, ten windows |
-| Complete 16-sample analysis | **104.48 s (1.74 min)** | **562.05 s (9.37 min)** |
+| Complete 16-sample analysis | **96.51 s (1.61 min)** | **562.05 s (9.37 min)** |
 
-The small benchmark used the fast local search on the blind, time-varying PSF start. Data preparation, PSF calibration and ion grouping took 10.85 s, grouped regression and joint fitting 89.05 s, and export 4.35 s. Including the benchmark wrapper, the complete analysis took **104.48 s**. The original-ion GIC was **4,142,023**.
+The small benchmark used the fast local search on the blind, time-varying PSF start. Data preparation, PSF calibration and ion grouping took 10.21 s, grouped regression and joint fitting 81.46 s, and export 4.59 s. Including the benchmark wrapper, the complete analysis took **96.51 s**. The original-ion GIC was **4,142,023**. A second run took **100.82 s** and returned the same rank, GIC, areas and spectra. [Recorded runs](https://github.com/tomwenseleers/GCMSprime/blob/master/benchmarks/results/calibrated-threads.csv).
 
-With the default stopping and support settings, the same CDF files took **54.66 s** and gave **estimated rank 115** against **true rank 100**, with 769 true positives and only 26 false positives.
+With the default stopping and support settings, an eight-thread run on the same CDF files took **54.66 s** and gave **estimated rank 115** against **true rank 100**, with 769 true positives and only 26 false positives.
 
 
 ### Local search for the shared rank {#local-rank-search}
@@ -118,7 +115,7 @@ in a sample. The true spectra, profiles and ranks were used only for evaluation.
 | Dataset and control | True / estimated rank | TP | FP | Original-ion GIC | Complete time |
 |:--|--:|--:|--:|--:|--:|
 | Small, default | 100 / 115 | 769 | 26 | 4,173,728 | 54.66 s |
-| Small, local search | **100 / 100 (exact)** | 769 | 1 | 4,142,023 | 104.48 s |
+| Small, local search (eight threads) | **100 / 100 (exact)** | 769 | 1 | 4,142,023 | 104.48 s |
 | Large, default | 1,000 / 1,002 | 7,917 | 13 | 34,062,277 | 533.88 s |
 | Large, local search | **1,000 / 1,000 (exact)** | 7,917 | 2 | 34,056,138 | 562.05 s |
 
@@ -179,7 +176,7 @@ The generating quasi-Poisson dispersion is 783.18; the fitted median is 829.55.
 The [GCMSprime CDF workflow](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#sixteen-simulated-chromatograms),
 built on logconNMF, recovers **all 769 true occurrences with only one false positive**
 (peak F1 **0.999**), including the acid in all seven samples where it occurs.
-It takes **104.48 s** with four two-thread PSF workers and eight threads available for joint refinement on an HP ZBook Fury G8
+It takes **96.51 s** with eight two-thread PSF workers and 16 threads available for joint refinement on an HP ZBook Fury G8
 with an Intel Core i9-11950H, eight physical cores and 16 logical threads.
 The common 32-group map accelerates initialization; final spectra retain all
 258 original channels.
@@ -194,7 +191,7 @@ counts. To reproduce this small fit and its figures with GCMSbenchmark:
 library(GCMSbenchmark)
 bench <- system.file("benchmarks", package="GCMSbenchmark", mustWork=TRUE)
 source(file.path(bench, "simulated-16.R"), encoding="UTF-8")
-small <- runBenchmark16("benchmark-small", method="GCMSprime", ncores=8L, support_search=TRUE)
+small <- runBenchmark16("benchmark-small", method="GCMSprime", ncores=16L, support_search=TRUE)
 small$summary[c("analysis_s", "true_rank", "estimated_rank", "rank_exact", "TP", "FP", "FN")]
 # Optional figures from the saved results:
 source(file.path(bench, "plot-simulated-16.R"), encoding="UTF-8")

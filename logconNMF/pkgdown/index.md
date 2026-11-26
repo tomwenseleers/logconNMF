@@ -283,7 +283,7 @@ information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
 Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. OpenMP updates elution profiles across samples. It fits each ion’s shared spectrum and sample-specific background coefficients independently, keeping a fixed component order within each ion. The general identity-link solver can stream original-channel blocks from disk.
-The local rank search recovered **all 7,917 occurrences** in **9.37 min** with **only 2 false positives** across 16 chromatograms of 10,000 scans and 550 channels. Its **estimated rank of 1,000 exactly matched the true rank of 1,000**. The same control recovered **true rank 100 exactly** in **104.48 s** on the smaller simulation. [Compare rank, recovery and timing](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#local-rank-search).
+The local rank search recovered **all 7,917 occurrences** in **9.37 min** with **only 2 false positives** across 16 chromatograms of 10,000 scans and 550 channels. Its **estimated rank of 1,000 exactly matched the true rank of 1,000**. The same control recovered **true rank 100 exactly** on the smaller simulation in **96.51 s**, with an independent repeat of **100.82 s**. [Compare rank, recovery and timing](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#local-rank-search).
 See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
 
 As an example, we provide a simulated
@@ -305,7 +305,7 @@ The extended search with 100 extra sweeps and a second blind PSF recovered **tru
 <div><strong>0.9999993</strong><span>median spectral cosine</span></div>
 </div>
 
-Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **104.48 s**. Of this, 89.05 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **96.51 s**. Of this, 81.46 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence recovery and

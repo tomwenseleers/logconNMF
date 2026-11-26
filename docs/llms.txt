@@ -391,8 +391,8 @@ disk. The local rank search recovered **all 7,917 occurrences** in
 **9.37 min** with **only 2 false positives** across 16 chromatograms of
 10,000 scans and 550 channels. Its **estimated rank of 1,000 exactly
 matched the true rank of 1,000**. The same control recovered **true rank
-100 exactly** in **104.48 s** on the smaller simulation. [Compare rank,
-recovery and
+100 exactly** on the smaller simulation in **96.51 s**, with an
+independent repeat of **100.82 s**. [Compare rank, recovery and
 timing](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#local-rank-search).
 See the [two 16-sample
 experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales)
@@ -428,23 +428,23 @@ traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empiri
 
 Across all four true-area quartiles, **every occurrence was recovered**,
 including all 193 peaks in the smallest quarter. The complete small fit
-took **196.28 s**. Of this, 177.10 s covered the grouped regressions,
+took **96.51 s**. Of this, 81.46 s covered the grouped regressions,
 alignment and original-channel factor updates. The [two-benchmark
 overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales)
 gives both acquisition sizes and reproduction code.
 
 Area and spectral summaries are conditional on correctly matched true
 components and should therefore be read together with occurrence
-recovery and false-positive counts (zero among 769 calls). Ion-support
-F1 applies the same 0.1% of base-peak cutoff to the reference and
-recovered spectra.
+recovery and false-positive counts (one among 770 calls). Ion-support F1
+applies the same 0.1% of base-peak cutoff to the reference and recovered
+spectra.
 
 [![True versus estimated peak areas for the simultaneous logconNMF fit
 with ordinary least-squares regression and a 95% prediction
 interval](reference/figures/simultaneous-benchmark-area-accuracy.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-area-accuracy.png)
 
 Peak-area accuracy: ordinary adjusted R² 0.999993 and median absolute
-area error 0.079% over 769 matched occurrences.
+area error 0.082% over 769 matched occurrences.
 
 [![Distribution of spectral cosine similarity for correctly matched
 spectra from simultaneous
@@ -456,7 +456,7 @@ matched true spectra.
 [![Distribution of within-spectrum ion-support F1 for simultaneous
 logconNMF](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-Spectral sparsity: mean within-spectrum ion-support F1 0.995 under the
+Spectral sparsity: mean within-spectrum ion-support F1 0.996 under the
 shared 0.1% cutoff.
 
 [![Inferred and true elution profiles for representative regular and

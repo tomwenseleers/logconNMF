@@ -260,11 +260,12 @@ specification give the same objective differences.
 ### Convergence from estimated and true elution profiles
 
 The simulation contained 100 shared compounds across 16 samples with
-1,200 scans and 258 ions each. The estimated-profile start descended
-from 21,188,577 to **4,146,698** and the true-profile start from
-10,875,547 to **4,142,623**. Both reached **estimated rank 100, equal to
-the true rank of 100**. The GIC held steady or decreased at every
-recorded checkpoint (158 for the estimated start and 126 for the
+1,200 scans and 258 ions each. In a separate convergence experiment with
+100 extra sweeps and a second blind PSF, the estimated-profile start
+descended from 21,188,577 to **4,146,698** and the true-profile start
+from 10,875,547 to **4,142,623**. Both reached **estimated rank 100,
+equal to the true rank of 100**. The GIC held steady or decreased at
+every recorded checkpoint (158 for the estimated start and 126 for the
 true-profile start). Both fits used the observed counts and identical
 search settings. Their endpoints differ by **0.098%** of the absolute
 reference GIC. This empirical optimality gap measures agreement with an
