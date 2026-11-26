@@ -85,11 +85,6 @@ samples](figures/simultaneous-profiles.png)
 
 Aligned component profiles across the three samples
 
-![Recovered occurrence areas and absent
-compounds](figures/simultaneous-areas.png)
-
-Recovered occurrence areas and absent compounds
-
 Shared spectra are estimated from all detected occurrences of a
 compound:
 

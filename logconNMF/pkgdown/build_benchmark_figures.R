@@ -42,23 +42,22 @@ interval <- stats::predict(
   newdata = data.frame(log_true = grid),
   interval = "prediction", level = 0.95
 )
-limits <- range(c(area$data$log_true, area$data$log_estimated, interval))
-padding <- 0.04 * diff(limits)
-limits <- limits + c(-padding, padding)
+limits <- c(7.5, 10.5)
+ticks <- seq(limits[1L], limits[2L], by = 0.5)
 
 grDevices::png(
   file.path(output_dir, "simultaneous-benchmark-area-accuracy.png"),
-  width = 1600L, height = 1080L, res = 160L
+  width = 1400L, height = 1500L, res = 160L
 )
 graphics::par(mar = c(5.2, 5.5, 5.0, 1.4), mgp = c(3.25, 0.85, 0),
-  las = 1, cex.axis = 1.12, cex.lab = 1.2)
+  pty = "s", xaxs = "i", yaxs = "i", las = 1, cex.axis = 1.12, cex.lab = 1.2)
 graphics::plot(
   area$data$log_true, area$data$log_estimated,
-  type = "n", xlim = limits, ylim = limits,
+  type = "n", xlim = limits, ylim = limits, axes = FALSE,
   xlab = expression(log[10] * "(true peak area, integrated counts)"),
   ylab = expression(log[10] * "(estimated peak area, integrated counts)")
 )
-graphics::grid(col = grid_colour, lty = 1)
+graphics::abline(h = ticks, v = ticks, col = grid_colour, lty = 1)
 graphics::polygon(
   c(grid, rev(grid)), c(interval[, "lwr"], rev(interval[, "upr"])),
   col = light_grey, border = NA
@@ -75,6 +74,9 @@ graphics::points(
 graphics::abline(
   0, 1, col = "black", lty = 2, lwd = 2
 )
+graphics::axis(1, at = ticks)
+graphics::axis(2, at = ticks)
+graphics::box()
 graphics::title(paste(c("Peak-area accuracy",rank_label),collapse=" | "),
   col.main = navy, font.main = 2, cex.main = 1.45)
 graphics::mtext(

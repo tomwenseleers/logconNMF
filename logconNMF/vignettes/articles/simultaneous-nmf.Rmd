@@ -76,8 +76,6 @@ single match per compound within each sample.
 
 ![Aligned component profiles across the three samples](figures/simultaneous-profiles.png)
 
-![Recovered occurrence areas and absent compounds](figures/simultaneous-areas.png)
-
 Shared spectra are estimated from all detected occurrences of a compound:
 
 ![Shared spectra recovered from all sample occurrences](figures/simultaneous-spectra.png)
