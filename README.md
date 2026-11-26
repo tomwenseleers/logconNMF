@@ -433,13 +433,8 @@ chromatography-specific work.
 ## Citation
 
 An article describing the methods implemented in logconNMF is in preparation.
-If you use the package before the article is formally published, we would
-appreciate a citation to the package:
-
-Wenseleers T, Vanderaa C (2026).
-*logconNMF: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection*.
-R package version 0.1.0.9000,
-<https://tomwenseleers.github.io/logconNMF/>.
+To cite the installed version, use `citation("logconNMF")` in R. GitHub also
+provides a citation under **Cite this repository**.
 
 The [Authors and Citation page](https://tomwenseleers.github.io/logconNMF/authors.html#citation) also provides the
 citation in BibTeX format. Please also cite the methodological sources linked
