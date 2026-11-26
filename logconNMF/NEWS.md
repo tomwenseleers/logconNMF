@@ -1,3 +1,8 @@
+# logconNMF 0.1.0.9013
+
+- Simultaneous fits limit BLAS to one thread while parallelizing across samples.
+  The native L0glm thread controller restores the caller's previous thread limits.
+
 # logconNMF 0.1.0.9012
 
 The 16-sample benchmark figures and timing tables now use the same fast local-search fits. The PSF-width comparison reports rank and occurrence recovery separately for each initialization.

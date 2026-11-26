@@ -12,11 +12,11 @@ sinmf_runtime <- function(ncores,n,workers=NULL,cache=TRUE) {
   env<-new.env(parent=emptyenv());env$cl<-NULL
   env$budget<-list(ncores=ncores,workers=workers,threads=threads)
   env$cache_previous<-as.list(.sinmf_cache)
-  sinmf_cache_reset(isTRUE(cache)&&workers==1L)
-  env$blas<-RhpcBLASctl::blas_get_num_procs()
-  RhpcBLASctl::blas_set_num_threads(1L)
+  env$threads_previous<-L0glm::l0glmThreads(blas=1L)
   success<-FALSE
-  on.exit(if(!success){sinmf_cache_restore(env$cache_previous);RhpcBLASctl::blas_set_num_threads(env$blas)},add=TRUE)
+  on.exit(if(!success)do.call(L0glm::l0glmThreads,env$threads_previous),add=TRUE)
+  on.exit(if(!success)sinmf_cache_restore(env$cache_previous),add=TRUE)
+  sinmf_cache_reset(isTRUE(cache)&&workers==1L)
   if(workers>1L) {
     keys<-c("OPENBLAS_NUM_THREADS","MKL_NUM_THREADS","OMP_NUM_THREADS","OMP_WAIT_POLICY","R_LIBS")
     old<-Sys.getenv(keys,unset=NA_character_)
@@ -27,6 +27,7 @@ sinmf_runtime <- function(ncores,n,workers=NULL,cache=TRUE) {
     ok<-FALSE;on.exit(if(!ok)parallel::stopCluster(env$cl),add=TRUE)
     initialize<-function(paths,cache) {
       .libPaths(paths);loadNamespace("logconNMF")
+      L0glm::l0glmThreads(blas=1L)
       get("sinmf_cache_reset",asNamespace("logconNMF"))(cache);NULL
     }
     environment(initialize)<-baseenv()
@@ -36,7 +37,8 @@ sinmf_runtime <- function(ncores,n,workers=NULL,cache=TRUE) {
   success<-TRUE;env
 }
 sinmf_close_runtime <- function(runtime) {
-  on.exit({sinmf_cache_restore(runtime$cache_previous);RhpcBLASctl::blas_set_num_threads(runtime$blas)},add=TRUE)
+  on.exit(do.call(L0glm::l0glmThreads,runtime$threads_previous),add=TRUE)
+  on.exit(sinmf_cache_restore(runtime$cache_previous),add=TRUE)
   if(!is.null(runtime$cl))parallel::stopCluster(runtime$cl)
 }
 sinmf_apply <- function(runtime,tasks,fun) {

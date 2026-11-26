@@ -1,7 +1,7 @@
 # Run from the logconNMF repository root. Timings cover factorization with a
 # fixed, boundary-aware PSF; CDF input/export is measured in GCMSprime examples.
 library(logconNMF)
-RhpcBLASctl::blas_set_num_threads(1L)
+L0glm::l0glmThreads(blas = 1L)
 results <- list()
 for (name in c("gcmsData1", "gcmsData2")) {
   data(list=name, package="logconNMF")
