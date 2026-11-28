@@ -15,7 +15,7 @@ occurrence."><meta property="og:image" content="https://tomwenseleers.github.io/
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9015</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -305,7 +305,8 @@ area. To satisfy the same constraint as the fit, the reference uses the
 least concave majorant of its log heights on the native scan grid and
 normalizes the result. This preserves log-concave input shapes.
 Areas, spectra and backgrounds are estimated from the observations.
-Both fits record their block traces. Retrieve the empirical optimality gap
+Both fits record their block traces. An active reference receives at least
+as many full profile and spectrum sweeps as the blind fit. Retrieve the empirical optimality gap
 in GIC relative to the truth-initialised fit and plot both trajectories with
 <code>fit$gic_gap</code> and <code>plot(fit$gic_gap)</code>. See <code><a href="gicGap.html">gicGap()</a></code>.</p></dd>
 

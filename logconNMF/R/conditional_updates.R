@@ -19,7 +19,7 @@ cc_history <- function(context, label, cycle, block, D) {
 }
 cc_set_h <- function(x, rows, cols, v) cc_write_block(x$h, rows, cols, as.matrix(v))
 cc_set_mu <- function(x, rows, cols, m) cc_write_block(x$mu, rows, cols, m)
-cc_optimize <- function(z, limit, label, active = FALSE, selective = FALSE) {
+cc_optimize <- function(z, limit, label, active = FALSE, selective = FALSE, minimum_sweeps = 1L) {
   d <- z$data
   p <- z$p
   D <- cc_D(d)
@@ -58,7 +58,7 @@ cc_optimize <- function(z, limit, label, active = FALSE, selective = FALSE) {
     if (now > prev + 1e-05 * max(1, prev))
       stop("Count factor update increased the joint objective.")
     small <- prev - now <= 0.001 * prev
-    if (small && full) break
+    if (small && full && it >= minimum_sweeps) break
     # A support change, even in a full sweep, changes the next conditional
     # problem for neighbouring factors. Recheck them before skipping any.
     force_full <- support_changed || small

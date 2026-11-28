@@ -18,6 +18,7 @@ test_that("reference fits preserve blind factors and use the extracted GIC", {
   p <- with$spec$information_factor*L0glm::presetLambda("gic",p=with$p,n=with$n)
   tr <- gap$trace
   expect_equal(diff(tr$GIC),diff(tr$D+p*(tr$shape_df+tr$spectral_df)),tolerance=1e-7)
+  expect_gte(max(tr$sweep[tr$start=="true profiles"]),max(tr$sweep[tr$start=="standard"]))
   expect_equal(tail(tr$GIC[tr$start=="true profiles"],1L),gap$reference_gic)
   scaled <- run(truth.profiles=list(H=sweep(H,2,c(10,1000),"*"), id=colnames(H),
                                     area=c(0,0),P=matrix(0,2,3)))
@@ -75,8 +76,27 @@ test_that("matched joint reference fits accept absent compounds and reordered sa
   on.exit(unlink(f$store$path,recursive=TRUE))
   d <- gicGap(f)
   ref <- subset(d$trace,start=="true profiles")
+  expect_gte(max(ref$sweep),max(d$trace$sweep[d$trace$start=="standard"]))
   expect_equal(ref$calls[1L],3)
   expect_equal(ref$rank[1L],2)
   expect_equal(d$fitted_gic,as.numeric(GIC(f)))
   expect_equal(readRDS(file.path(f$store$path,"model.rds"))$gic_gap,d)
+})
+
+test_that("a reference can continue past its ordinary stopping point", {
+  t <- seq_len(60L)
+  h <- Matrix::Matrix(cbind(a=exp(-abs(t-30)/3)),sparse=TRUE)
+  y <- round(2+as.matrix(h) %*% rbind(c(120,45,5)))
+  part <- list(time=t,aligned=t,background=matrix(1,length(t),1L),
+               observed=y,spec=list(dispersion=1))
+  ref <- cc_truth_profiles(list(H=h,id="a"),list(t),"A")
+  native <- function(minimum) conditional_native(list(part),1:3,5,TRUE,2L,0L,1L,
+    reference=ref,minimum_sweeps=minimum)
+  ordinary <- native(0L)$trace
+  continued <- native(6L)$trace
+  expect_lt(sum(ordinary$block=="spectra and background"),6L)
+  expect_equal(continued[seq_len(nrow(ordinary)),],ordinary,tolerance=1e-8)
+  expect_equal(sum(continued$block=="spectra and background"),6L)
+  expect_equal(tail(continued$stage,1L),"matched reference continuation")
+  expect_lte(tail(continued$objective,1L),tail(ordinary$objective,1L)+1e-7)
 })

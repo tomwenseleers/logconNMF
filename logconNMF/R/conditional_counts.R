@@ -50,7 +50,9 @@ conditional_run <- function(parts, group, price, trace = FALSE, cycles = 12L, ex
                                refinement=refinement, alternate=proposal)
   if (!is.null(reference)) {
     tic <- proc.time()[["elapsed"]]
-    ref <- conditional_native(parts, group, price, TRUE, cycles, exchanges, cores, reference, refinement, proposal)
+    blind_sweeps <- sum(result$trace$block == "spectra and background")
+    ref <- conditional_native(parts, group, price, TRUE, cycles, exchanges, cores, reference, refinement, proposal,
+                              minimum_sweeps=blind_sweeps)
     result$reference_trace <- ref$trace
     result$reference_seconds <- proc.time()[["elapsed"]] - tic
   }

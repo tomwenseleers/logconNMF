@@ -1,3 +1,7 @@
+# logconNMF 0.1.0.9015
+
+- When true profiles are supplied, the reference fit now completes at least as many profile and spectrum sweeps as the blind fit while it retains active factors. The optional GIC trace labels the additional full sweeps.
+
 # logconNMF 0.1.0.9014
 
 - The shared benchmark compares seven workflows on 16 full chromatograms with 1,000 compounds, including ten shark-fin acids. Timings are reported in seconds per sample.

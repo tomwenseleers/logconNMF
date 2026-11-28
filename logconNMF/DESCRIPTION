@@ -1,8 +1,8 @@
 Package: logconNMF
 Type: Package
 Title: Log-Concave Nonnegative Matrix Factorization with Automatic Rank Selection
-Version: 0.1.0.9014
-Date: 2026-11-26
+Version: 0.1.0.9015
+Date: 2026-11-28
 Authors@R: c(
     person("Tom", "Wenseleers", role = c("aut", "cre"),
            email = "tom.wenseleers@kuleuven.be"),

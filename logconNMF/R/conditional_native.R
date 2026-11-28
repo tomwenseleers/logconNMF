@@ -1,5 +1,6 @@
 conditional_native <- function(parts, group, price, trace, cycles, exchanges, ncores, reference=NULL,
-                               refinement=nmf_refinement_control(list()), alternate=NULL, checkpoint=FALSE) {
+                               refinement=nmf_refinement_control(list()), alternate=NULL, checkpoint=FALSE,
+                               minimum_sweeps=0L) {
   if (!length(parts) || !length(group) || anyNA(group) || any(group < 1) ||
       any(group != as.integer(group)) || !is.finite(price) || price < 0)
     stop("Invalid channel groups, penalty or empty count-factorization input.")
@@ -71,6 +72,15 @@ conditional_native <- function(parts, group, price, trace, cycles, exchanges, nc
     alternate$bands <- cc_restart_bands(alternate$bands, alternate$warps, z$data)
     restart <- cc_restart_search(z, alternate, selective)
     objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
+  }
+  if (minimum_sweeps > 0L && nrow(z$p)) {
+    completed <- sum(vapply(z$history, function(row) row$block == "spectra and background", logical(1)))
+    remaining <- minimum_sweeps - completed
+    if (remaining > 0L) {
+      cc_optimize(z, remaining, "matched reference continuation", minimum_sweeps = remaining)
+      cc_trim(z)
+      objective <- cc_dimension(z$data, z$p, cc_D(z$data), price)
+    }
   }
   idx <- order(rowMeans(z$bands))
   factors <- lapply(z$data, function(x) {

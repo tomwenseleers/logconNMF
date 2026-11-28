@@ -158,8 +158,10 @@ cc_gap_traces <- function(result, price) {
 #'   `difference`, `percent = 100 * difference / abs(reference_gic)`, both
 #'   block traces and elapsed seconds for reference initialization and fitting.
 #'   A zero reference GIC gives an undefined percentage. A negative difference
-#'   means the standard fit reached a lower GIC. Both fits use the same stopping
-#'   rules. Further updates could improve either fit. The global minimum is unknown.
+#'   means the standard fit reached a lower GIC. After adaptive stopping and local
+#'   search, a reference with active factors completes any additional full profile
+#'   and spectrum sweeps needed to match the blind sweep count. These updates
+#'   are labelled in the trace. The global minimum is unknown.
 #'   An independently fitted GCMSprime directory returns a named list of these
 #'   diagnostics, one per sample.
 #' @example examples/gicGap.R

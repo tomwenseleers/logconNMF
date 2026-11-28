@@ -258,7 +258,8 @@
 #'   least concave majorant of its log heights on the native scan grid and
 #'   normalizes the result. This preserves log-concave input shapes.
 #'   Areas, spectra and backgrounds are estimated from the observations.
-#'   Both fits record their block traces. Retrieve the empirical optimality gap
+#'   Both fits record their block traces. An active reference receives at least
+#'   as many full profile and spectrum sweeps as the blind fit. Retrieve the empirical optimality gap
 #'   in GIC relative to the truth-initialised fit and plot both trajectories with
 #'   `fit$gic_gap` and `plot(fit$gic_gap)`. See [gicGap()].
 #' @export
