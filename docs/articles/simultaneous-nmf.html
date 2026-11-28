@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Simultaneous multisample log-concave NMF with automatic best rank tuning • logconNMF</title>
+<title>Simultaneous log-concave NMF on 16 full chromatograms • logconNMF</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -17,7 +17,7 @@
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
-<meta property="og:title" content="Simultaneous multisample log-concave NMF with automatic best rank tuning">
+<meta property="og:title" content="Simultaneous log-concave NMF on 16 full chromatograms">
 <meta name="description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:description" content="Share spectra across aligned samples with log-concave profiles, missing compounds and flexible noise models.">
 <meta property="og:image" content="https://tomwenseleers.github.io/logconNMF/reference/figures/logo.png">
@@ -70,7 +70,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Simultaneous multisample log-concave NMF with automatic best rank tuning</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Simultaneous log-concave NMF on 16 full chromatograms</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/tomwenseleers/logconNMF/blob/master/logconNMF/vignettes/articles/simultaneous-nmf.Rmd" class="external-link"><code>vignettes/articles/simultaneous-nmf.Rmd</code></a></small>
@@ -91,108 +91,6 @@ profile/area factors <span class="math inline">Q_s</span>. This is
 <strong>simultaneous NMF</strong> in the terminology of <a href="https://doi.org/10.1002/9780470747278" class="external-link">Cichocki et al.</a>, <a href="https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf" class="external-link">Badea</a>
 and <a href="https://doi.org/10.1371/journal.pone.0048238" class="external-link">Lee et
 al.</a>. It is an exact shared-factor model.</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">quasipoisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, precluster<span class="op">=</span><span class="fl">32L</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>                          <span class="co"># estimated number of shared compounds</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span>                         <span class="co"># samples x consensus compounds</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span>, normalize<span class="op">=</span><span class="st">"l1"</span><span class="op">)</span>          <span class="co"># common spectra</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span>, sample<span class="op">=</span><span class="fl">1L</span><span class="op">)</span>             <span class="co"># original-grid fitted signal</span></span>
-<span><span class="fu"><a href="../reference/logconNMF.html">sampleNMF</a></span><span class="op">(</span><span class="va">fit</span>, sample<span class="op">=</span><span class="fl">1L</span><span class="op">)</span>          <span class="co"># standard per-sample NMF object</span></span>
-<span><span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-<p>Each sample description contains <code>y</code>, <code>time</code>,
-and either a candidate PSF matrix <code>X</code> or an independent
-<code><a href="../reference/logconNMF.html">logconNMF()</a></code> fit. Matrices can be supplied through RDS
-paths. Observations, factors, weights and offsets are stored per sample.
-The grouped PSF regressions run in separate workers. For joint
-conditional updates the solver holds observations, fitted means and
-shared spectra in memory. The general identity-link solver can stream
-blocks of ions from the per-sample files. ## Three samples, shared
-spectra and different peak shapes</p>
-<p>The simulator provides exponentially modified Gaussian peaks, broad
-triangular acid profiles, smooth backgrounds and irregular scan
-intervals. Peak width, tailing and retention time can depend on
-concentration and position in the chromatogram.
-<code>presence=0.5</code> makes compounds absent independently in half
-of the samples on average.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulateGCMSSamples.html">simulateGCMSSamples</a></span><span class="op">(</span>samples<span class="op">=</span><span class="fl">3L</span>, n<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">580L</span>,<span class="fl">600L</span>,<span class="fl">620L</span><span class="op">)</span>, k<span class="op">=</span><span class="fl">26L</span>,</span>
-<span>  preset<span class="op">=</span><span class="st">"time_area_acid"</span>, presence<span class="op">=</span><span class="fl">0.5</span>, seed<span class="op">=</span><span class="fl">811</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">samples</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">samples</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>  y<span class="op">=</span><span class="va">s</span><span class="op">$</span><span class="va">Y</span>, time<span class="op">=</span><span class="va">s</span><span class="op">$</span><span class="va">time</span>, edges<span class="op">=</span><span class="va">s</span><span class="op">$</span><span class="va">edges</span>, exposure<span class="op">=</span><span class="va">s</span><span class="op">$</span><span class="va">raw_exposure</span>,</span>
-<span>  sample_id<span class="op">=</span><span class="va">s</span><span class="op">$</span><span class="va">sample_id</span>,</span>
-<span>  X<span class="op">=</span><span class="fu"><a href="../reference/convMatrix.html">convMatrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8</span><span class="op">:</span><span class="fl">8</span>, sd<span class="op">=</span><span class="fl">1.6</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  background<span class="op">=</span><span class="fu">splines</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/splines/bs.html" class="external-link">bs</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">time</span>, df<span class="op">=</span><span class="fl">4L</span>, intercept<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  small_width<span class="op">=</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fl">1.6</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diff.html" class="external-link">diff</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">time</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/logconNMF.html">logconNMF</a></span><span class="op">(</span><span class="va">samples</span>, family<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/stats/family.html" class="external-link">poisson</a></span><span class="op">(</span><span class="st">"identity"</span><span class="op">)</span>, ncores<span class="op">=</span><span class="fl">8L</span>,</span>
-<span>  control<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>initial<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>profile_cycles<span class="op">=</span><span class="fl">4L</span>, fusion_passes<span class="op">=</span><span class="fl">2L</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">true_rank</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">sim</span><span class="op">$</span><span class="va">present</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">true_rank</span>, estimated_rank<span class="op">=</span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span>, rank_exact<span class="op">=</span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span> <span class="op">==</span> <span class="va">true_rank</span><span class="op">)</span></span>
-<span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type<span class="op">=</span><span class="st">"profiles"</span>, compounds<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>,<span class="fl">12L</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p>The fit used all <strong>258 mass channels</strong>. With every
-compound present, it recovered <strong>78 of 78 occurrences</strong> at
-an estimated rank of 26 (true rank 26). With a 50% presence probability,
-it recovered <strong>37 of 37 occurrences</strong> at an estimated rank
-of 23 (true rank 23). The area table records missing occurrences as
-<code>NA</code>.</p>
-<table style="width:100%;" class="table">
-<colgroup>
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-<col width="14%">
-</colgroup>
-<thead><tr class="header">
-<th align="left">Simulation</th>
-<th align="right">True rank</th>
-<th align="right">Estimated rank</th>
-<th align="right">True occurrences</th>
-<th align="right">Recovered</th>
-<th align="right">False calls</th>
-<th align="right">Total time</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td align="left">All compounds present</td>
-<td align="right">26</td>
-<td align="right"><strong>26 (exact)</strong></td>
-<td align="right">78</td>
-<td align="right">78</td>
-<td align="right">0</td>
-<td align="right">17.06 s</td>
-</tr>
-<tr class="even">
-<td align="left">50% presence probability</td>
-<td align="right">23</td>
-<td align="right"><strong>23 (exact)</strong></td>
-<td align="right">37</td>
-<td align="right">37</td>
-<td align="right">0</td>
-<td align="right">13.27 s</td>
-</tr>
-</tbody>
-</table>
-<p>Each timing includes independent fits, alignment, grouping and
-simultaneous refinement, with a budget of eight logical cores and one
-BLAS thread per worker on an Intel Core i9-11950H. Simulation is
-excluded. Recovery uses the nearest normalized true spectrum, with
-cosine similarity at least 0.9 and a single match per compound within
-each sample.</p>
-<div class="float">
-<img src="figures/simultaneous-profiles.png" alt="Aligned component profiles across the three samples"><div class="figcaption">Aligned component profiles across the three
-samples</div>
-</div>
-<p>Shared spectra are estimated from all detected occurrences of a
-compound:</p>
-<div class="float">
-<img src="figures/simultaneous-spectra.png" alt="Shared spectra recovered from all sample occurrences"><div class="figcaption">Shared spectra recovered from all sample
-occurrences</div>
-</div>
 <div class="section level2">
 <h2 id="benchmark-scales">Sixteen full chromatograms<a class="anchor" aria-label="anchor" href="#benchmark-scales"></a>
 </h2>
@@ -304,6 +202,28 @@ factorisation rank.</p>
 </tr>
 </tbody>
 </table>
+<p>The 1,000 shared factors matched the 1,000 generating compounds
+one-to-one across all eight occurrences of each compound. This is exact
+automatic recovery of the chemical component count from 550 measured ion
+channels. Scan order distinguishes compounds that elute at different
+times, and each compound contributes a shared spectrum wherever it
+occurs.</p>
+<p>Across the 160,000 scans, the median number of simultaneously eluting
+true peaks was one, the 95th percentile was three and the maximum was
+five, counting a peak wherever it reached 1% of its own apex. Thus 1,000
+measures the number of distinct compounds across the chromatograms. An
+unrestricted nonnegative factorisation of the stacked scan-by-ion matrix
+has nonnegative rank at most 550, since the 550 ion columns themselves
+provide a nonnegative basis.</p>
+<p>Published rank-selection experiments put the scale in perspective.
+Distributed NMF (DnMFk) recovered seven planted factors in a
+one-terabyte matrix. Eswar et al. compared NMF rank selectors at true
+rank 10. Fu et al. tested nonnegative tensor rank selection at true
+ranks 15–40. The 1,000 compounds here are <strong>25 times the largest
+generating rank in that tensor experiment</strong>. These studies use
+different data models and assess different kinds of rank. <a href="https://doi.org/10.1007/s11227-020-03181-6" class="external-link">Chennupati et al.</a>
+· <a href="https://www.osti.gov/servlets/purl/3002147" class="external-link">Eswar et al.</a>
+· <a href="https://doi.org/10.3390/e21070632" class="external-link">Fu et al.</a></p>
 <div class="section level3">
 <h3 id="local-rank-search">Local search for the shared rank<a class="anchor" aria-label="anchor" href="#local-rank-search"></a>
 </h3>
@@ -346,6 +266,59 @@ comparison and reproduction code</a>.</p>
 </div>
 </div>
 <div class="section level2">
+<h2 id="optimality-gap-to-ground-truth-initialised-solution">Optimality gap to ground truth-initialised solution<a class="anchor" aria-label="anchor" href="#optimality-gap-to-ground-truth-initialised-solution"></a>
+</h2>
+<p>The blind fit descended from an original-ion GIC of
+<strong>46,273,866</strong> to <strong>32,610,830</strong>. The fit
+initialised from the true elution profiles finished at
+<strong>32,682,079</strong>, giving a signed empirical optimality gap of
+<strong>-0.2180%</strong> (the blind fit scored below the reference).
+Both trajectories showed smooth empirical descent. GIC never increased
+across the 29 blind or 16 reference checkpoints.</p>
+<p>Both fits used the same noisy counts, penalty and stopping rules.
+Only the reference received the true unit-area elution shapes and their
+cross-sample identities. Both fits then updated the elution profiles,
+their amplitudes, the shared spectra and the background. The red line
+gives the best GIC reached from the ground truth initialisation under
+these stopping rules. The global minimum is unknown.</p>
+<p><a href="../reference/figures/full-benchmark-gic-gap.png"><img src="../reference/figures/full-benchmark-gic-gap.png" alt="Blind and ground truth-initialised GIC trajectories on the full 16-sample benchmark"></a></p>
+<p>The blind fit started with 1,088 candidate factors. It crossed below
+the reference after the support exchange at sweep 6 and finished after 8
+sweeps. The reference stopped after 4. Both ended at rank 1,000 with
+8,000 occurrences. The reference had 143,787 less scaled deviance. The
+blind fit used 3,961 fewer profile degrees of freedom and 20 fewer
+spectral degrees of freedom, which lowered its final penalised criterion
+by 71,249.</p>
+<p>The signed gap is 100 × (blind GIC − reference GIC) / |reference
+GIC|. The left panel shows every recorded original-ion GIC. The right
+panel enlarges the final half of each trajectory on the percentage
+scale. The red dotted line marks the reference endpoint. The published
+35.95 seconds per sample measures the ordinary blind run. Collecting
+both traces was a separate diagnostic run.</p>
+<p><a href="https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-trace.csv" class="external-link">Block-level
+GIC trace</a> · <a href="https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-gap.csv" class="external-link">Final
+GIC values</a>.</p>
+<div class="section level3">
+<h3 id="reproduce-the-full-example">Reproduce the full example<a class="anchor" aria-label="anchor" href="#reproduce-the-full-example"></a>
+</h3>
+<p>The GCMSbenchmark scripts generate the same 16 CDF files and a
+separate calibration standard. The standard run estimates rank blind.
+The optional diagnostic reuses those files and fits both starts.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bench</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"benchmarks"</span>, package <span class="op">=</span> <span class="st">"GCMSbenchmark"</span>, mustWork <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">bench</span>, <span class="st">"simulated-16.R"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">directory</span> <span class="op">&lt;-</span> <span class="st">"full-chromatograms"</span></span>
+<span><span class="fu">prepareFullBenchmark</span><span class="op">(</span><span class="va">directory</span><span class="op">)</span></span>
+<span><span class="fu">fitFullBenchmark</span><span class="op">(</span><span class="va">directory</span>, <span class="st">"GCMSprime"</span>, ncores <span class="op">=</span> <span class="fl">16L</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">directory</span>, <span class="st">"runs"</span>, <span class="st">"GCMSprime"</span>, <span class="st">"native.rds"</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">result</span><span class="op">$</span><span class="va">coupled</span></span>
+<span><span class="va">fit</span><span class="op">$</span><span class="va">rank</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">bench</span>, <span class="st">"full-gic.R"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">gap</span> <span class="op">&lt;-</span> <span class="fu">runFullBenchmarkGIC</span><span class="op">(</span><span class="va">directory</span>, <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">directory</span>, <span class="st">"diagnostic"</span><span class="op">)</span>, ncores <span class="op">=</span> <span class="fl">16L</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">gap</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
 <h2 id="original-scan-grids-shared-spectra-and-missing-compounds">Original scan grids, shared spectra and missing compounds<a class="anchor" aria-label="anchor" href="#original-scan-grids-shared-spectra-and-missing-compounds"></a>
 </h2>
 <p>Each sample retains its measured time grid, background and noise
@@ -353,12 +326,11 @@ parameters. Monotone alignment changes profile coordinates and bin
 widths; observations are evaluated directly without resampling. Each
 detected occurrence has its own log-concave shape and amplitude, while
 its spectrum is shared.</p>
-<p>The joint criterion counts one unit-sum spectrum per consensus
-component and one amplitude per detected occurrence. Profile and
-background complexity are unpenalized. Original-channel likelihood
-checks decide whether a complete grouped/refined candidate is
-retained.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<p>The count-model GIC charges each shared spectrum once for its free
+positive ion proportions. Each positive elution profile contributes its
+fitted log-concave face dimension, including its scale. The background
+uses a fixed spline basis.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span><span class="op">$</span><span class="va">areas</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">compounds</span></span>
 <span><span class="va">fit</span><span class="op">$</span><span class="va">alignment</span></span>

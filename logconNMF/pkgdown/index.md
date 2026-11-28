@@ -107,37 +107,19 @@ interact.
 
 ::: {.l0-method-comparison}
 
-| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Optimal spectral sparsity | Noise objective | Multiple samples | Typical practical rank and scope |
+| Method (typical cited formulation) | Rank selection | Chromatographic profile | Nonnegativity | Joint component selection across channels | Optimal spectral sparsity | Noise objective | Multiple samples | Rank and scope in the cited formulation |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| [MCR-ALS / NMF](https://doi.org/10.6028/jres.124.018)<sup>†</sup> ([GC–MS NMF](https://doi.org/10.1016/j.talanta.2004.09.017); [unimodal NMF](https://doi.org/10.1109/ICASSP39728.2021.9414631)) | Supplied; external EFA/PCA diagnostics | Optional unimodality and other constraints, but no hard log-concavity | Both factors in standard NMF and NNLS-constrained MCR; optional in broader MCR | No | No | Least squares is usual; generalized KL and specialised Poisson extensions exist | Separate, augmented or shared-factor multiset fits | Commonly about 5–10 factors per chromatographic fit; estimates are often highly unstable by about 15, although software imposes no hard cap |
-| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only | Commonly about 3–6 factors per chromatographic fit |
-| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | No | Least squares | Retention drift and restricted shape variation | Commonly about 6–8 factors; PARADISe fits candidate ranks 1–8 in separate windows containing preferably fewer than six peaks |
-| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No | No | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint | Usually low-rank, windowed fits; greater flexibility increases computational cost |
+| [MCR-ALS / NMF](https://doi.org/10.6028/jres.124.018)<sup>†</sup> ([GC–MS NMF](https://doi.org/10.1016/j.talanta.2004.09.017); [unimodal NMF](https://doi.org/10.1109/ICASSP39728.2021.9414631)) | Supplied; external EFA/PCA diagnostics | Optional unimodality and other constraints, but no hard log-concavity | Both factors in standard NMF and NNLS-constrained MCR; optional in broader MCR | No | No | Least squares is usual; generalized KL and specialised Poisson extensions exist | Separate, augmented or shared-factor multiset fits | Chosen for the mixture or interval being resolved |
+| PARAFAC / shifted PARAFAC | Supplied; external diagnostics | One shared profile per compound; shifted variant adds translation | Optional | No | No | Least squares in standard algorithms | Exact trilinearity, or sample shifts only | Chosen for the sample tensor or interval |
+| [Classical PARAFAC2 / PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) | Usually supplied; multi-rank diagnostic automation has been proposed | Sample-specific profiles with a constant cross-product constraint; no hard chromatographic shape | Historically not on every mode | No | No | Least squares | Retention drift and restricted shape variation | PARADISe compares candidate ranks within each chromatographic interval |
+| Flexible / [fully constrained PARAFAC2](https://doi.org/10.1137/21M1450033) | Supplied externally | Optional nonnegativity, smoothness or unimodality; relaxed/flexible coupling | Can constrain every mode | No | No | Least squares in the cited formulation | More flexible drift and shape variation, with an explicit coupling penalty or constraint | Fitted at the chosen order |
 | [Shift-invariant trilinearity](https://doi.org/10.1002/cem.3501) | Supplied externally | A shared peak shape up to translation; cannot model sample-specific shape changes | Can constrain all modes | No | No | Least squares | Retention shifts under shift-invariant trilinearity | Evaluated on low-rank windows; whole chromatograms still require many separate models |
 
 :::
 
 <p class="l0-table-footnote"><sup>†</sup> When both factors are constrained nonnegative and each alternating least-squares step uses nonnegative least squares under a squared-error loss, MCR-ALS and standard least-squares NMF solve the same constrained bilinear factorisation (<a href="https://doi.org/10.6028/jres.124.018">Camp, 2019</a>). <strong>MCR-ALS</strong> remains the established name in chemometrics and is the broader framework because its regressors and constraints need not be nonnegative least squares.</p>
 
-The cited rank ranges describe practical operation limits in openly available
-chromatographic workflows, not algebraic or hard-coded rank ceilings. The
-[R `ALS` package](https://cran.r-project.org/package=ALS) and
-[MATLAB MCR-ALS toolbox](https://mcrals.wordpress.com/download/mcr-als-2-0-toolbox/)
-accept a user-selected component count. In practice, however, dense alternating
-factorisations become increasingly sensitive to initialisation, ill-conditioning
-and rotational ambiguity as the rank rises: 5–10 components is a usual operating
-range for chromatographic MCR-ALS/NMF, and estimates are often highly unstable by
-about 15 components. A major reason is that the standard alternating regressions
-treat the elution-mode factor as an unstructured matrix; unless a separate weak
-shape constraint is added, they do not use scan order or local chromatographic
-geometry in the updates. PARADISe makes the corresponding low-rank, windowed
-workflow explicit by fitting candidate ranks 1–8 separately in intervals with
-preferably fewer than six peaks. The shift-invariant trilinearity study likewise
-notes that hundreds or thousands of low-rank PARAFAC2 models are needed to
-extract a high-rank untargeted chromatogram. logconNMF instead fits full
-chromatograms and large batches directly, with stable model ranks in the hundreds
-or thousands rather than requiring hundreds or thousands of separate fits on
-small windows.
+The cited chromatographic workflows choose rank for a matrix or retention interval. In PARADISe, intervals are selected to contain preferably fewer than six peaks. The rank of a whole chromatogram counts compounds across all intervals. [PARADISe workflow](https://doi.org/10.1016/j.chroma.2017.04.052)
 
 ### What logconNMF adds to constrained factorisation
 
@@ -289,6 +271,10 @@ The same 16 simulated chromatograms were supplied to every program. Each contain
 
 GCMSprime, using simultaneous logconNMF, **recovered the true rank of 1,000 exactly** in **35.95 seconds per sample**. It recovered **8,000 of 8,000** compound occurrences and made **no false-positive calls**. The recovered peaks included **80 of the 80 acid occurrences**. MSHub returned **1,414 deconvolved components**, 41.4% above the true rank. The other five workflows produce peak lists or aligned feature groups. Their outputs do not define a common factorisation rank.
 
+The 1,000 shared factors matched the 1,000 generating compounds one-to-one across all eight occurrences of each compound. This is exact automatic recovery of the chemical component count from 550 measured ion channels. Scan order distinguishes compounds that elute at different times, and each compound contributes a shared spectrum wherever it occurs.
+
+Published rank-selection experiments put the scale in perspective. Distributed NMF (DnMFk) recovered seven planted factors in a one-terabyte matrix. Eswar et al. compared NMF rank selectors at true rank 10. Fu et al. tested nonnegative tensor rank selection at true ranks 15–40. The 1,000 compounds here are **25 times the largest generating rank in that tensor experiment**. These studies use different data models and assess different kinds of rank. [Chennupati et al.](https://doi.org/10.1007/s11227-020-03181-6) · [Eswar et al.](https://www.osti.gov/servlets/purl/3002147) · [Fu et al.](https://doi.org/10.3390/e21070632)
+
 | Workflow | Seconds/sample | Estimated rank (true 1,000) | TP | FP | FN | Acid TP / 80 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | GCMSprime | 35.95 | **1,000 (exact)** | 8,000 | 0 | 0 | 80 / 80 |
@@ -306,6 +292,16 @@ Among GCMSprime’s 8,000 matched occurrences, the median absolute relative area
 [![Accuracy of recovered shared spectra](reference/figures/simultaneous-benchmark-spectral-accuracy.png)](reference/figures/simultaneous-benchmark-spectral-accuracy.png)
 
 [![Recovery of ions within each spectrum](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](reference/figures/simultaneous-benchmark-spectral-sparsity.png)
+
+### Optimality gap to ground truth-initialised solution
+
+The blind fit descended from an original-ion GIC of **46,273,866** to **32,610,830**. The fit initialised from the true elution profiles finished at **32,682,079**, giving a signed empirical optimality gap of **-0.2180%** (the blind fit scored below the reference). Both trajectories showed smooth empirical descent. GIC never increased across the 29 blind or 16 reference checkpoints.
+
+Both fits used the same noisy counts, penalty and stopping rules. Only the reference received the true unit-area elution shapes and their cross-sample identities. Both fits then updated the elution profiles, their amplitudes, the shared spectra and the background. The red line gives the best GIC reached from the ground truth initialisation under these stopping rules. The global minimum is unknown.
+
+[![Blind and ground truth-initialised GIC trajectories on the full 16-sample benchmark](reference/figures/full-benchmark-gic-gap.png)](reference/figures/full-benchmark-gic-gap.png)
+
+[Block-level GIC trace](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-trace.csv) · [Final GIC values](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-gap.csv).
 
 ### Elution profile recovery
 

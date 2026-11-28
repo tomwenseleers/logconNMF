@@ -1,4 +1,4 @@
-# Simultaneous multisample log-concave NMF with automatic best rank tuning
+# Simultaneous log-concave NMF on 16 full chromatograms
 
 [`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
 combines related multichannel samples into a common spectral library
@@ -14,84 +14,6 @@ factors Q_s. This is **simultaneous NMF** in the terminology of
 [Badea](https://psb.stanford.edu/psb-online/proceedings/psb08/badea.pdf)
 and [Lee et al.](https://doi.org/10.1371/journal.pone.0048238). It is an
 exact shared-factor model.
-
-``` r
-
-fit <- logconNMF(samples, family=quasipoisson("identity"), precluster=32L)
-fit$rank                          # estimated number of shared compounds
-fit$areas                         # samples x consensus compounds
-coef(fit, normalize="l1")          # common spectra
-fitted(fit, sample=1L)             # original-grid fitted signal
-sampleNMF(fit, sample=1L)          # standard per-sample NMF object
-GIC(fit)
-```
-
-Each sample description contains `y`, `time`, and either a candidate PSF
-matrix `X` or an independent
-[`logconNMF()`](https://tomwenseleers.github.io/logconNMF/reference/logconNMF.md)
-fit. Matrices can be supplied through RDS paths. Observations, factors,
-weights and offsets are stored per sample. The grouped PSF regressions
-run in separate workers. For joint conditional updates the solver holds
-observations, fitted means and shared spectra in memory. The general
-identity-link solver can stream blocks of ions from the per-sample
-files. \## Three samples, shared spectra and different peak shapes
-
-The simulator provides exponentially modified Gaussian peaks, broad
-triangular acid profiles, smooth backgrounds and irregular scan
-intervals. Peak width, tailing and retention time can depend on
-concentration and position in the chromatogram. `presence=0.5` makes
-compounds absent independently in half of the samples on average.
-
-``` r
-
-sim <- simulateGCMSSamples(samples=3L, n=c(580L,600L,620L), k=26L,
-  preset="time_area_acid", presence=0.5, seed=811)
-
-samples <- lapply(sim$samples, function(s) list(
-  y=s$Y, time=s$time, edges=s$edges, exposure=s$raw_exposure,
-  sample_id=s$sample_id,
-  X=convMatrix(dnorm(-8:8, sd=1.6), nrow(s$Y)),
-  background=splines::bs(s$time, df=4L, intercept=TRUE),
-  small_width=2 * sqrt(2 * log(100)) * 1.6 * median(diff(s$time))))
-
-fit <- logconNMF(samples, family=poisson("identity"), ncores=8L,
-  control=list(initial=list(profile_cycles=4L, fusion_passes=2L)))
-true_rank <- sum(rowSums(sim$present) > 0)
-data.frame(true_rank, estimated_rank=fit$rank, rank_exact=fit$rank == true_rank)
-fit$areas
-plot(fit, type="profiles", compounds=c(1L,12L))
-```
-
-The fit used all **258 mass channels**. With every compound present, it
-recovered **78 of 78 occurrences** at an estimated rank of 26 (true rank
-26). With a 50% presence probability, it recovered **37 of 37
-occurrences** at an estimated rank of 23 (true rank 23). The area table
-records missing occurrences as `NA`.
-
-| Simulation | True rank | Estimated rank | True occurrences | Recovered | False calls | Total time |
-|:---|---:|---:|---:|---:|---:|---:|
-| All compounds present | 26 | **26 (exact)** | 78 | 78 | 0 | 17.06 s |
-| 50% presence probability | 23 | **23 (exact)** | 37 | 37 | 0 | 13.27 s |
-
-Each timing includes independent fits, alignment, grouping and
-simultaneous refinement, with a budget of eight logical cores and one
-BLAS thread per worker on an Intel Core i9-11950H. Simulation is
-excluded. Recovery uses the nearest normalized true spectrum, with
-cosine similarity at least 0.9 and a single match per compound within
-each sample.
-
-![Aligned component profiles across the three
-samples](figures/simultaneous-profiles.png)
-
-Aligned component profiles across the three samples
-
-Shared spectra are estimated from all detected occurrences of a
-compound:
-
-![Shared spectra recovered from all sample
-occurrences](figures/simultaneous-spectra.png)
-
-Shared spectra recovered from all sample occurrences
 
 ## Sixteen full chromatograms
 
@@ -126,6 +48,32 @@ Their outputs do not define a common factorisation rank.
 | AMDIS | 28.99 | — | 7,878 | 9,122 | 122 | 80 / 80 |
 | xcms + CAMERA | 4.22 | — | 7,261 | 890 | 739 | 31 / 80 |
 | MSHub | 15.05 | 1,414 | 7,179 | 12,184 | 821 | 50 / 80 |
+
+The 1,000 shared factors matched the 1,000 generating compounds
+one-to-one across all eight occurrences of each compound. This is exact
+automatic recovery of the chemical component count from 550 measured ion
+channels. Scan order distinguishes compounds that elute at different
+times, and each compound contributes a shared spectrum wherever it
+occurs.
+
+Across the 160,000 scans, the median number of simultaneously eluting
+true peaks was one, the 95th percentile was three and the maximum was
+five, counting a peak wherever it reached 1% of its own apex. Thus 1,000
+measures the number of distinct compounds across the chromatograms. An
+unrestricted nonnegative factorisation of the stacked scan-by-ion matrix
+has nonnegative rank at most 550, since the 550 ion columns themselves
+provide a nonnegative basis.
+
+Published rank-selection experiments put the scale in perspective.
+Distributed NMF (DnMFk) recovered seven planted factors in a
+one-terabyte matrix. Eswar et al. compared NMF rank selectors at true
+rank 10. Fu et al. tested nonnegative tensor rank selection at true
+ranks 15–40. The 1,000 compounds here are **25 times the largest
+generating rank in that tensor experiment**. These studies use different
+data models and assess different kinds of rank. [Chennupati et
+al.](https://doi.org/10.1007/s11227-020-03181-6) · [Eswar et
+al.](https://www.osti.gov/servlets/purl/3002147) · [Fu et
+al.](https://doi.org/10.3390/e21070632)
 
 ### Local search for the shared rank
 
@@ -173,6 +121,67 @@ samples](../reference/figures/simultaneous-benchmark-elution-profiles.png)](http
 [Seven-workflow comparison and reproduction
 code](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html).
 
+## Optimality gap to ground truth-initialised solution
+
+The blind fit descended from an original-ion GIC of **46,273,866** to
+**32,610,830**. The fit initialised from the true elution profiles
+finished at **32,682,079**, giving a signed empirical optimality gap of
+**-0.2180%** (the blind fit scored below the reference). Both
+trajectories showed smooth empirical descent. GIC never increased across
+the 29 blind or 16 reference checkpoints.
+
+Both fits used the same noisy counts, penalty and stopping rules. Only
+the reference received the true unit-area elution shapes and their
+cross-sample identities. Both fits then updated the elution profiles,
+their amplitudes, the shared spectra and the background. The red line
+gives the best GIC reached from the ground truth initialisation under
+these stopping rules. The global minimum is unknown.
+
+[![Blind and ground truth-initialised GIC trajectories on the full
+16-sample
+benchmark](../reference/figures/full-benchmark-gic-gap.png)](https://tomwenseleers.github.io/logconNMF/reference/figures/full-benchmark-gic-gap.png)
+
+The blind fit started with 1,088 candidate factors. It crossed below the
+reference after the support exchange at sweep 6 and finished after 8
+sweeps. The reference stopped after 4. Both ended at rank 1,000 with
+8,000 occurrences. The reference had 143,787 less scaled deviance. The
+blind fit used 3,961 fewer profile degrees of freedom and 20 fewer
+spectral degrees of freedom, which lowered its final penalised criterion
+by 71,249.
+
+The signed gap is 100 × (blind GIC − reference GIC) / \|reference GIC\|.
+The left panel shows every recorded original-ion GIC. The right panel
+enlarges the final half of each trajectory on the percentage scale. The
+red dotted line marks the reference endpoint. The published 35.95
+seconds per sample measures the ordinary blind run. Collecting both
+traces was a separate diagnostic run.
+
+[Block-level GIC
+trace](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-trace.csv)
+· [Final GIC
+values](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/gic-gap.csv).
+
+### Reproduce the full example
+
+The GCMSbenchmark scripts generate the same 16 CDF files and a separate
+calibration standard. The standard run estimates rank blind. The
+optional diagnostic reuses those files and fits both starts.
+
+``` r
+
+bench <- system.file("benchmarks", package = "GCMSbenchmark", mustWork = TRUE)
+source(file.path(bench, "simulated-16.R"))
+directory <- "full-chromatograms"
+prepareFullBenchmark(directory)
+fitFullBenchmark(directory, "GCMSprime", ncores = 16L)
+fit <- readRDS(file.path(directory, "runs", "GCMSprime", "native.rds"))$result$coupled
+fit$rank
+
+source(file.path(bench, "full-gic.R"))
+gap <- runFullBenchmarkGIC(directory, file.path(directory, "diagnostic"), ncores = 16L)
+plot(gap)
+```
+
 ## Original scan grids, shared spectra and missing compounds
 
 Each sample retains its measured time grid, background and noise
@@ -181,10 +190,10 @@ widths; observations are evaluated directly without resampling. Each
 detected occurrence has its own log-concave shape and amplitude, while
 its spectrum is shared.
 
-The joint criterion counts one unit-sum spectrum per consensus component
-and one amplitude per detected occurrence. Profile and background
-complexity are unpenalized. Original-channel likelihood checks decide
-whether a complete grouped/refined candidate is retained.
+The count-model GIC charges each shared spectrum once for its free
+positive ion proportions. Each positive elution profile contributes its
+fitted log-concave face dimension, including its scale. The background
+uses a fixed spline basis.
 
 ``` r
 

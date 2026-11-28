@@ -98,15 +98,12 @@ graphics::legend(
 grDevices::dev.off()
 
 distribution_plot <- function(scores, ticks, file, title, axis, statistic,
-    statistic_name, caption, cap = NULL, reference = NULL) {
+    statistic_name, caption) {
   scores <- scores[is.finite(scores)]
-  display <- function(x) {
-    if (!is.null(cap)) x <- pmin(x, cap)
-    x
-  }
-  span <- range(stats::qlogis(display(c(scores, ticks))), finite = TRUE)
+  stopifnot(all(scores >= 0 & scores <= 1))
+  if (any(scores == 1)) ticks <- sort(unique(c(ticks, 1)))
+  span <- range(stats::qlogis(c(scores, ticks)), finite = TRUE)
   transform <- function(x) {
-    x <- display(x)
     answer <- stats::qlogis(x)
     answer[x == 0] <- span[[1L]] - 1.4
     answer[x == 1] <- span[[2L]] + 1.4
@@ -125,16 +122,22 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
     upper = transform(quartiles[[2L]]),
     centre = transform(centre)
   )
-  tick_labels <- vapply(ticks, function(x) {
-    if (!is.null(cap) && x >= cap) "1" else
-      format(x, trim = TRUE, scientific = FALSE)
-  }, character(1L))
+  tick_labels <- parse(text = vapply(ticks, function(x) {
+    if (x == 1) return("'1 (exact)'")
+    if (x >= 0.9999) return(sprintf("1-10^-%d", round(-log10(1-x))))
+    format(x, trim = TRUE, scientific = FALSE)
+  }, character(1L)))
+  if (any(scores == 1)) caption <- paste(caption,
+    sprintf("%s/%s (%.1f%%) score exactly 1. The violin shows the other scores.",
+      format(sum(scores == 1), big.mark = ","), format(length(scores), big.mark = ","), 100 * mean(scores == 1)),
+    sep = "\n")
 
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = model, y = position)) +
     ggplot2::geom_point(colour = steelblue, alpha = 0.14, size = 0.75, stroke = 0.20,
       position = ggplot2::position_jitter(width = 0.20, height = 0,
         seed = 23L)) +
-    ggplot2::geom_violin(fill = scales::alpha(light_grey, 0.60), colour = "grey45",
+    ggplot2::geom_violin(data = data[data$score > 0 & data$score < 1, , drop = FALSE],
+      fill = scales::alpha(light_grey, 0.60), colour = "grey45",
       scale = "width", width = 0.72, adjust = 0.75, linewidth = 0.6) +
     ggplot2::geom_linerange(data = summary_data,
       ggplot2::aes(x = model, ymin = lower, ymax = upper),
@@ -166,29 +169,24 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
       axis.text.y = ggplot2::element_text(face = "bold", colour = navy),
       plot.margin = ggplot2::margin(16, 18, 12, 16)
     )
-  if (!is.null(reference)) {
-    plot <- plot + ggplot2::geom_hline(yintercept = transform(reference),
-      linetype = "dotted", colour = muted, linewidth = 0.55)
-  }
   ggplot2::ggsave(file.path(output_dir, file), plot,
     width = 10.0, height = 5.5, dpi = 160, bg = "white")
 }
 
 distribution_plot(
   hits$spectral_cosine,
-  ticks = c(0.5, 0.7, 0.9, 0.99, 0.999, 0.9999, 0.99999, 0.999999),
+  ticks = 1 - 10^(-4:-8),
   file = "simultaneous-benchmark-spectral-accuracy.png",
   title = "Accuracy of recovered spectra",
   axis = "Spectral cosine similarity (logit scale)",
   statistic = stats::median,
   statistic_name = "Median",
-  caption = "Reciprocal matches to compounds present in the sample; values at or above 0.999999 are displayed at 1.",
-  cap = 0.999999, reference = 0.9
+  caption = "Each point is a reciprocal hit to a compound present in that sample. All cosines use their measured values."
 )
 
 distribution_plot(
   hits$spectral_F1,
-  ticks = c(0, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 1),
+  ticks = c(0.95, 0.975, 0.99, 0.995, 0.999, 1),
   file = "simultaneous-benchmark-spectral-sparsity.png",
   title = "Accuracy of spectral sparsity",
   axis = "Within-spectrum ion-support F1 (logit scale)",
