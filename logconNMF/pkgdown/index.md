@@ -119,11 +119,11 @@ interact.
 
 <p class="l0-table-footnote"><sup>†</sup> When both factors are constrained nonnegative and each alternating least-squares step uses nonnegative least squares under a squared-error loss, MCR-ALS and standard least-squares NMF solve the same constrained bilinear factorisation (<a href="https://doi.org/10.6028/jres.124.018">Camp, 2019</a>). <strong>MCR-ALS</strong> remains the established name in chemometrics and is the broader framework because its regressors and constraints need not be nonnegative least squares.</p>
 
-The cited chromatographic workflows choose rank for a matrix or retention interval. In PARADISe, intervals are selected to contain preferably fewer than six peaks. The rank of a whole chromatogram counts compounds across all intervals. [PARADISe workflow](https://doi.org/10.1016/j.chroma.2017.04.052)
+The cited chromatographic workflows choose rank for a matrix or retention interval. In PARADISe, intervals are selected to contain preferably fewer than six peaks. Baccolo et al. subsequently automated the PARADISe workflow. The rank of a whole chromatogram counts distinct compounds across all intervals. [PARADISe](https://doi.org/10.1016/j.chroma.2017.04.052) · [Automated PARADISe](https://doi.org/10.1016/j.trac.2021.116451)
 
 ### Commercial GC–MS software
 
-AnalyzerPro exposes peak-width and detection thresholds. MassHunter Unknowns Analysis can search multiple widths, with a trade-off between resolving close peaks and runtime. LECO ChromaTOF Sync co-processes Pegasus sample sets to improve spectra and align peaks. GCMSprime fits one shared spectrum and a separate log-concave profile per occurrence, and scores candidate splits against the original ion counts. The commercial workflows have yet to be scored on these 16 chromatograms. [AnalyzerPro](https://spectralworks.com/2016/07/08/using-analyzerpro-in-the-metabolomics-workflow/) · [MassHunter](https://www.agilent.com/cs/library/usermanuals/public/G3335-90243_Unknowns_Analysis_Familiarization-en.pdf#page=27) · [ChromaTOF Sync](https://www.leco.com/instrument/chromatof-sync-data-alignment/) [Nine commercial workflows compared](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html#commercial-gcms-deconvolution-software).
+The vendor guides reviewed here do not specify a preset objective for deciding whether a better fit to the original ion counts justifies another compound, a more complex profile or additional fragment ions. Users can set peak width, height, area and signal-to-noise thresholds in AnalyzerPro. In MassHunter, the correlation window affects how many neighbouring peaks are resolved. These choices can change the peak list. The nine commercial workflows reviewed have no published result on these 16 chromatograms against which to compare rank recovery, false calls or area accuracy. [AnalyzerPro](https://spectralworks.com/2016/07/08/using-analyzerpro-in-the-metabolomics-workflow/) · [MassHunter, p. 27](https://www.agilent.com/cs/library/usermanuals/public/G3335-90243_Unknowns_Analysis_Familiarization-en.pdf#page=27) · [Commercial software comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html#commercial-gcms-deconvolution-software)
 
 ### What logconNMF adds to constrained factorisation
 
@@ -269,6 +269,7 @@ information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
 Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. OpenMP updates elution profiles across samples. It fits each ion’s shared spectrum and sample-specific background coefficients independently, keeping a fixed component order within each ion. The general identity-link solver can stream original-channel blocks from disk.
+
 ### Automatic rank recovery on full chromatograms
 
 The same 16 simulated chromatograms were supplied to every program. Each contains **10,000 scans × 550 nominal mass channels** (m/z 30–579), covering approximately 50 minutes. Together they contain **88 million simulated ion intensities**. Each of the **1,000 distinct compounds** occurs in eight randomly chosen samples. The design therefore contains **8,000 positive sample–compound pairs**. Rank here counts the distinct generating compounds across the batch, each with a time-local elution profile in each positive sample. Of the compounds, 990 have exponentially modified Gaussian (EMG) peaks and ten have a rising shark-fin profile with an abrupt trailing edge. Higher concentrations broaden both types. The acquisition clock allows a smooth retention shift of up to 2.93 seconds between the first and last injections and approximately 2% variation in scan spacing.
@@ -277,17 +278,23 @@ GCMSprime, using simultaneous logconNMF, **recovered the true rank of 1,000 exac
 
 The 1,000 shared factors matched the 1,000 generating compounds one-to-one across all eight occurrences of each compound. This is exact automatic recovery of the chemical component count from 550 measured ion channels. Scan order distinguishes compounds that elute at different times, and each compound contributes a shared spectrum wherever it occurs.
 
-Published rank-selection experiments put the scale in perspective. Distributed NMF (DnMFk) recovered seven planted factors in a one-terabyte matrix. Eswar et al. compared NMF rank selectors at true rank 10. Fu et al. tested nonnegative tensor rank selection at true ranks 15–40. The 1,000 compounds here are **25 times the largest generating rank in that tensor experiment**. These studies use different data models and assess different kinds of rank. [Chennupati et al.](https://doi.org/10.1007/s11227-020-03181-6) · [Eswar et al.](https://www.osti.gov/servlets/purl/3002147) · [Fu et al.](https://doi.org/10.3390/e21070632)
+The largest exact rank recovery we found in a published benchmark of conventional NMF with added noise was **150 factors**. Squires, Prügel-Bennett and Niranjan selected that rank on a 1,000 × 2,000 matrix using minimum description length. They also recovered 50, 80 and 120 factors exactly. The 16 full chromatograms here contain **88 million ion measurements**, compared with **2 million matrix entries** in their rank-150 example. The simultaneous fit recovered **6.7 times** as many generating components from **44 times** as many observations. [Squires et al., Figs. 1–2](https://doi.org/10.1162/NECO_a_00980)
 
-| Workflow | Seconds/sample | Estimated rank (true 1,000) | TP | FP | FN | Acid TP / 80 |
+Eswar et al. compared rank selectors on simulated matrices with true rank 10, testing candidate ranks from 1 to 20. Under Gaussian noise only cross-validation and singular-value hard thresholding ever recovered the planted rank in their experiment. Cai et al.’s Poisson NMF benchmark rarely extended beyond rank 10, with just one higher rank (30) among the six they tested. [Eswar et al.](https://doi.org/10.1109/BigData62323.2024.10825324) · [Cai et al.](https://doi.org/10.1002/sim.9934)
+
+Chennupati et al. recovered seven planted factors in a one-terabyte matrix using distributed NMF. Fu et al. tested nonnegative tensor rank selection at true ranks 15–40. [Chennupati et al.](https://doi.org/10.1007/s11227-020-03181-6) · [Fu et al.](https://doi.org/10.3390/e21070632) · [Evidence for automatic rank recovery](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#evidence-for-automatic-rank-recovery)
+
+Fitting the 88 million observations took **35.95 seconds per sample** on a 64 GB laptop with 16 logical processors. The sampled peak working set was **6.8 GiB**. At the same throughput, 1,000 equally sized samples would take about ten hours. The current joint count solver would need more memory than this laptop has at that scale. [Measurements and memory requirements for larger batches](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#scaling-to-larger-batches)
+
+| Workflow | Seconds/sample | Estimated rank (true 1,000) | TP (sensitivity) | FP | FN | Acid TP / 80 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GCMSprime | 35.95 | **1,000 (exact)** | 8,000 | 0 | 0 | 80 / 80 |
-| MS-DIAL | 16.02 | — | 7,728 | 11,685 | 272 | 73 / 80 |
-| mzmine GC-EI | 6.92 | — | 4,202 | 185 | 3,798 | 29 / 80 |
-| eRah | 25.94 | — | 7,172 | 5,615 | 828 | 70 / 80 |
-| AMDIS | 28.99 | — | 7,878 | 9,122 | 122 | 80 / 80 |
-| xcms + CAMERA | 4.22 | — | 7,261 | 890 | 739 | 31 / 80 |
-| MSHub | 15.05 | 1,414 | 7,179 | 12,184 | 821 | 50 / 80 |
+| GCMSprime | 35.95 | **1,000 (exact)** | 8,000 (100%) | 0 | 0 | 80 / 80 |
+| MS-DIAL | 16.02 | — | 7,728 (96.6%) | 11,685 | 272 | 73 / 80 |
+| mzmine GC-EI | 6.92 | — | 4,202 (52.5%) | 185 | 3,798 | 29 / 80 |
+| eRah | 25.94 | — | 7,172 (89.7%) | 5,615 | 828 | 70 / 80 |
+| AMDIS | 28.99 | — | 7,878 (98.5%) | 9,122 | 122 | 80 / 80 |
+| xcms + CAMERA | 4.22 | — | 7,261 (90.8%) | 890 | 739 | 31 / 80 |
+| MSHub | 15.05 | 1,414 | 7,179 (89.7%) | 12,184 | 821 | 50 / 80 |
 
 Among GCMSprime’s 8,000 matched occurrences, the median absolute relative area error was **0.095%** and ordinary adjusted R² on the log₁₀ scale was **0.999982**.
 
@@ -297,9 +304,11 @@ Among GCMSprime’s 8,000 matched occurrences, the median absolute relative area
 
 [![Recovery of ions within each spectrum](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](reference/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-### Optimality gap to ground truth-initialised solution
+<span id="optimality-gap-to-ground-truth-initialised-solution"></span>
 
-The blind fit showed smooth, monotonic descent in GIC across eight sweeps. Its final GIC differed by only **0.19%** from that of a fit initialised with the true elution profiles and run for the same eight sweeps. Both fits ended at the true rank of **1,000** with **8,000** sample-level occurrences.
+### Convergence behaviour
+
+The blind fit converged to a solution very close to the simulated ground truth. It recovered **all 1,000 compounds and all 8,000 peak occurrences**, with a median elution-profile cosine of **0.999994** and a median absolute relative area error of **0.095%**. GIC showed smooth, monotonic descent over eight sweeps. Its final value differed by only **0.19%** from that of a fit initialised with the true elution profiles and run for the same eight sweeps.
 
 [![Original-ion GIC over eight sweeps of the blind fit on 16 full chromatograms](reference/figures/full-benchmark-gic-gap.png)](reference/figures/full-benchmark-gic-gap.png)
 

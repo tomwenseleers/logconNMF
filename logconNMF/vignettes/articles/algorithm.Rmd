@@ -207,9 +207,13 @@ The `GIC()` extractor includes the data-dependent likelihood constant and
 estimated noise dimensions. Comparisons on the same observations and noise
 specification give the same objective differences.
 
-### Convergence from estimated and true elution profiles {#empirical-gic-gap}
+<span id="empirical-gic-gap"></span>
 
-When simulation profiles and shared identities are available, `truth.profiles` starts a second fit from those profiles. Both starts estimate spectra, amplitudes, shapes and background from the observed counts. The signed percentage gap compares their endpoints at the same original GIC. The unknown global minimum may be lower. In the trace plot the red dotted line marks the truth-initialised endpoint.
+### Convergence behaviour
+
+The blind fit converged to a solution very close to the simulated ground truth. It recovered **all 1,000 compounds and all 8,000 peak occurrences**, with a median elution-profile cosine of **0.999994** and a median absolute relative area error of **0.095%**. GIC showed smooth, monotonic descent over eight sweeps. Its final value differed by only **0.19%** from that of a fit initialised with the true elution profiles and run for the same eight sweeps. [Full-chromatogram benchmark](simultaneous-nmf.html#convergence-behaviour)
+
+When simulation profiles and shared identities are available, `truth.profiles` starts a second fit from those profiles. Both starts estimate spectra, amplitudes, shapes and background from the observed counts. The signed percentage gap compares their endpoints at the same original GIC. The unknown global minimum may be lower. In the diagnostic plot returned by `plot(fit$gic_gap)`, the red dotted line marks the truth-initialised endpoint.
 
 ~~~r
 library(logconNMF)

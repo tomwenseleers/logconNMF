@@ -314,16 +314,27 @@ deviance reference. The <code><a href="https://tomwenseleers.github.io/L0glm/ref
 data-dependent likelihood constant and estimated noise dimensions.
 Comparisons on the same observations and noise specification give the
 same objective differences.</p>
+<p><span id="empirical-gic-gap"></span></p>
 </div>
 <div class="section level3">
-<h3 id="empirical-gic-gap">Convergence from estimated and true elution profiles<a class="anchor" aria-label="anchor" href="#empirical-gic-gap"></a>
+<h3 id="convergence-behaviour">Convergence behaviour<a class="anchor" aria-label="anchor" href="#convergence-behaviour"></a>
 </h3>
+<p>The blind fit converged to a solution very close to the simulated
+ground truth. It recovered <strong>all 1,000 compounds and all 8,000
+peak occurrences</strong>, with a median elution-profile cosine of
+<strong>0.999994</strong> and a median absolute relative area error of
+<strong>0.095%</strong>. GIC showed smooth, monotonic descent over eight
+sweeps. Its final value differed by only <strong>0.19%</strong> from
+that of a fit initialised with the true elution profiles and run for the
+same eight sweeps. <a href="simultaneous-nmf.html#convergence-behaviour">Full-chromatogram
+benchmark</a></p>
 <p>When simulation profiles and shared identities are available,
 <code>truth.profiles</code> starts a second fit from those profiles.
 Both starts estimate spectra, amplitudes, shapes and background from the
 observed counts. The signed percentage gap compares their endpoints at
 the same original GIC. The unknown global minimum may be lower. In the
-trace plot the red dotted line marks the truth-initialised endpoint.</p>
+diagnostic plot returned by <code>plot(fit$gic_gap)</code>, the red
+dotted line marks the truth-initialised endpoint.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tomwenseleers.github.io/logconNMF/">logconNMF</a></span><span class="op">)</span></span>
 <span><span class="va">sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulateGCMSSamples.html">simulateGCMSSamples</a></span><span class="op">(</span>samples <span class="op">=</span> <span class="fl">2L</span>, n <span class="op">=</span> <span class="fl">240L</span>, k <span class="op">=</span> <span class="fl">8L</span>, seed <span class="op">=</span> <span class="fl">3L</span><span class="op">)</span></span>
