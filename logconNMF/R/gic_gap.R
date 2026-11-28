@@ -160,9 +160,6 @@ cc_gap_traces <- function(result, price) {
 #'   A zero reference GIC gives an undefined percentage. A negative difference
 #'   means the standard fit reached a lower GIC. Both fits use the same stopping
 #'   rules. Further updates could improve either fit. The global minimum is unknown.
-#'   On the 16-sample benchmark, 100 additional sweeps, a temporary fourfold
-#'   support search and a blind alternative PSF gave an empirical gap of 0.098%
-#'   relative to the same search initialised with the true profiles and identities.
 #'   An independently fitted GCMSprime directory returns a named list of these
 #'   diagnostics, one per sample.
 #' @example examples/gicGap.R

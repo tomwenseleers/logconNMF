@@ -283,45 +283,37 @@ information without imposing PARAFAC trilinearity or the PARAFAC2
 constant-cross-product constraint.
 
 Grouped PSF regressions divide the core budget between independent samples and native threads. The scheduler estimates how many regressions fit in available memory, including Windows commit headroom. After those workers exit, a single process shares the original ion counts and fitted means. OpenMP updates elution profiles across samples. It fits each ion’s shared spectrum and sample-specific background coefficients independently, keeping a fixed component order within each ion. The general identity-link solver can stream original-channel blocks from disk.
-The local rank search recovered **all 7,917 occurrences** in **9.37 min** with **only 2 false positives** across 16 chromatograms of 10,000 scans and 550 channels. Its **estimated rank of 1,000 exactly matched the true rank of 1,000**. The same control recovered **true rank 100 exactly** on the smaller simulation in **96.51 s**, with an independent repeat of **100.82 s**. [Compare rank, recovery and timing](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#local-rank-search).
-See the [two 16-sample experiments](https://tomwenseleers.github.io/logconNMF/articles/simultaneous-nmf.html#benchmark-scales) for full CDF-to-results timings, memory use and recovery.
+### Automatic rank recovery on full chromatograms
 
-As an example, we provide a simulated
-[small-scale 16-sample GC/MS benchmark](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html)
-with 100 reference compounds, 1,200 scans and 258 channels per sample.
-Across the 16 samples, 769 of the 1,600 possible occurrences are present.
-The simulation includes concentration-dependent broadening, retention drift, a shark-fin-shaped acid,
-a smooth experimental background and quasi-Poisson noise. The plots below
-summarise the simultaneous logconNMF result. The [seven-method comparison](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html) reports recovery, false calls and integration accuracy for every workflow.
+The same 16 simulated chromatograms were supplied to every program. Each contains **10,000 scans × 550 nominal mass channels** (m/z 30–579), covering approximately 50 minutes. Together they contain **88 million simulated ion intensities**. Each of the **1,000 distinct compounds** occurs in eight randomly chosen samples. The design therefore contains **8,000 positive sample–compound pairs**. Rank here counts the distinct generating compounds across the batch, each with a time-local elution profile in each positive sample. Of the compounds, 990 have exponentially modified Gaussian (EMG) peaks and ten have a rising shark-fin profile with an abrupt trailing edge. Higher concentrations broaden both types. The acquisition clock allows a smooth retention shift of up to 2.93 seconds between the first and last injections and approximately 2% variation in scan spacing.
 
-The extended search with 100 extra sweeps and a second blind PSF recovered **true rank 100 exactly (estimated rank 100)**. Its GIC was **0.098%** above the endpoint obtained with the same search initialised from the true profiles and identities.
+GCMSprime, using simultaneous logconNMF, **recovered the true rank of 1,000 exactly** in **35.95 seconds per sample**. It recovered **8,000 of 8,000** compound occurrences and made **no false-positive calls**. The recovered peaks included **80 of the 80 acid occurrences**. MSHub returned **1,414 deconvolved components**, 41.4% above the true rank. The other five workflows produce peak lists or aligned feature groups. Their outputs do not define a common factorisation rank.
 
-[Compare the two GIC traces](https://tomwenseleers.github.io/logconNMF/articles/algorithm.html#empirical-gic-gap).
+| Workflow | Seconds/sample | Estimated rank (true 1,000) | TP | FP | FN | Acid TP / 80 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| GCMSprime | 35.95 | **1,000 (exact)** | 8,000 | 0 | 0 | 80 / 80 |
+| MS-DIAL | 16.02 | — | 7,728 | 11,685 | 272 | 73 / 80 |
+| mzmine GC-EI | 6.92 | — | 4,202 | 185 | 3,798 | 29 / 80 |
+| eRah | 25.94 | — | 7,172 | 5,615 | 828 | 70 / 80 |
+| AMDIS | 28.99 | — | 7,878 | 9,122 | 122 | 80 / 80 |
+| xcms + CAMERA | 4.22 | — | 7,261 | 890 | 739 | 31 / 80 |
+| MSHub | 15.05 | 1,414 | 7,179 | 12,184 | 821 | 50 / 80 |
 
-<div class="l0-benchmark-summary">
-<div><strong>769 / 769</strong><span>true occurrences recovered</span></div>
-<div><strong>100 / 100 (exact)</strong><span>true rank / estimated rank</span></div>
-<div><strong>0.999993</strong><span>ordinary adjusted log-area R²</span></div>
-<div><strong>0.9999993</strong><span>median spectral cosine</span></div>
-</div>
+Among GCMSprime’s 8,000 matched occurrences, the median absolute relative area error was **0.095%** and ordinary adjusted R² on the log₁₀ scale was **0.999982**.
 
-Across all four true-area quartiles, **every occurrence was recovered**, including all 193 peaks in the smallest quarter. The complete small fit took **96.51 s**. Of this, 81.46 s covered the grouped regressions, alignment and original-channel factor updates. The [two-benchmark overview](https://tomwenseleers.github.io/GCMSprime/articles/multisample.html#benchmark-scales) gives both acquisition sizes and reproduction code.
+[![Estimated and true areas in the simultaneous fit](reference/figures/simultaneous-benchmark-area-accuracy.png)](reference/figures/simultaneous-benchmark-area-accuracy.png)
 
-Area and spectral summaries are conditional on correctly matched true
-components and should therefore be read together with occurrence recovery and
-false-positive counts (one among 770 calls). Ion-support F1 applies the same
-0.1% of base-peak cutoff to the reference and recovered spectra.
+[![Accuracy of recovered shared spectra](reference/figures/simultaneous-benchmark-spectral-accuracy.png)](reference/figures/simultaneous-benchmark-spectral-accuracy.png)
 
-<div class="l0-benchmark-grid">
-<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-area-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-area-accuracy.png" alt="True versus estimated peak areas for the simultaneous logconNMF fit with ordinary least-squares regression and a 95% prediction interval"></a><figcaption>Peak-area accuracy: ordinary adjusted R² 0.999993 and median absolute area error 0.082% over 769 matched occurrences.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-accuracy.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-accuracy.png" alt="Distribution of spectral cosine similarity for correctly matched spectra from simultaneous logconNMF"></a><figcaption>Spectral accuracy: median cosine similarity 0.9999993 for 769 correctly matched true spectra.</figcaption></figure>
-<figure><a href="reference/figures/simultaneous-benchmark-spectral-sparsity.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-spectral-sparsity.png" alt="Distribution of within-spectrum ion-support F1 for simultaneous logconNMF"></a><figcaption>Spectral sparsity: mean within-spectrum ion-support F1 0.996 under the shared 0.1% cutoff.</figcaption></figure>
-<figure class="l0-wide"><a href="reference/figures/simultaneous-benchmark-elution-profiles.png"><img loading="lazy" src="reference/figures/simultaneous-benchmark-elution-profiles.png" alt="Inferred and true elution profiles for representative regular and shark-fin-shaped compounds across the simultaneous fit"></a><figcaption>Small-scale 16-sample benchmark (100 reference compounds, 1,200 scans): the same profiles as the GCMSprime software comparison. The regular compound occurs in 11 samples and the acid in seven. All 16 samples are drawn; absent true profiles lie at zero. Solid: inferred; dashed: truth; colours rank all 16 true areas.</figcaption></figure>
-</div>
+[![Recovery of ions within each spectrum](reference/figures/simultaneous-benchmark-spectral-sparsity.png)](reference/figures/simultaneous-benchmark-spectral-sparsity.png)
 
-The [simultaneous-NMF tutorial](articles/simultaneous-nmf.html) explains shared spectra,
-sample-specific profiles, missing compounds and the common rank-selection
-objective in detail.
+### Elution profile recovery
+
+The examples are the EMG compound and the acid with the greatest total true area in their respective classes. Both were selected from the simulation before comparing any fits. Each occurs in eight samples. Solid curves show inferred profiles, dashed curves show the true profiles, and the eight absent true profiles coincide at zero. Colours order the 16 samples by true area. Heights retain original total-ion intensity per scan. The mean cosine in each example uses all eight positive occurrences, with a missing recovered profile scoring zero. The all-acid tally covers all ten acids.
+
+[![EMG and shark-fin acid profiles in all 16 samples](reference/figures/simultaneous-benchmark-elution-profiles.png)](reference/figures/simultaneous-benchmark-elution-profiles.png)
+
+[Benchmark methods, scoring, timings and reproduction code](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html).
 
 ## Choose a workflow
 

@@ -151,7 +151,7 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
     ggplot2::coord_flip(clip = "off") +
     ggplot2::labs(
       x = NULL, y = axis, title = title,
-      subtitle = sprintf("%s %.6f | %d correctly matched true spectra | bar: interquartile range",
+      subtitle = sprintf("%s %.7f | %d correctly matched true spectra | bar: interquartile range",
         statistic_name, centre, length(scores)),
       caption = paste(c(rank_label,caption),collapse="\n")
     ) +
@@ -253,7 +253,7 @@ graphics::mtext(
   "All 16 samples; absent true profiles lie at zero | solid: inferred | dashed: truth | blue to red: increasing true area",
   side = 1, outer = TRUE, line = 0.65, cex = 0.98, col = muted
 )
-graphics::mtext(paste(c("Small-scale 16-sample benchmark", rank_label, "1,200 scans"),collapse=" | "),
+graphics::mtext(paste(c("16 full chromatograms", rank_label, "10,000 scans per sample"),collapse=" | "),
   side = 3, outer = TRUE, line = 0.4, cex = 1.2, font = 2, col = navy)
 grDevices::dev.off()
 

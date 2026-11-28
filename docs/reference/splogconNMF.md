@@ -186,7 +186,8 @@ print(x, ...)
   `native_sweeps=6L`, `block_sweeps=6L`, `psf_width=NULL`,
   `screen_factor=1`, `censor=0.5`, `linkage="ward"`,
   `joint_trials=NULL`, `profile_cycles=4L`, `fusion_passes=0L`,
-  `initial_relaxed=TRUE`, `profile_fusion=TRUE`,
+  `initial_relaxed=TRUE`, `initial_solver=list()`,
+  `initial_fallback=TRUE`, `profile_fusion=TRUE`,
   `profile_restarts=TRUE`. `joint_trials` uses direct Poisson fusion for
   Poisson data and joint local refinement for the other families.
   `psf_width` supplies the typical FWHM in scans. When omitted, local
@@ -212,7 +213,20 @@ print(x, ...)
   included in the local fit, with the remaining components and
   background held in an offset. `original_cleanup=TRUE` enables a final
   original-channel deletion, local fusion and residual-discovery pass.
-  Set it to `FALSE` to skip that pass.
+  Set it to `FALSE` to skip that pass. `initial_solver` supplies named
+  [`L0glm::controlSolverGen()`](https://tomwenseleers.github.io/L0glm/reference/controlSolverGen.html)
+  arguments for the initial component-selection fit, including `solver`,
+  `method`, `precond`, `tol`, `maxit` and `max.memory` (GiB). For
+  example,
+  `list(initial_solver=list(solver="eigen", method=3L, precond=1L))`
+  requests Eigen conjugate gradients with diagonal preconditioning. The
+  default is Eigen Cholesky. If that fit exceeds L0glm's Gram/factor
+  workspace budget, `initial_fallback=TRUE` retries with diagonally
+  preconditioned CG and reports the switch. The retry retains the memory
+  limit, data, weights, background, penalty and component-selection
+  settings. Other errors and failures of explicitly selected iterative
+  solvers propagate. Set `initial_fallback=FALSE` to require the
+  requested solver.
 
 - start:
 
@@ -511,12 +525,12 @@ fit <- splogconNMF(X, Y, background = B, family = poisson("identity"),
   precluster = 4L, correlation = "none", ncores = 2L)
 fit
 #> Sparse log-concave NMF (poisson)
-#> 5 compounds; 8 channels; 0.48 s
+#> 5 compounds; 8 channels; 0.29 s
 #> dispersion = 1; theta = 1; lag-one correlation = 0
 #> GIC = 15438.9384
 c(compounds = fit$rank, GIC = GIC(fit), seconds = fit$seconds[["total"]])
 #> compounds       GIC   seconds
-#>      5.00  15438.94      0.48
+#>      5.00  15438.94      0.29
 # Broad profiles with nearly identical shapes can share complementary ion sets.
 # A conservative fusion pass runs on all original channels after preclustering.
 fit$contained_fusion

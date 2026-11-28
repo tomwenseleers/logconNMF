@@ -462,8 +462,6 @@ second <- matrix(rpois(length(signal), 1.4 * signal), nrow(signal))
 samples <- list(first = list(y = Y, time = seq_len(nrow(Y)), X = X),
   second = list(y = second, time = seq_len(nrow(Y)), X = X))
 joint <- logconNMF(samples, ncores = 1L)
-#> detected function goto_set_num_threads
-#> detected function goto_set_num_threads
 joint$rank
 #> [1] 2
 joint$areas

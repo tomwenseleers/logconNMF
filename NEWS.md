@@ -1,6 +1,10 @@
+# logconNMF 0.1.0.9014
+
+- The shared benchmark compares seven workflows on 16 full chromatograms with 1,000 compounds, including ten shark-fin acids. Timings are reported in seconds per sample.
+
 # logconNMF 0.1.0.9012
 
-The 16-sample benchmark figures and timing tables now use the same fast local-search fits. The PSF-width comparison reports rank and occurrence recovery separately for each initialization.
+The optional local rank search uses the original-ion criterion after the initial fit.
 
 # logconNMF 0.1.0.9011
 

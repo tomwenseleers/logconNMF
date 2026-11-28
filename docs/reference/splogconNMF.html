@@ -13,7 +13,7 @@ and shark-fin peaks while retaining all original outcome channels."><meta proper
 
     <a class="navbar-brand me-2" href="../index.html">logconNMF</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9002</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0.9014</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -219,7 +219,7 @@ a number between zero and 0.49 supplies the lag-one correlation.</p></dd>
 <code>final_polishes=1L</code>, <code>native_sweeps=6L</code>, <code>block_sweeps=6L</code>,
 <code>psf_width=NULL</code>, <code>screen_factor=1</code>, <code>censor=0.5</code>, <code>linkage="ward"</code>,
 <code>joint_trials=NULL</code>, <code>profile_cycles=4L</code>, <code>fusion_passes=0L</code>,
-<code>initial_relaxed=TRUE</code>,
+<code>initial_relaxed=TRUE</code>, <code>initial_solver=list()</code>, <code>initial_fallback=TRUE</code>,
 <code>profile_fusion=TRUE</code>, <code>profile_restarts=TRUE</code>. <code>joint_trials</code> uses direct Poisson fusion for Poisson data
 and joint local refinement for the other families. <code>psf_width</code> supplies
 the typical FWHM in scans. When omitted, local updates use the middle design
@@ -243,7 +243,18 @@ Broad fusions are compared with an equally refined unmerged local model.
 The entire support of every updated component is included in the local
 fit, with the remaining components and background held in an offset.
 <code>original_cleanup=TRUE</code> enables a final original-channel deletion, local
-fusion and residual-discovery pass. Set it to <code>FALSE</code> to skip that pass.</p></dd>
+fusion and residual-discovery pass. Set it to <code>FALSE</code> to skip that pass.
+<code>initial_solver</code> supplies named <code><a href="https://tomwenseleers.github.io/L0glm/reference/controlSolverGen.html" class="external-link">L0glm::controlSolverGen()</a></code> arguments for
+the initial component-selection fit, including <code>solver</code>, <code>method</code>,
+<code>precond</code>, <code>tol</code>, <code>maxit</code> and <code>max.memory</code> (GiB). For example,
+<code>list(initial_solver=list(solver="eigen", method=3L, precond=1L))</code>
+requests Eigen conjugate gradients with diagonal preconditioning.
+The default is Eigen Cholesky. If that fit exceeds L0glm's Gram/factor
+workspace budget, <code>initial_fallback=TRUE</code> retries with diagonally
+preconditioned CG and reports the switch. The retry retains the memory
+limit, data, weights, background, penalty and component-selection settings.
+Other errors and failures of explicitly selected iterative solvers propagate.
+Set <code>initial_fallback=FALSE</code> to require the requested solver.</p></dd>
 
 
 <dt id="arg-start">start<a class="anchor" aria-label="anchor" href="#arg-start"></a></dt>
@@ -497,12 +508,12 @@ Biostatistics 27(1), kxag010. <a href="https://doi.org/10.1093/biostatistics/kxa
 <span class="r-in"><span>  precluster <span class="op">=</span> <span class="fl">4L</span>, correlation <span class="op">=</span> <span class="st">"none"</span>, ncores <span class="op">=</span> <span class="fl">2L</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">fit</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Sparse log-concave NMF (poisson)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5 compounds; 8 channels; 0.48 s</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 compounds; 8 channels; 0.29 s</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> dispersion = 1; theta = 1; lag-one correlation = 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> GIC = 15438.9384</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>compounds <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">rank</span>, GIC <span class="op">=</span> <span class="fu"><a href="https://tomwenseleers.github.io/L0glm/reference/model_criteria.html" class="external-link">GIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, seconds <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">seconds</span><span class="op">[[</span><span class="st">"total"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> compounds       GIC   seconds </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      5.00  15438.94      0.48 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      5.00  15438.94      0.29 </span>
 <span class="r-in"><span><span class="co"># Broad profiles with nearly identical shapes can share complementary ion sets.</span></span></span>
 <span class="r-in"><span><span class="co"># A conservative fusion pass runs on all original channels after preclustering.</span></span></span>
 <span class="r-in"><span><span class="va">fit</span><span class="op">$</span><span class="va">contained_fusion</span></span></span>

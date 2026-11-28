@@ -159,26 +159,6 @@ and degrees of freedom. These searches establish the best criterion
 among the candidates examined. A fitted rank can still depend on which
 dictionaries contain distinguishable spectra.
 
-In the 16-sample width experiment, the calibrated PSF, a half-width
-Gaussian and a double-width Gaussian all recovered **true rank 100
-exactly (estimated rank 100)** with 769 true and zero false positive
-calls. Their final original-channel GICs were 4,146,698, 4,144,750 and
-4,141,611, respectively. In two counterbalanced repetitions per start,
-selective refinement took 20.7, 20.1 and 30.1 seconds for 100 sweeps,
-compared with 31.9, 31.6 and 39.1 seconds for full sweeps. Those timings
-exclude dictionary construction and support search. The full-sweep and
-selective-sweep GICs differed by less than 0.007% at each start.
-
-![Missed occurrences and false positives across PSF
-starts](../reference/figures/psf-start-recovery.png)
-
-Missed occurrences and false positives across PSF starts
-
-[Per-start rank, GIC and
-recovery](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/psf-starts.csv).
-[Sweep timings and visited
-factors](https://github.com/tomwenseleers/GCMSprime/blob/master/GCMSbenchmark/inst/benchmarks/results/selective-sweep-timings.csv).
-
 1.  **Form a spectral dictionary.** Calibrate the PSF, form its banded
     design and fit a nonnegative grouped L0 regression across channels.
     For a single sample the independent log-concave fit supplies local
@@ -259,43 +239,12 @@ specification give the same objective differences.
 
 ### Convergence from estimated and true elution profiles
 
-The simulation contained 100 shared compounds across 16 samples with
-1,200 scans and 258 ions each. In a separate convergence experiment with
-100 extra sweeps and a second blind PSF, the estimated-profile start
-descended from 21,188,577 to **4,146,698** and the true-profile start
-from 10,875,547 to **4,142,623**. Both reached **estimated rank 100,
-equal to the true rank of 100**. The GIC held steady or decreased at
-every recorded checkpoint (158 for the estimated start and 126 for the
-true-profile start). Both fits used the observed counts and identical
-search settings. Their endpoints differ by **0.098%** of the absolute
-reference GIC. This empirical optimality gap measures agreement with an
-attainable reference. Its distance from the global minimum is unknown.
-The red dotted line marks the truth-initialised endpoint in both panels.
-Each plotted checkpoint uses the original GIC, including those following
-a temporary support proposal.
-
-![GIC over the joint fit and percentage difference from the
-truth-initialized endpoint on the small 16-sample
-benchmark](../reference/figures/empirical-gic-convergence.png)
-
-GIC over the joint fit and percentage difference from the
-truth-initialized endpoint on the small 16-sample benchmark
-
-[Download the block-by-block GIC, deviance, rank and degrees of freedom
-for both
-fits](https://tomwenseleers.github.io/logconNMF/benchmark-gic-trace.csv).
-
-For a simulation from
-[`simulateGCMSSamples()`](https://tomwenseleers.github.io/logconNMF/reference/simulateGCMSSamples.md),
-pass the simulation itself or a named list of scan-by-compound matrices
-with shared compound IDs. The diagnostic estimates initial areas,
-spectra and backgrounds from the counts and then applies the same
-profile, spectral and support updates to both starts. Irregular sampling
-can make the true integrated counts slightly nonconcave on the observed
-time grid. The reference takes the least concave majorant of log height
-on each support interval and rescales it to unit area. On this benchmark
-the median fraction of a profile’s area redistributed by this operation
-was 0.002%, and the largest was 0.044%.
+When simulation profiles and shared identities are available,
+`truth.profiles` starts a second fit from those profiles. Both starts
+estimate spectra, amplitudes, shapes and background from the observed
+counts. The signed percentage gap compares their endpoints at the same
+original GIC. The unknown global minimum may be lower. In the trace plot
+the red dotted line marks the truth-initialised endpoint.
 
 ``` r
 
@@ -310,16 +259,6 @@ gicGap(fit)
 plot(fit$gic_gap)
 ```
 
-With profile shapes held fixed, a single spectral sweep on this
-simulation already achieved a median cosine of **0.99999895** against
-the 100 true spectra. That sweep also updates the background and
-transfers each spectrum’s total scale to its profiles. The full
-reference fit additionally updates each sample’s shape and area. Its
-scaled deviance reached 3.523 million, compared with 5.833 million after
-the first fixed-shape spectral sweep and 5.732 million after 16
-fixed-shape sweeps. Overlapping compounds share observations, so
-updating one spectrum changes the residual available to its neighbours.
-
 If the complete profile matrices H_s (including areas) and backgrounds
 are fixed, estimating the shared spectrum matrix P is one conditional
 regression problem. With fixed support, the Poisson Hessian for ion j is
@@ -329,11 +268,9 @@ which is positive semidefinite. A numerical solver can take several
 sweeps to solve that single block. Supplying only unit-area shapes also
 leaves a separate amplitude to estimate for each sample and compound.
 
-With eight threads, the complete CDF workflow averaged 50.9 s with the
-diagnostic off, 57.0 s with only tracing, and 76.2 s with the reference
-fit and both traces (two runs per setting). The extra fit reuses the
-estimated PSF, registration and noise calibration. Ordinary fits leave
-tracing and the reference calculation off.
+Tracing and the optional reference fit add computation. The published
+full-chromatogram comparison times a single blind fit. [Benchmark
+results](https://tomwenseleers.github.io/GCMSprime/articles/benchmarks.html).
 
 Solver selection is automatic. Identity-link Poisson and quasi-Poisson
 data with unit weights and exposure and zero observation offset use the
