@@ -131,11 +131,11 @@ distribution_plot <- function(scores, ticks, file, title, axis, statistic,
   }, character(1L))
 
   plot <- ggplot2::ggplot(data, ggplot2::aes(x = model, y = position)) +
-    ggplot2::geom_violin(fill = light_grey, colour = "grey45", scale = "width",
-      width = 0.72, adjust = 0.75, linewidth = 0.6) +
-    ggplot2::geom_point(colour = steelblue, alpha = 0.55, size = 1.15,
+    ggplot2::geom_point(colour = steelblue, alpha = 0.14, size = 0.75, stroke = 0.20,
       position = ggplot2::position_jitter(width = 0.20, height = 0,
         seed = 23L)) +
+    ggplot2::geom_violin(fill = scales::alpha(light_grey, 0.60), colour = "grey45",
+      scale = "width", width = 0.72, adjust = 0.75, linewidth = 0.6) +
     ggplot2::geom_linerange(data = summary_data,
       ggplot2::aes(x = model, ymin = lower, ymax = upper),
       inherit.aes = FALSE, colour = "black", linewidth = 1.15) +
